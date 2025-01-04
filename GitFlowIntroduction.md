@@ -8,6 +8,10 @@ Birçok geliştiricinin çalıştığı ürünlere ait kod depolarında dağıt�
 - Release : Üretime çıkılacak son sürümden önce düzenlemelerin yapıldığı son daldır. Release branch sürüm çıktıntan sonra kapatılır ve bu ensanda release üzerindeki kod master ve develop branch'lerine birleştirilir _(Merge)_
 - Hotfix : Üretim ortamında oluşmuş kritik hataların düzeltilmesi için açılan daldır. Genellikle Master branch'ten oluşturulur ve mümkün olan en kısa sürede kapatılması beklenir. Kapatılma işleminde düzeltilmiş kodun son hali yine master ve develop branch'lerine birleştirilir _(merge)_
 
+Bu stratejiyi kabaca aşağıdaki grafikte görüldüğü gibi özetleyebiliriz.
+
+![Git Flow Strategy](images/gitflow.png)
+
 Gitflow komut satırından kullanılabilen bir akıştır ama aynı zamanda Git Extensions isimli tool yardımıyla görsel olarak da kullanılabilir. Sistemde gitflow yoksa yüklemek gerekir.
 
 ```bash
@@ -15,7 +19,7 @@ Gitflow komut satırından kullanılabilen bir akıştır ama aynı zamanda Git 
 git flow version
 ```
 
-## Örnek
+## Örnek Uygulama
 
 Git flow'un nasıl kullanıldığını örneklemek için basit bir senaryo göz önüne alalım. Bir oyun geliştirme framework'ü üzerinde çalıştığımız varsayalım. Yeni sürümde grafik kütüphanesinin yeni bir sürümü olacak ve bunu bir feature üzerinde geliştireceğiz. İlgili feature'u üretim ortamına çıkacağız ve sonra bir sorun olduğunu fark edip hotfix açarak devam edeceğiz. Gerçek hayatta çok sık karşılaştığımız bir senaryo olduğunu söyleyebiliriz. Adım adım ilerleyelim.
 
@@ -32,6 +36,21 @@ git add README.md
 git commit -m "Initial commit"
 
 git flow init
+```
+
+git flow init komutu çalıştırıldığında bazı sorular sorar ve branch adlarını ister. Bunları varsayılan değerleri ile bırakabiliriz. Bu işlem sonrasında .git klasöründeki config isimli dosya içeriğine aşağıdaki gibi ilaveler yapılır.
+
+```text
+[gitflow "branch"]
+ master = main
+ develop = develop
+[gitflow "prefix"]
+ feature = feature/
+ bugfix = bugfix/
+ release = release/
+ hotfix = hotfix/
+ support = support/
+ versiontag = 
 ```
 
 **Adım 2:** Yeni bir Featur açılması.
