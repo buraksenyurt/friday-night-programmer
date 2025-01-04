@@ -2,11 +2,31 @@
 
 Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplayacağımız genel repodur.
 
+- [Friday Night Programmer](#friday-night-programmer)
+  - [Önsöz](#önsöz)
+  - [Yardımcılar](#yardımcılar)
+  - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
+  - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
+  - [Chapter 02 - War Games](#chapter-02---war-games)
+  - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one)
+  - [Chapter 04 - Enemy at the Gates](#chapter-04---enemy-at-the-gates)
+  - [Chapter 05 - Back to the Future](#chapter-05---back-to-the-future)
+  - [Chapter 06 - Memento](#chapter-06---memento)
+  - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic)
+  - [Chapter 08 - Return of the King](#chapter-08---return-of-the-king)
+
 ## Önsöz
 
 Yeni yıl planlarım arasında yer alan ve çok uzun zamandır gerçekleştirmek istediğim bir canlı yayın serisi var. Her cuma gecesi kendimi geliştirmek, tecrübelerimi aktarmak, bilgilerimi pekiştirmek ve tartışmak için çalışma masamın başında olmayı planlıyorum. Programın misyonu ve içeriği aşağıdaki gibidir.
 
 ![image](https://github.com/user-attachments/assets/ae1e7a98-b7ba-45e2-85ce-5910012b601a)
+
+## Yardımcılar
+
+Sezon boyunca yardımcı olabilecek bazı dokümanlar.
+
+- Popüler git branch stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
+- Bölümlerde ele alınacak olası senaryolar ise [Use Cases](UseCases.md) isimli dokümanda yer almaktadır.
 
 ## Chapter 00 - Hello World _(3 0cak 2025 Cuma, 21:30 - 22:30)_
 
@@ -18,7 +38,7 @@ Bu ilk yayınımız tanışma ile geçti. Yayın sırasında aşağıdaki başl�
 - İlk paramı kazandığım zamanının ötesinde olan geliştirme aracı [Delphi](https://winworldpc.com/product/delphi/2x)
 - Yayın sırasında önerdiğim [Mark J.Price'ın Tools and Skills for .NET 8 kitabı](https://www.amazon.com/Tools-Skills-NET-practices-solutions/dp/183763520X)
 
-Yayının ilerleyen kısımlarında şu konu üzerinde durmaya çalıştık. Managed/Unmanaged ortamlar ve burada Rust'ın konumu. C# ve Java gibi managed environment'ler üzerinde koşan diller esasında line of business diye ifade edebileceğimiz iş çözümlerinin hızlı, az hatayla geliştirilmesinde endüstriyel olarak kendilerini kanıtlamış diller. Bu ortamlar belleği bizim için yönetir ve GC _(Garbage Collector)_ gibi mekanizmalar kullanılmayan referansların bellekten düşürülmesini unutmamızı engeller _(en basit anlamda)_ Java ve C# kodları derlendiğinde bir ara kod çıktısı oluşur ve bir çalışma zamanı _(runtime)_ bu kodları yürütür. Bu çalışma zamanı olası program çökmelerine karşı istisnaları _(exception)_ yönetmemizi de sağlar. Tür güvenliği _(type safety)_ söz konusudur, geniş kütüphane desteği ile birçok işlevi kolayca gerçekleştirmemizi sağlarlar. 
+Yayının ilerleyen kısımlarında şu konu üzerinde durmaya çalıştık. Managed/Unmanaged ortamlar ve burada Rust'ın konumu. C# ve Java gibi managed environment'ler üzerinde koşan diller esasında line of business diye ifade edebileceğimiz iş çözümlerinin hızlı, az hatayla geliştirilmesinde endüstriyel olarak kendilerini kanıtlamış diller. Bu ortamlar belleği bizim için yönetir ve GC _(Garbage Collector)_ gibi mekanizmalar kullanılmayan referansların bellekten düşürülmesini unutmamızı engeller _(en basit anlamda)_ Java ve C# kodları derlendiğinde bir ara kod çıktısı oluşur ve bir çalışma zamanı _(runtime)_ bu kodları yürütür. Bu çalışma zamanı olası program çökmelerine karşı istisnaları _(exception)_ yönetmemizi de sağlar. Tür güvenliği _(type safety)_ söz konusudur, geniş kütüphane desteği ile birçok işlevi kolayca gerçekleştirmemizi sağlarlar.
 
 ![image](https://github.com/user-attachments/assets/0e9a98df-ae54-46e4-82a2-541b23b550e3)
 
