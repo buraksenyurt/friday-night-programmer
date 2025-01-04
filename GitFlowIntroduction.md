@@ -34,3 +34,60 @@ git commit -m "Initial commit"
 git flow init
 ```
 
+**Adım 2:** Yeni bir Featur açılması.
+
+```bash
+# vector-math-refacotring isimli yeni bir feature açıyoruz
+git flow feature start vector-math-refactoring
+
+# Sembolik bir takım iyileştirmeler yaptığımızı düşünelim
+echo "Vector aritmetiği için gerekli fonksiyonar..." >> README.md
+git add README.md
+git commit -m "Add vector math feature"
+
+# Bu değişikliklerden sonra feature'ı kapatmak istersek aşağıdaki gibi ilerleyebiliriz.
+git flow feature finish vector-math-refactoring
+```
+
+**Adım 3:** Release Hazırlanması
+
+```bash
+# Önce release branch açılır
+git flow release start 1.1.0
+
+# Ardından sürümle ilgili bazı notlar eklenir.
+echo "Version 1.1.0: Vector math feature has been added" > CHANGELOG.md
+git add CHANGELOG.md
+git commit -m "Update changelog for 1.1.0"
+
+# Son olarak sürüm kapatılır
+git flow release finish 1.1.0
+```
+
+**Hotfix Kullanımı:** Diyelim ki son sürümde kritik bir hata tespit edildi.
+
+```bash
+# Bir hotfix açalım
+git flow hotfix start vector-func-error-fix
+
+# Sembolik olarak hatayı düzeltelim
+echo "Fixed the critical error" > Fixed.txt
+git add Fixed.txt
+git commit -m "Fix critical bug on vector functionality"
+
+# Hotfix'i kapatalım
+git flow hotfix finish vector-func-error-fix
+```
+
+## Gitflow Komutları
+
+Çok sık kullanılan komutları şöyle özetleyebiliriz.
+
+| Amaç              | Komut                             |
+| ----------------- | --------------------------------- |
+| Feature başlatma  | `git flow feature start <featureName>`   |
+| Feature tamamlama | `git flow feature finish <featureName>`  |
+| Release başlatma  | `git flow release start <releaseName>`  |
+| Release tamamlama | `git flow release finish <releaseName>` |
+| Hotfix başlatma   | `git flow hotfix start <hotfixName>`    |
+| Hotfix tamamlama  | `git flow hotfix finish <hotfixName>`   |
