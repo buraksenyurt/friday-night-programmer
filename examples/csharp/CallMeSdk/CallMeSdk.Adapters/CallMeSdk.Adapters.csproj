@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CallMeSdk.Adapters\CallMeSdk.Adapters.csproj" />
     <ProjectReference Include="..\CallMeSdk.Core\CallMeSdk.Core.csproj" />
   </ItemGroup>
 

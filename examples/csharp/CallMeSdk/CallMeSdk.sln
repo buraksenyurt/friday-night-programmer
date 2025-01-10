@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Core", "CallMeSdk.Core\CallMeSdk.Core.csproj", "{3F6F29DD-56E3-41AA-A54B-004141970BF6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Providers", "CallMeSdk.Providers\CallMeSdk.Providers.csproj", "{809E82D0-9182-465E-B265-7C228A99BADB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Adapters", "CallMeSdk.Adapters\CallMeSdk.Adapters.csproj", "{123F1377-56F9-4E78-A3DD-0E94A938D2FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Client.Terminal", "ConsoleMeSdk.Client.Terminal\CallMeSdk.Client.Terminal.csproj", "{7BC78A11-111F-446C-805E-EC7D4CACAFB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Tests", "CallMeSdk.Tests\CallMeSdk.Tests.csproj", "{3D4274C9-AA78-4ABC-ADD5-3939CBB3BB3A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{809E82D0-9182-465E-B265-7C228A99BADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{809E82D0-9182-465E-B265-7C228A99BADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{809E82D0-9182-465E-B265-7C228A99BADB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{123F1377-56F9-4E78-A3DD-0E94A938D2FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{123F1377-56F9-4E78-A3DD-0E94A938D2FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{123F1377-56F9-4E78-A3DD-0E94A938D2FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{123F1377-56F9-4E78-A3DD-0E94A938D2FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BC78A11-111F-446C-805E-EC7D4CACAFB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BC78A11-111F-446C-805E-EC7D4CACAFB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BC78A11-111F-446C-805E-EC7D4CACAFB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BC78A11-111F-446C-805E-EC7D4CACAFB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4274C9-AA78-4ABC-ADD5-3939CBB3BB3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4274C9-AA78-4ABC-ADD5-3939CBB3BB3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4274C9-AA78-4ABC-ADD5-3939CBB3BB3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4274C9-AA78-4ABC-ADD5-3939CBB3BB3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

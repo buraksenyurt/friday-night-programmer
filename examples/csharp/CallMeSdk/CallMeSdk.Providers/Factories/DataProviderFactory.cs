@@ -4,5 +4,5 @@ namespace CallMeSdk.Providers.Factories;
 
 public abstract class DataProviderFactory
 {
-    protected abstract IDataProvider GetDataProvider();
+    public abstract IDataProvider GetDataProvider();
 }
