@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Core", "CallMeSdk.Core\CallMeSdk.Core.csproj", "{3F6F29DD-56E3-41AA-A54B-004141970BF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallMeSdk.Providers", "CallMeSdk.Providers\CallMeSdk.Providers.csproj", "{809E82D0-9182-465E-B265-7C228A99BADB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F6F29DD-56E3-41AA-A54B-004141970BF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F6F29DD-56E3-41AA-A54B-004141970BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F6F29DD-56E3-41AA-A54B-004141970BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F6F29DD-56E3-41AA-A54B-004141970BF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{809E82D0-9182-465E-B265-7C228A99BADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{809E82D0-9182-465E-B265-7C228A99BADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{809E82D0-9182-465E-B265-7C228A99BADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{809E82D0-9182-465E-B265-7C228A99BADB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
