@@ -1,11 +1,10 @@
-﻿namespace CallMeSdk.Tests
+﻿namespace CallMeSdk.Tests;
+
+public class RestDataProviderTests
 {
-    public class RestDataProviderTests
+    [Fact]
+    public void GetCustomers_ShouldReturnCorrectCustomerList()
     {
-        [Fact]
-        public void GetCustomers_ShouldReturnCorrectCustomerList()
-        {
-            //TODO@buraksenyurt Moq kütüphanesini kullanarak testi tamamlayalım
-        }
+        //TODO@buraksenyurt Moq kütüphanesini kullanarak testi tamamlayalım
     }
 }

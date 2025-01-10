@@ -4,5 +4,5 @@ namespace CallMeSdk.Core.Interfaces;
 
 public interface IDataProvider
 {
-    IEnumerable<CustomerBase> Fetch();
+    Task<IEnumerable<CustomerBase>> FetchAsync();
 }
