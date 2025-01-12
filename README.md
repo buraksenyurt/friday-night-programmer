@@ -7,7 +7,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Yardımcılar](#yardımcılar)
   - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
   - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
-  - [Chapter 02 - War Games](#chapter-02---war-games)
+  - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
   - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one)
   - [Chapter 04 - Enemy at the Gates](#chapter-04---enemy-at-the-gates)
   - [Chapter 05 - Back to the Future](#chapter-05---back-to-the-future)
