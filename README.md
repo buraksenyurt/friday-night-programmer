@@ -25,8 +25,12 @@ Yeni yıl planlarım arasında yer alan ve çok uzun zamandır gerçekleştirmek
 
 Sezon boyunca yardımcı olabilecek bazı dokümanlar.
 
-- Popüler git branch stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
-- Bölümlerde ele alınacak olası senaryolar ise [Use Cases](UseCases.md) isimli dokümanda yer almaktadır.
+- Popüler git branch stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./documents/GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
+- Bölümlerde ele alınacak olası senaryolar ise [Use Cases](./documents/UseCases.md) isimli dokümanda yer almaktadır.
+
+Yukarıdaki dokümanlar ve sonrasında yazılacak diğerleri documents klasörü altında toplanacaktır.
+
+- [Rust ile WASM Kullanımı](./documents/RustAndWasm.md)
 
 ## Chapter 00 - Hello World _(3 0cak 2025 Cuma, 21:30 - 22:30)_
 
@@ -64,7 +68,7 @@ Bu programda aşağıdaki konulardan bahsettik.
 - Akışın kalan kısmında Git Flow stratejisinden bahsettik. Bu konu ile ilgili [Git Flow Introduction](GitFlowIntroduction.md) dokümanına bakabilirsiniz.
 - Son bölümde Çağrı Merkezi vakasını ele almaya başladık. Geliştirmeleri genel olarak call-me-sdk isimli feature üstünde yapacağız.
 
-## Chapter 02 - War Games
+## Chapter 02 - War Games _(17 Ocak 2025 Cuma, 21:30 - 22:30)_
 
 ## Chapter 03 - Ready, Player One
 
