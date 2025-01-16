@@ -23,14 +23,15 @@ Yeni yıl planlarım arasında yer alan ve çok uzun zamandır gerçekleştirmek
 
 ## Yardımcılar
 
-Sezon boyunca yardımcı olabilecek bazı dokümanlar.
+Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
-- Popüler git branch stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./documents/GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
-- Bölümlerde ele alınacak olası senaryolar ise [Use Cases](./documents/UseCases.md) isimli dokümanda yer almaktadır.
+- Bölümlerde ele alınacak ana senaryolar [Use Cases](./documents/UseCases.md) isimli dokümanda yer almaktadır.
+- Sezon boyunca birçok dummy uygulamaya ihtiyacımız olacak. Dummy servisler, veritabanları, docker imajları vs Bunlara ait özet bilgileri [Utilities](./documents/Utilities.md) dokümanında bulabilirsiniz.
 
-Yukarıdaki dokümanlar ve sonrasında yazılacak diğerleri documents klasörü altında toplanacaktır.
+Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
 - [Rust ile WASM Kullanımı](./documents/RustAndWasm.md)
+- Popüler **git branch** stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./documents/GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
 
 ## Chapter 00 - Hello World _(3 0cak 2025 Cuma, 21:30 - 22:30)_
 
@@ -52,7 +53,7 @@ Ancak uzaya gönderdiğimiz bir mekiğin yörünge hesaplama modülü ve bağlı
 
 Görsel DevNot Summit 2023'te yaptığım Rust dili sunumuna aittir. İşte tam bu notkada hızlı geliştirme yapmamızı sağlayan güvenli ortamlarla, yüksek hız ve performansa kavuşabildiğimiz ama geliştirmenin görece zor olduğu ortamlar arasında kalırız. Rust tam orta noktada her iki tarafın ihtiyaçlarını giderebilecek kadar güçlü çözümlerle gelir. Unmanaged ortamlarda karşılaşabileceğimiz ve yukarıdaki görselde ifade edilen birçok hatayı henüz derleme _(compile time) aşamasında engeller. Rust dilinin Sustainability Software Engineering tarafında da önemli bir yeri vardır hatta bu konuyu ilk olarak Amazon [şu makalesinde](https://aws.amazon.com/blogs/opensource/sustainability-with-rust/) ele almıştır. Diğer yandan rust dilinin yazılım güvenliği açısından birçok açığa karşı etkili bir çözüm olduğu ifade edilebilir.
 
-_Yayın sırasında Rust programlama dilinin bu kadar çok reklamını yapmadım elbette 😄_
+_Yayın sırasında Rust programlama dilinin bu kadar çok reklamını yapmadım elbette._
 
 İlk programımız bu şekilde sonlandı diyebilirim. Yayın sırasında her ne kadar sürçü lisan ettiysem affola diyeyim. Bir sonraki canlı yayında görüşmek ümidiyle.
 
