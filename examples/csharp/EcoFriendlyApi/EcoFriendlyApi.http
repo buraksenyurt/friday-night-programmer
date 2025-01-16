@@ -1,0 +1,6 @@
+@EcoFriendlyApi_HostAddress = http://localhost:5244
+
+GET {{EcoFriendlyApi_HostAddress}}/ecowinnercenter/
+Accept: application/json
+
+###
