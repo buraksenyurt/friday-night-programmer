@@ -54,6 +54,6 @@ public class RestDataProviderTests
 
         // Assert
         Assert.Equal(2, customers.Count());
-        Assert.Equal("John Doe", customers.First().Fullname);
+        Assert.Equal("Billy the Geyts", customers.First().Fullname);
     }
 }
