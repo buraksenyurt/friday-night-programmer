@@ -20,8 +20,7 @@ internal class Program
             BaseUrl = new Uri("https://api.azonbank.com"),
             Endpoint = "/customers"
         };
-
-        var factory = new RestDataProviderFactory(apiConfig, new AzonBankCustomerDataAdapter(), logger);
+        var factory = new RestDataProviderFactory(new HttpClient(), apiConfig, new AzonBankCustomerDataAdapter(), logger);
         var provider = factory.GetDataProvider();
 
         var customers = await provider.FetchAsync();
