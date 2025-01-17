@@ -1,0 +1,5 @@
+services:
+  azon-insurance-service:
+    build: .
+    ports:
+      - "7888:8080"

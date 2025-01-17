@@ -11,3 +11,19 @@ UC00 kodlu Çağrı Merkezi Çözümleri vakasında farklı segmentten müşteri
 _Servis sayılarının çoğalması durumunda belki bir Service Farm kurabiliriz ve orkestrasyonu için Docker Compose ya da daha üst seviye farklı bir çözüme gidebiliriz._
 
 The Best Support Of Nature servisini csharp klasöründe **EcoFriendlyApi** adıyla bulabilirsiniz.
+
+## Azon Insurance Service
+
+Azon bankasının bir alt kurumu olan sigorta uygulamarının servisi deneysel müşteri verileri döndürmekte. Bu uygulama EcoFriendlyApi hizmetine benzer şekilde REST tabanlı bir hizmettir ancak Rust programlama dili kullanılarak yazılmıştır. İlk etapta CallMeSDK oyun alanı içinde kullanabilir ancak ilerleyen süreçlerde farklı dağıtık sistem organizasyonlarının inşasında da test servis olarak ele alınabilir. Servisin tek başına çalıştırılabileceği gibi docker ortamında da ayağa kaldırılabilir. Bunun için root klasörde Dockerfile ve docker-compose.yml dosyaları bulunmaktadır. Kendi sisteminize indirdiğinizde öncelikle aşağıdaki adımları takip etmelisiniz.
+
+```shell
+# Docker build işlemi
+docker-compose build
+
+# Çalıştırmak içinse
+docker-compose up
+```
+
+Eğer her şey yolunda gitmişse kobay servise localhost:7888/customers adresinden erişilebilir. İşte kendi Windows 11 ortamımdaki görüntü.
+
+![Azon Insurance Runtime](../images/AzonInsRuntime.png)
