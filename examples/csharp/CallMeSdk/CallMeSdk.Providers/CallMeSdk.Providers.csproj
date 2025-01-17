@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CallMeSdk.Adapters\CallMeSdk.Adapters.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CallMeSdk.Core\CallMeSdk.Core.csproj" />
   </ItemGroup>
 
