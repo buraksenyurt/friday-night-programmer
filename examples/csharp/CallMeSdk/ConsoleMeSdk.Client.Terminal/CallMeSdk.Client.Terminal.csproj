@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CallMeSdk.Adapters\CallMeSdk.Adapters.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CallMeSdk.Core\CallMeSdk.Core.csproj" />
     <ProjectReference Include="..\CallMeSdk.Providers\CallMeSdk.Providers.csproj" />
   </ItemGroup>
