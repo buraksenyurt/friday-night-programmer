@@ -11,3 +11,7 @@ UC00 kodlu Çağrı Merkezi Çözümleri vakasında farklı segmentten müşteri
 _Servis sayılarının çoğalması durumunda belki bir Service Farm kurabiliriz ve orkestrasyonu için Docker Compose ya da daha üst seviye farklı bir çözüme gidebiliriz._
 
 The Best Support Of Nature servisini csharp klasöründe **EcoFriendlyApi** adıyla bulabilirsiniz.
+
+## Azon Insurance Service
+
+Azon bankasının bir alt kurumu olan sigorta uygulamarının servisi deneysel müşteri verileri döndürmekte. Bu uygulama EcoFriendlyApi hizmetine benzer şekilde REST tabanlı bir hizmettir ancak Rust programlama dili kullanılarak yazılmıştır. İlk etapta CallMeSDK oyun alanı içinde kullanabilir ancak ilerleyen süreçlerde farklı dağıtık sistem organizasyonlarının inşasında da test servis olarak ele alınabilir.
