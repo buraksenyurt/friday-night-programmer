@@ -71,6 +71,18 @@ Bu programda aşağıdaki konulardan bahsettik.
 
 ## Chapter 02 - War Games _(17 Ocak 2025 Cuma, 21:30 - 22:30)_
 
+Bu programda aşağıdaki konulardan bahsettik.
+
+- Tavsiye edeceğim kitap Harry Harrison'dan Yer Açın! Yer Açın! Hatta 1973 yılında [Soylent Green](https://www.imdb.com/title/tt0070723/) olarak da sinemaya uyarlanmış.
+- Bahsettiğimiz 1984 Eylül tarihli Sinclair Programs dergisi için [şu adrese](https://ia601006.us.archive.org/2/items/sinclair-programs-23/SinclairPrograms23-Sep84.pdf) uğrayabilir ve derginin tamamına ulaşabilirsiniz.
+- Dotty The Kangroo isimli oyun üzerine güzel bir video ve Ian McTavish'i bulma macerası için [şu videoya](https://www.youtube.com/watch?v=EbFN5dS_iuU) bakılabilir. İlgili oyunu oynamak isterseniz de [buradaki](https://spectrumcomputing.co.uk/entry/40761/ZX-Spectrum/Dotty_the_Kangaroo) emulatorlerden yararlanabilirsiniz.
+- Rust'ı 100 örnek ile öğrenmek isterseniz güzel bir doküman var. [İşte burada](https://rust-exercises.com/100-exercises/)
+- Google'ın Android takımı için hazırladığı [Rust eğitim dokümanı](https://google.github.io/comprehensive-rust/bare-metal.html) oldukça doyurucu.
+- Google'ın kapattığı projeleri öğrenmek isterseniz bir [mezarlık](https://killedbygoogle.com/) var.
+- Web sitelerinde kullanıcıların en sevmediği şey sanırım 404 hatası almak. Ancak bunu da [kullanıcı dostu hale](https://www.creativebloq.com/web-design/best-404-pages-812505) getiriyorlar.
+- Readme dokümanlarını hazırlarken yazı stillerini düzenlemekte kullanabileceğimiz kavramların özetine [buradan](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) ulaşabilirsiniz.
+- .Net platformu için kullanılabilecek araçların [derlenmiş bir listesi](https://github.com/quozd/awesome-dotnet?tab=readme-ov-file#tools) Arada sırada güncellense de topluca türlü bilgilere ulaşabileceğimiz bir alan.
+
 ## Chapter 03 - Ready, Player One
 
 ## Chapter 04 - Enemy At The Gates
