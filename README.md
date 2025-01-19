@@ -1,6 +1,8 @@
 # Friday Night Programmer
 
-Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplayacağımız genel repodur.
+Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplayacağımız genel repodur. Son güncelleme itibariyle oyun sahasının durumunu aşağıdaki gibi özetleyebiliriz.
+
+![FNP Updated](./images/FnpLastState.png)
 
 - [Friday Night Programmer](#friday-night-programmer)
   - [Önsöz](#önsöz)
