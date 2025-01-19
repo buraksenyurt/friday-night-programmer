@@ -62,6 +62,8 @@ _Yayın sırasında Rust programlama dilinin bu kadar çok reklamını yapmadım
 
 ## Chapter 01 - A New Hope _(10 Ocak 2025 Cuma, 21:30 - 22:30)_
 
+[Yayın Linki](https://youtube.com/live/h5H11RjS298)
+
 Bu programda aşağıdaki konulardan bahsettik.
 
 - 20 Nisan 2025'te Rust Türkiye konferansı gerçekleştirilecek. Uluslararası diğer konferansları da takip etmek için [bu adrese](https://corrode.dev/blog/rust-conferences-2025/#rust-konf-turkiye) bakabilirsiniz.
@@ -73,6 +75,8 @@ Bu programda aşağıdaki konulardan bahsettik.
 - Son bölümde Çağrı Merkezi vakasını ele almaya başladık. Geliştirmeleri genel olarak call-me-sdk isimli feature üstünde yapacağız.
 
 ## Chapter 02 - War Games _(17 Ocak 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki](https://youtube.com/live/Pe0iihvA6QE)
 
 Bu programda aşağıdaki konulardan bahsettik.
 
