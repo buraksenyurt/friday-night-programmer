@@ -1,0 +1,5 @@
+services:
+  cpu-mem-service:
+    build: .
+    ports:
+      - "6501:8080"
