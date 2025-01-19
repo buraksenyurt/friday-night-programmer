@@ -4,19 +4,20 @@ Bu sefer farklı bir senaryomuz var. Sonuçta WASM'ın avantajlarından yararlan
 
 ## CPU / Memory Veri Toplama Servisi
 
-Öncelikle işlemci ve bellek kullanımı bilgilerini toplayan bir servis yazalım. Bu servisi de Rust dilini kullanarak geliştirebiliriz. 
+Öncelikle işlemci ve bellek kullanımı bilgilerini toplayan bir servis yazalım. Bu servisi de Rust dilini kullanarak geliştirebiliriz.
 
 ```shell
 cargo new cpu-mem-service
 
 # Gerekli Crate'lerin yüklenmesi
-cargo add actix-web sysinfo serde_json chrono
+cargo add actix-web actix-cors sysinfo serde_json chrono
 cargo add serde -F derive
 ```
 
 Sunucu tarafı kodlarımızı aşağıdaki gibi geliştirebiliriz.
 
 ```rust
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer, Responder};
 use serde::Serialize;
 use std::sync::Mutex;
@@ -35,6 +36,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(app_state.clone())
             .route("/machine/stats", web::get().to(get_sys_stats))
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_header()
+                    .allow_any_method(),
+            )
     })
     .bind(address)?
     .run()
@@ -81,7 +88,7 @@ async fn get_sys_stats(data: web::Data<AppState>) -> impl Responder {
 }
 ```
 
-Servis tarafını tamamladıktan sonra en azından bir kere test etmekte yarar var. Bunun için tarayıcıdan localhost:6501/machine/stats adresine gidebiliriz. Sayfayı her yenilediğimizde JSON içeriğinin artması (max 50 kayıt tutar) gerekiyor. Aynen aşağıdaki şekilde görüldüğü gibi.
+Servis tarafını tamamladıktan sonra en azından bir kere test etmekte yarar var. Bunun için tarayıcıdan **localhost:6501/machine/stats** adresine gidebiliriz. Sayfayı her yenilediğimizde JSON içeriğinin artması *(max 50 kayıt tutar)* gerekiyor. Aynen aşağıdaki şekilde görüldüğü gibi.
 
 ![cpu memory stats runtime](../images/MachineStats.png)
 
@@ -138,8 +145,12 @@ Bu değişiklik sonrası servisimize yine aynı şekilde erişebiliriz. _(Docker
 Bu örnekte de wasm-pack aracını kullanarak ilerleyebiliriz.
 
 ```shell
-wasm-pack new machine-dashboard-app
-cd machine-dashboard-app
+wasm-pack new mach-dash-app
+cd mach-dash-app
+
+# json serileştirem desteği için serde_json
+# asenkron fonksiyon desteği içinse wasm-bindgen-futures
+cargo add serde_json wasm-bindgen-futures
 ```
 
 Bu işlemin ardından Cargo.toml dosyasını kontrol etmekte yarar var. Özellikle dependencies kısmında wasm-bindgen modülünün eklenmiş olması gerekiyor. Bu modül wasm ve js arasındaki iletişimde önemli bir role de sahip.
@@ -154,10 +165,34 @@ wasm-bindgen = "0.2"
 lib.rs dosyas içeriğini aşağıdaki gibi oluşturabiliriz.
 
 ```rust
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
+pub async fn analyze_stats(json_data: &str) -> JsValue {
+    let data: Vec<serde_json::Value> = serde_json::from_str(json_data).unwrap();
+
+    let cpu_usages: Vec<f32> = data
+        .iter()
+        .map(|entry| entry["cpu_usage"].as_f64().unwrap() as f32)
+        .collect();
+    let avg_cpu_usage = cpu_usages.iter().sum::<f32>() / cpu_usages.len() as f32;
+
+    let memory_usages: Vec<u64> = data
+        .iter()
+        .map(|entry| entry["memory_used"].as_u64().unwrap())
+        .collect();
+    let avg_memory_used = memory_usages.iter().sum::<u64>() / memory_usages.len() as u64;
+
+    let result = serde_json::json!({
+        "avg_cpu_usage": avg_cpu_usage,
+        "avg_memory_used": avg_memory_used
+    }).to_string();
+
+    JsValue::from(&result)
+}
 ```
 
-Kodlarımızı tamamladıktan sonra ise wasm-pack ile gerekli paketleri oluşturabiliriz.
+Kodlarımızı tamamladıktan sonra ise **wasm-pack** ile gerekli paketleri oluşturabiliriz.
 
 ```bash
 wasm-pack build --target web
@@ -165,7 +200,7 @@ wasm-pack build --target web
 
 ## Frontend Geliştirmeleri
 
-WASM modüllerini kullanacak önyüz tarafının geliştirilmesi ile devam edelim. Bu amaçla root klasör altında www isimli başka bir alt klasör oluşturup içerisinde nodejs ortamının hazırlanması gerekiyor.
+**WASM** modüllerini kullanacak önyüz tarafının geliştirilmesi ile devam edelim. Bu amaçla root klasör altında www isimli başka bir alt klasör oluşturup içerisinde nodejs ortamının hazırlanması gerekiyor.
 
 ```bash
 mkdir www
@@ -178,11 +213,11 @@ npm init -y
 npm install --save-dev webpack webpack-cli webpack-dev-server copy-webpack-plugin
 ```
 
-Bu adımlardan sonra package.json dosyasının aşağıdaki gibi olmasini sağlayalım.
+Bu adımlardan sonra **package.json** dosyasının aşağıdaki gibi olmasini sağlayalım.
 
 ```json
 {
-  "name": "machine-dashboard-app",
+  "name": "mach-dash-app",
   "version": "1.0.0",
   "description": "Machine CPU Memory Measurement Dashboard",
   "main": "index.js",
@@ -194,11 +229,12 @@ Bu adımlardan sonra package.json dosyasının aşağıdaki gibi olmasini sağla
   "license": "MIT",
   "devDependencies": {
     "webpack": "^5.97.1",
-    "webpack-cli": "^5.0.1",
+    "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0"
   },
   "dependencies": {
-    "copy-webpack-plugin": "^12.0.2"
+    "copy-webpack-plugin": "^12.0.2",
+    "chart.js": "^4.4.7"
   }
 }
 
@@ -206,7 +242,7 @@ Bu adımlardan sonra package.json dosyasının aşağıdaki gibi olmasini sağla
 
 ---
 
-Şimdi www klasörü altında webpack.config.js isimli bir dosya oluşturup içeriğini aşağıdaki gibi tamamlayalım. 
+Şimdi **www** klasörü altında **webpack.config.js** isimli bir dosya oluşturup içeriğini aşağıdaki gibi tamamlayalım.
 
 ```javascript
 const path = require("path");
@@ -226,7 +262,7 @@ module.exports = {
     ],
     devServer: {
         static: "./dist",
-        port: 6001,
+        port: 6502,
         open: true,
     },
     experiments: {
@@ -235,15 +271,97 @@ module.exports = {
 };
 ```
 
-Artık önyüz tarafını tasarlayabiliriz. Bu amaçla index.html içeriğine geçelim.
+Örneğimizde çizimler için chart.js isimli bir açık kaynak javascript kütüphanesini kullanabiliriz.
+
+Artık önyüz tarafını tasarlayabiliriz. Bu amaçla **index.js** ve **index.html** dosyalarını aşağıdaki gibi geliştirelim.
+
+index.html;
 
 ```html
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server System Statistics - Trend Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Server System Statistics - Trend Analysis</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <h4>Average Memory Used: <span id="avgMemory"></span> MB</h4>
+            </div>
+            <div class="col-md-6">
+                <h4>Average CPU Usage: <span id="avgCpu"></span>%</h4>
+            </div>
+        </div>
+    </div>
 
+    <script type="module" src="./bundle.js"></script>
+</body>
+</html>
+```
+
+index.js;
+
+```js
+import init, { analyze_stats } from '../pkg/mach_dash_app.js';
+
+await init();
+
+const trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: 'CPU Usage (%)',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1,
+            },
+            {
+                label: 'Memory Used (MB)',
+                data: [],
+                borderColor: 'rgba(153, 102, 255, 1)',
+                tension: 0.1,
+            },
+        ],
+    },
+});
+
+async function updateStats() {
+    const response = await fetch('http://localhost:6501/machine/stats');
+    const data = await response.json();
+
+    const analysis = await analyze_stats(JSON.stringify(data));
+    const result = JSON.parse(analysis);
+
+    document.getElementById('avgCpu').textContent = result.avg_cpu_usage.toFixed(2);
+    document.getElementById('avgMemory').textContent = (result.avg_memory_used / 1024).toFixed(2);
+
+    trendChart.data.labels = data.map((d) =>
+        new Date(d.timestamp * 1000).toLocaleTimeString()
+    );
+    trendChart.data.datasets[0].data = data.map((d) => d.cpu_usage);
+    trendChart.data.datasets[1].data = data.map((d) => d.memory_used / 1024);
+    trendChart.update();
+}
+
+setInterval(updateStats, 5000);
+updateStats();
 ```
 
 ---
 
-Artık derleme ve çalıştırma aşamasına geçebiliriz.
+Artık projeyi derleme *(build)* ve çalıştırma *(run)* adımlarına geçebiliriz.
 
 ```bash
 # www klasöründeyken
@@ -254,6 +372,6 @@ npm run build
 npm run start
 ```
 
-Eğer build aşamasında bir sorun olmadıysa [localhost:6001](http://localhost:6001) adresine gittiğimizde aşağıdaki ekran görüntüsüne benzer şekilde işlemci ve bellek kullanım oranlarının yakalandığı bir ekran görüntüsü alabilmeliyiz.
+Eğer build aşamasında bir sorun olmadıysa **[localhost:6502](http://localhost:6502)** adresine gittiğimizde aşağıdaki ekran görüntüsüne benzer şekilde işlemci ve bellek kullanım oranlarının yakalandığı bir ekran görüntüsü alabilmeliyiz.
 
-_EKRAN GELECEK_
+![Server Stats Runtime](../images/ServerStatsRuntime.png)
