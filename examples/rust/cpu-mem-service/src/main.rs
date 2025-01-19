@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer, Responder};
 use serde::Serialize;
 use std::sync::Mutex;
@@ -16,6 +17,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(app_state.clone())
             .route("/machine/stats", web::get().to(get_sys_stats))
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_header()
+                    .allow_any_method(),
+            )
     })
     .bind(address)?
     .run()
