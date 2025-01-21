@@ -1,0 +1,76 @@
+# Rust specific
+target/
+debug/
+**/*.rs.bk
+Cargo.lock
+*.pdb
+
+# Visual Studio Code and JetBrains Rider
+.vscode/
+.idea/
+*.sln.iml
+.history/
+
+# Visual Studio specific
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.tmp
+*.log
+*.tlog
+*.pdb
+*.pch
+*.ilk
+*.meta
+*.pidb
+
+# Build artifacts
+*.o
+*.obj
+*.d
+*.bin
+*.exe
+*.dll
+*.lib
+*.so
+*.dylib
+*.out
+
+# Node.js
+node_modules/
+
+# IDE backups and miscellaneous
+*.aps
+*.ncb
+*.cache
+*.opensdf
+*.VC.db
+*.VC.opendb
+*_wpftmp.csproj
+*.vbp
+*.vbw
+*.opt
+
+# Other frameworks and tools
+__pycache__/
+*.pyc
+.paket/
+.fake/
+.pfx
+.publishsettings
+
+# NuGet and build results
+*.nupkg
+*.snupkg
+artifacts/
+
+# Temporary files
+~$*
+*~
