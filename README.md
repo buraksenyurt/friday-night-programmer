@@ -1,12 +1,11 @@
 # Friday Night Programmer
 
-Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplayacağımız genel repodur. Son güncelleme itibariyle oyun sahasının durumunu aşağıdaki gibi özetleyebiliriz.
-
-![FNP Updated](./images/FnpLastState.png)
+Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplayacağımız genel repodur.
 
 - [Friday Night Programmer](#friday-night-programmer)
   - [Önsöz](#önsöz)
-  - [Yardımcılar](#yardımcılar)
+  - [Oyun Sahası Hakkında](#oyun-sahası-hakkında)
+  - [Yardımcı Dokümanlar](#yardımcı-dokümanlar)
   - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
   - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
   - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
@@ -23,7 +22,19 @@ Yeni yıl planlarım arasında yer alan ve çok uzun zamandır gerçekleştirmek
 
 ![image](https://github.com/user-attachments/assets/ae1e7a98-b7ba-45e2-85ce-5910012b601a)
 
-## Yardımcılar
+## Oyun Sahası Hakkında
+
+Friday Night Programmer uzun soluklu bir çalışma alanı. Tek bir proje değil de birden fazla konuyu ele almak için, çeşitli pratikler ve kod antrenmanları yapmak için kullandığım bir alan. Bu oyun sahasında zaman içerisinde birçok eklenti, yardımcı araç veya fikir gündeme gelecek. Bu eklemeler yeni ihtiyaçları da beraberinde getirecek. Örneğin sisteme eklediğim bağımsız servis sayısı arttıkça bunların kolayca keşfedilmesini sağlamak için _(Service Discovery)_ Consul aracına ihtiyaç olacak. Ya da genel bir ftp ortamı için bir docker imajı gerekecek. Dolayısıyla oyun sahası zamanla genişleyecek. İçeriye alınan enstrümanları göz önüne aldığımızda aşağıdaki gibi bir High Level Diagram göz önüne alabiliriz.
+
+![High Level Diagram of Playground](./images/HldOfPlayground.png)
+
+Genel Ortamlar başlığı altında yer alan enstrümanlar docker-compose üzerinden kullanılır. [docker-compose.yml](docker-compose.yml) dosyasını inceleyebilirsiniz. Docker içeriklerini ayağa kaldırmak için aşağıdaki komutu çalıştırmak yeterlidir. Elbette sistemde docker'ın yüklü olduğunu varsayıyorum.
+
+```shell
+docker-compose up -d
+```
+
+## Yardımcı Dokümanlar
 
 Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
