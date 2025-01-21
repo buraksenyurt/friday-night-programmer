@@ -1,0 +1,80 @@
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: fnp-postgres
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: somew0rds
+      # POSTGRES_DB: StudentProjectsDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    networks:
+      - fnp-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fnp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: scoth@tiger.com
+      PGADMIN_DEFAULT_PASSWORD: 123456
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - fnp-network
+
+  ftp-server:
+    image: delfer/alpine-ftp-server
+    container_name: fnp-ftp-server
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      FTP_USER: "userone"
+      FTP_PASS: "123"
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010
+    volumes:
+      - ftp_data:/home/ftpuser/ftp_data
+    networks:
+      - fnp-network
+
+  redis:
+    image: redis:latest
+    container_name: fnp-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - fnp-network
+
+  nats:
+    image: nats:latest
+    container_name: fnp-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - fnp-network
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: fnp-sonarqube
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ports:
+      - "9000:9000"
+    networks:
+      - fnp-network
+
+volumes:
+  postgres_data:
+  ftp_data:
+
+
+networks:
+  fnp-network:
+    driver: bridge
