@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "2fd95fd0-1c3a-41c0-841c-afe5d59dfb2c",
+		"name": "Friday Night Programmer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1401662"
+	},
+	"item": [
+		{
+			"name": "Projects Api",
+			"item": [
+				{
+					"name": "Get Team By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Team with Members",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Dream Team\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10092\",\r\n            \"full_name\": \"Alice Doe\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-10294\",\r\n            \"full_name\": \"Bob Smith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Member to Existing Team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"identity\": \"MTH-10088\",\r\n    \"full_name\": \"Billi The Geyts\",\r\n    \"score\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams/1/members",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"1",
+								"members"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Machine Stats",
+			"item": [
+				{
+					"name": "Get Machine Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6501/machine/stats",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6501",
+							"path": [
+								"machine",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Azon Insurance Api",
+			"item": [
+				{
+					"name": "Get Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:7888/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7888",
+							"path": [
+								"customers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Eco Friendly Api",
+			"item": [
+				{
+					"name": "Get Winners",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:7889/ecowinnercenter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7889",
+							"path": [
+								"ecowinnercenter"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

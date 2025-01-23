@@ -13,9 +13,11 @@ Ekran görüntüsünden de fark edileceği üzere kullanıcı isterse hazır for
 Sistemimizde Rust'ın yüklü olduğunu varsayarak devam edebiliriz ama değilse [şuraya](https://rust-lang.org) uğramakta yarar var.
 
 1. **wasm-pack:** Bu araç wasm paketlerinin oluşturulması ve wasm uyumlu rust projesi oluşturulmasında yardımcı olacak bir araç. cargo aracı ile sistemimize kurabiliriz.
+
    ```bash
    cargo install wasm-pack
    ```
+
 2. **Node.js and npm:** Sonuçta bir web arayüzü var ve bunun servis edilmesi için bir runtime gerekiyor. Burada node.js ve npm işimize yarar. Bunların kurulumları içinse nereye bakmanız gerektiğini biliyorsunuz ;) [İşte buraya](https://nodejs.org).
 3. **Webpack:** Birde web paketlerinin build edilmesi, sunucunun başlatılması gibi işlerde bize yardımcı olacak webpack aracına ihtiyacımız var. Bunu projede www klasörünü oluşturduktan sonra kuracağız. Yani aşağıdaki adımları takip etmeye devam edelim.
 

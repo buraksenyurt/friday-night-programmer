@@ -94,9 +94,9 @@ Servis tarafını tamamladıktan sonra en azından bir kere test etmekte yarar v
 
 ---
 
-Pek tabii veriler servis çalıştığı sürece tutulur zira bellekte mutex ile koruma altına alınmış bir vector ele alınmıştır. Kalıcı olmasını sağlamak adına fiziki bir depolama alanı _(dosya, veritabanı veya cloud provider)_ düşünülebilir.
+Pek tabii veriler servis çalıştığı sürece tutulur zira bellekte mutex ile koruma altına alınmış bir vector ele alınmıştır. Kalıcı olmasını sağlamak adına fiziki bir depolama alanı *(dosya, veritabanı veya cloud provider)* düşünülebilir.
 
-### Opsiyonel Adım _(Servisin Dockerize Edilmesi)_
+### Opsiyonel Adım *(Servisin Dockerize Edilmesi)*
 
 Deneysel amaçla geliştirilmiş bu servis istenirse Dockerize edilerek de işletilebilir. Bunun için projeye aşağıdaki Dockerfile ve docker-compose.yml içeriklerini eklemek yeterlidir.
 
@@ -136,7 +136,7 @@ docker-compose build
 docker-compose up
 ```
 
-Bu değişiklik sonrası servisimize yine aynı şekilde erişebiliriz. _(Docker Container senaryosuna göre kod tarafındaki adres bilgisi 0.0.0.0:8080 şeklinde değiştirilmiştir)_
+Bu değişiklik sonrası servisimize yine aynı şekilde erişebiliriz. *(Docker Container senaryosuna göre kod tarafındaki adres bilgisi 0.0.0.0:8080 şeklinde değiştirilmiştir)*
 
 ![system stats on docker](//images/MachineStatsDocker.png)
 

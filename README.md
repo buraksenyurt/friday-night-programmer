@@ -34,6 +34,8 @@ Genel Ortamlar başlığı altında yer alan enstrümanlar docker-compose üzeri
 docker-compose up -d
 ```
 
+Bununla birlikte servislerin sayısı arttıkça onları nasıl çağırdığımızı da unutabiliriz. Var olan ve ilerleyen zamanlarda eklenemsi düşünülen servisler için bir Postman koleksiyonundan yararlanılması iyi olacaktır. İlgili dosyaya [buradan](Friday%20Night%20Programmer.postman_collection.json) ulaşabilirsiniz.
+
 ## Yardımcı Dokümanlar
 
 Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
