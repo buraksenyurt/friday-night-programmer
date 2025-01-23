@@ -1,0 +1,5 @@
+services:
+  eco-friendly-service:
+    build: .
+    ports:
+      - "7889:8080"
