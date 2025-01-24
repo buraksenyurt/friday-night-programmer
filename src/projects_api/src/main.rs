@@ -20,7 +20,10 @@ async fn main() -> std::io::Result<()> {
                 .service(controller::team_controller::get_team)
                 .service(controller::criteria_controller::create_criteria_set)
                 .service(controller::criteria_controller::add_criterion_to_set)
-                .service(controller::criteria_controller::get_criteria_set),
+                .service(controller::criteria_controller::get_criteria_set)
+                .service(controller::assignment_controller::create_assignment)
+                .service(controller::assignment_controller::get_assignment_by_team)
+                .service(controller::history_controller::create_history),
         )
     })
     .bind(server_address)?

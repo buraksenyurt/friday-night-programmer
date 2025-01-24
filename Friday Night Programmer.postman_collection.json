@@ -53,6 +53,27 @@
 					"response": []
 				},
 				{
+					"name": "Get Assignment by Team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/assignment/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"assignment",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add Team with Members",
 					"request": {
 						"method": "POST",
@@ -106,6 +127,64 @@
 								"api",
 								"criteria",
 								"set"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Assignment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 2,\r\n    \"status\": \"InProgress\",\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/assignment",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"assignment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create History",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"event\": \"Assignment\",\r\n    \"description\": \"Project 1 assigned to team 2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/history",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"history"
 							]
 						}
 					},
