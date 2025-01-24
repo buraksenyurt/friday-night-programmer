@@ -12,16 +12,16 @@ async fn create_team(team: web::Json<Team>) -> impl Responder {
 }
 
 #[post("/teams/{id}/members")]
-async fn add_member_to_team(team_id: web::Path<i32>, member: web::Json<Member>) -> impl Responder {
+async fn add_member_to_team(team_id: web::Path<u32>, member: web::Json<Member>) -> impl Responder {
     let response = format!(
-        "Member {} added to team with ID: {}",
+        "Member '{}' added to team with ID: {}",
         member.full_name, team_id
     );
     HttpResponse::Ok().json(response)
 }
 
 #[get("/teams/{id}")]
-async fn get_team(team_id: web::Path<i32>) -> impl Responder {
+async fn get_team(team_id: web::Path<u32>) -> impl Responder {
     // Dummy veri dönüyoruz. DB entegrasyonu sonrası değiştiririz.
     let mock_team = Team {
         id: *team_id,

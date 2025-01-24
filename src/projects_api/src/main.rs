@@ -17,7 +17,10 @@ async fn main() -> std::io::Result<()> {
             web::scope("/api")
                 .service(controller::team_controller::create_team)
                 .service(controller::team_controller::add_member_to_team)
-                .service(controller::team_controller::get_team),
+                .service(controller::team_controller::get_team)
+                .service(controller::criteria_controller::create_criteria_set)
+                .service(controller::criteria_controller::add_criterion_to_set)
+                .service(controller::criteria_controller::get_criteria_set),
         )
     })
     .bind(server_address)?

@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Assignment {
-    pub project_id: i32,
-    pub team_id: i32,
+    pub project_id: u32,
+    pub team_id: u32,
     pub status: Status,
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,

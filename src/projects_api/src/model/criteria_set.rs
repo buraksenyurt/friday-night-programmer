@@ -1,10 +1,9 @@
-use crate::model::member::Member;
-
+use crate::model::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct Team {
+pub struct CriteriaSet {
     pub id: u32,
     pub name: String,
-    pub members: Vec<Member>,
+    pub set: Vec<Criterion>,
 }
