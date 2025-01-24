@@ -31,6 +31,28 @@
 					"response": []
 				},
 				{
+					"name": "Get Criteria Set by Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/criteria/set/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"criteria",
+								"set",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add Team with Members",
 					"request": {
 						"method": "POST",
@@ -54,6 +76,36 @@
 							"path": [
 								"api",
 								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Criteria Set",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 2,\r\n    \"name\": \"Rust Student Project Criteria Set\",\r\n    \"set\": [\r\n        {\r\n            \"name\": \"Clippy factors\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Runnable\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Advanced technics (traits, async/await, atomic refs)\",\r\n            \"point\": 20\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/criteria/set",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"criteria",
+								"set"
 							]
 						}
 					},
@@ -85,6 +137,38 @@
 								"teams",
 								"1",
 								"members"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Criterion to Existing Criteria Set",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Modularity\",\r\n    \"point\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/criteria/set/1/criterion",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"criteria",
+								"set",
+								"1",
+								"criterion"
 							]
 						}
 					},
