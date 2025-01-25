@@ -31,6 +31,27 @@
 					"response": []
 				},
 				{
+					"name": "Get Project By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/projects/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"projects",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Criteria Set by Id",
 					"request": {
 						"method": "GET",
@@ -109,7 +130,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 2,\r\n    \"name\": \"Rust Student Project Criteria Set\",\r\n    \"set\": [\r\n        {\r\n            \"name\": \"Clippy factors\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Runnable\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Advanced technics (traits, async/await, atomic refs)\",\r\n            \"point\": 20\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Rust Student Project Criteria Set\",\r\n    \"set\": [\r\n        {\r\n            \"name\": \"Clippy factors\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Runnable\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Advanced technics (traits, async/await, atomic refs)\",\r\n            \"point\": 20\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -127,6 +148,35 @@
 								"api",
 								"criteria",
 								"set"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Terminal-Based Dungeon Game\",\r\n    \"language\": \"Rust\",\r\n    \"summary\": \"Terminalden programın sorduğu sorulara göre oyuncuyu yönlendirilen bir zindan oyunudur. Tek level tasarlanması yeterlidir. Görsel bir öğe içermemektedir.\",\r\n    \"criteria_set_id\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/projects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"projects"
 							]
 						}
 					},

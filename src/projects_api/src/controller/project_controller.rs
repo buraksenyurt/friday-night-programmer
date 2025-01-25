@@ -10,7 +10,7 @@ async fn create_project(
 ) -> impl Responder {
     let repository = ProjectRepository::new(pool.get_ref().clone());
     match repository.create_project(&project).await {
-        Ok(_) => HttpResponse::Ok().json("Project created successfully"),
+        Ok(created) => HttpResponse::Ok().json(created),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

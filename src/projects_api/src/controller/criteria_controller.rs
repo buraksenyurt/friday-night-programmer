@@ -10,7 +10,7 @@ async fn create_criteria_set(
 ) -> impl Responder {
     let repository = CriteriaRepository::new(pool.get_ref().clone());
     match repository.create_criteria_set(&criteria_set).await {
-        Ok(_) => HttpResponse::Ok().json("Criteria set created successfully"),
+        Ok(created) => HttpResponse::Ok().json(created),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

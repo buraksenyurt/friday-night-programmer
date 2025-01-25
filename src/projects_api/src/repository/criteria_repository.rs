@@ -1,3 +1,4 @@
+use crate::dto::prelude::CreatedCriteria;
 use crate::model::prelude::*;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
@@ -10,24 +11,28 @@ impl CriteriaRepository {
         CriteriaRepository { pool }
     }
 
-    pub async fn create_criteria_set(&self, criteria_set: &CriteriaSet) -> Result<()> {
-        sqlx::query(
+    pub async fn create_criteria_set(&self, criteria_set: &CriteriaSet) -> Result<CreatedCriteria> {
+        let inserted: (i64,) = sqlx::query_as(
             r#"
-            INSERT INTO criteria_sets (id, name)
-            VALUES (?, ?)
-            "#,
+        INSERT INTO criteria_sets (name)
+        VALUES (?)
+        RETURNING id
+        "#,
         )
-        .bind(criteria_set.id)
         .bind(&criteria_set.name)
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
         for criterion in &criteria_set.set {
-            self.add_criterion_to_criteria_set(criteria_set.id, criterion)
+            self.add_criterion_to_criteria_set(inserted.0 as u32, criterion)
                 .await?;
         }
 
-        Ok(())
+        Ok(CreatedCriteria {
+            id: inserted.0 as u32,
+            name: criteria_set.name.clone(),
+            criteria_count: criteria_set.set.len(),
+        })
     }
 
     pub async fn add_criterion_to_criteria_set(

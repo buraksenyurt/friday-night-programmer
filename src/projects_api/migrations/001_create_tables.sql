@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS teams
 CREATE TABLE IF NOT EXISTS members
 (
     id        INTEGER PRIMARY KEY,
+    identity  TEXT    NOT NULL,
     full_name TEXT    NOT NULL,
     score     INTEGER NOT NULL,
     team_id   INTEGER NOT NULL,
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS assignments
 
 CREATE TABLE IF NOT EXISTS history
 (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    id          INTEGER PRIMARY KEY,
     time        TEXT NOT NULL,
     event       TEXT NOT NULL,
     description TEXT NOT NULL

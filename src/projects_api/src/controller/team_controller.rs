@@ -7,7 +7,7 @@ use sqlx::SqlitePool;
 async fn create_team(team: web::Json<Team>, pool: web::Data<SqlitePool>) -> impl Responder {
     let repository = TeamRepository::new(pool.get_ref().clone());
     match repository.create_team(&team).await {
-        Ok(_) => HttpResponse::Ok().json("Team created successfully"),
+        Ok(created) => HttpResponse::Ok().json(created),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

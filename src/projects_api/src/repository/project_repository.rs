@@ -11,22 +11,25 @@ impl ProjectRepository {
         ProjectRepository { pool }
     }
 
-    pub async fn create_project(&self, project: &Project) -> Result<()> {
-        sqlx::query(
+    pub async fn create_project(&self, project: &Project) -> Result<CreatedProject> {
+        let inserted: (i64,) = sqlx::query_as(
             r#"
-            INSERT INTO projects (id, name, language, summary, criteria_set_id)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO projects (name, language, summary, criteria_set_id)
+            VALUES (?, ?, ?, ?)
+            RETURNING id
             "#,
         )
-        .bind(project.id)
         .bind(&project.name)
         .bind(&project.language)
         .bind(&project.summary)
         .bind(&project.criteria_set_id)
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
-        Ok(())
+        Ok(CreatedProject {
+            id: inserted.0 as u32,
+            name: project.name.clone(),
+        })
     }
 
     pub async fn get_project(&self, project_id: u32) -> Result<ProjectWithCriteria> {

@@ -1,3 +1,4 @@
+use crate::dto::prelude::CreatedTeam;
 use crate::model::prelude::*;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
@@ -10,23 +11,29 @@ impl TeamRepository {
         TeamRepository { pool }
     }
 
-    pub async fn create_team(&self, team: &Team) -> Result<()> {
-        sqlx::query(
+    pub async fn create_team(&self, team: &Team) -> Result<CreatedTeam> {
+        let inserted: (i64,) = sqlx::query_as(
             r#"
-            INSERT INTO teams (id, name)
-            VALUES (?, ?)
+            INSERT INTO teams (name)
+            VALUES (?)
+            RETURNING id
             "#,
         )
-        .bind(team.id)
         .bind(&team.name)
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
+        log::info!("Auto created row id {}", inserted.0);
+
         for member in &team.members {
-            self.add_member_to_team(team.id, member).await?;
+            self.add_member_to_team(inserted.0 as u32, member).await?;
         }
 
-        Ok(())
+        Ok(CreatedTeam {
+            id: inserted.0 as u32,
+            name: team.name.clone(),
+            member_count: team.members.len(),
+        })
     }
 
     pub async fn add_member_to_team(&self, team_id: u32, member: &Member) -> Result<()> {
@@ -66,7 +73,7 @@ impl TeamRepository {
 
         let members_rows = sqlx::query(
             r#"
-            SELECT identity, full_name, score
+            SELECT id, identity, full_name, score
             FROM members
             WHERE team_id = ?
             "#,
@@ -78,9 +85,10 @@ impl TeamRepository {
         let members = members_rows
             .iter()
             .map(|row| Member {
-                identity: row.get::<String, _>(0),
-                full_name: row.get::<String, _>(1),
-                score: row.get::<i32, _>(2),
+                id: row.get::<u32, _>(0),
+                identity: row.get::<String, _>(1),
+                full_name: row.get::<String, _>(2),
+                score: row.get::<i32, _>(3),
             })
             .collect();
 
