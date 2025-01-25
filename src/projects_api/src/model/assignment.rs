@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct Assignment {
     pub project_id: u32,
     pub team_id: u32,
+    #[serde(skip_deserializing)]
     pub status: Status,
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
