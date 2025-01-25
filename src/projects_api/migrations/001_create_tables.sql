@@ -13,13 +13,13 @@ CREATE TABLE IF NOT EXISTS members
     FOREIGN KEY (team_id) REFERENCES teams (id)
 );
 
-CREATE TABLE criteria_sets
+CREATE TABLE IF NOT EXISTS criteria_sets
 (
     id   INTEGER PRIMARY KEY,
     name TEXT NOT NULL
 );
 
-CREATE TABLE criterion
+CREATE TABLE IF NOT EXISTS criteria
 (
     id              INTEGER PRIMARY KEY,
     name            TEXT    NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE criterion
     FOREIGN KEY (criteria_set_id) REFERENCES criteria_sets (id)
 );
 
-CREATE TABLE projects
+CREATE TABLE IF NOT EXISTS projects
 (
     id              INTEGER PRIMARY KEY,
     name            TEXT    NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE projects
     FOREIGN KEY (criteria_set_id) REFERENCES criteria_sets (id)
 );
 
-CREATE TABLE assignments
+CREATE TABLE IF NOT EXISTS assignments
 (
     project_id INTEGER NOT NULL,
     team_id    INTEGER NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE assignments
     FOREIGN KEY (team_id) REFERENCES teams (id)
 );
 
-CREATE TABLE history
+CREATE TABLE IF NOT EXISTS history
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     time        TEXT NOT NULL,
