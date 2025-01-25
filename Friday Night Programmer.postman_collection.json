@@ -74,12 +74,24 @@
 					"response": []
 				},
 				{
-					"name": "Get Assignment by Team",
+					"name": "Get Assignment by Project and Team",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "http://localhost:8080/api/assignment/1",
+							"raw": "http://localhost:8080/api/assignment",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -87,8 +99,7 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"assignment",
-								"1"
+								"assignment"
 							]
 						}
 					},
@@ -101,7 +112,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Dream Team\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10092\",\r\n            \"full_name\": \"Alice Doe\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-10294\",\r\n            \"full_name\": \"Bob Smith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"Dream Team\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10092\",\r\n            \"full_name\": \"Alice Doe\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-10294\",\r\n            \"full_name\": \"Bob Smith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -130,7 +141,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Rust Student Project Criteria Set\",\r\n    \"set\": [\r\n        {\r\n            \"name\": \"Clippy factors\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Runnable\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Advanced technics (traits, async/await, atomic refs)\",\r\n            \"point\": 20\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"Rust Student Project Criteria Set\",\r\n    \"set\": [\r\n        {\r\n            \"name\": \"Clippy factors\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Runnable\",\r\n            \"point\": 10\r\n        },\r\n        {\r\n            \"name\": \"Advanced technics (traits, async/await, atomic refs)\",\r\n            \"point\": 20\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -160,7 +171,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Terminal-Based Dungeon Game\",\r\n    \"language\": \"Rust\",\r\n    \"summary\": \"Terminalden programın sorduğu sorulara göre oyuncuyu yönlendirilen bir zindan oyunudur. Tek level tasarlanması yeterlidir. Görsel bir öğe içermemektedir.\",\r\n    \"criteria_set_id\": 1\r\n}",
+							"raw": "{\r\n    \"name\": \"Terminal-Based Dungeon Game\",\r\n    \"language\": \"Rust\",\r\n    \"summary\": \"Terminalden programın sorduğu sorulara göre oyuncuyu yönlendirilen bir zindan oyunudur. Tek level tasarlanması yeterlidir. Görsel bir öğe içermemektedir.\",\r\n    \"criteria_set_id\": 1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -189,7 +200,36 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 2,\r\n    \"status\": \"InProgress\",\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 2,\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/assignment",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"assignment"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Assignment Status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"status\": \"Completed\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
