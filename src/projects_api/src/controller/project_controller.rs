@@ -1,27 +1,28 @@
 use crate::model::prelude::*;
+use crate::repository::project_repository::ProjectRepository;
 use actix_web::*;
+use sqlx::SqlitePool;
 
 #[post("/projects")]
-async fn create_project(project: web::Json<Project>) -> impl Responder {
-    let response = format!(
-        "Project '{}' created with criteria set '{}'!",
-        project.name, project.criteria_set_id
-    );
-    HttpResponse::Ok().json(response)
+async fn create_project(
+    project: web::Json<Project>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = ProjectRepository::new(pool.get_ref().clone());
+    match repository.create_project(&project).await {
+        Ok(_) => HttpResponse::Ok().json("Project created successfully"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
 
 #[get("/projects/{id}")]
-async fn get_project_by_id(project_id: web::Path<u32>) -> impl Responder {
-    // Dummy veri dönüyoruz. DB entegrasyonu sonrası değiştiririz.
-    let mock_project = Project {
-        id: *project_id,
-        name: "Terminal-Based Dungeon Game".to_string(),
-        language: "C#".to_string(),
-        summary: "Terminalden programın sorduğu sorulara göre oyuncuyu yönlendirilen \
-        bir zindan oyunudur. \
-        Tek level tasarlanması yeterlidir. Görsel bir öğe içermemektedir."
-            .to_string(),
-        criteria_set_id: 1,
-    };
-    HttpResponse::Ok().json(mock_project)
+async fn get_project_by_id(
+    project_id: web::Path<u32>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = ProjectRepository::new(pool.get_ref().clone());
+    match repository.get_project(*project_id).await {
+        Ok(team) => HttpResponse::Ok().json(team),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS teams
 
 CREATE TABLE IF NOT EXISTS members
 (
-    identity  TEXT PRIMARY KEY,
+    id        INTEGER PRIMARY KEY,
     full_name TEXT    NOT NULL,
     score     INTEGER NOT NULL,
     team_id   INTEGER NOT NULL,

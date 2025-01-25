@@ -5,6 +5,7 @@ use dotenvy::dotenv;
 use std::env;
 
 mod controller;
+mod dto;
 mod model;
 mod repository;
 

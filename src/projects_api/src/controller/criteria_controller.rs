@@ -1,72 +1,44 @@
 use crate::model::prelude::*;
+use crate::repository::criteria_repository::CriteriaRepository;
 use actix_web::*;
+use sqlx::SqlitePool;
+
 #[post("/criteria/set")]
-async fn create_criteria_set(criteria_set: web::Json<CriteriaSet>) -> impl Responder {
-    let response = format!(
-        "{}, Criteria set '{}' created with {} criteria!",
-        criteria_set.id,
-        criteria_set.name,
-        criteria_set.set.len()
-    );
-    HttpResponse::Ok().json(response)
+async fn create_criteria_set(
+    criteria_set: web::Json<CriteriaSet>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = CriteriaRepository::new(pool.get_ref().clone());
+    match repository.create_criteria_set(&criteria_set).await {
+        Ok(_) => HttpResponse::Ok().json("Criteria set created successfully"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
 
 #[post("/criteria/set/{id}/criterion")]
 async fn add_criterion_to_set(
     criteria_set_id: web::Path<u32>,
     criterion: web::Json<Criterion>,
+    pool: web::Data<SqlitePool>,
 ) -> impl Responder {
-    let response = format!(
-        "Criterion '{}' added to criteria(Id:{}) with {} point",
-        criterion.name, criterion.point, criteria_set_id
-    );
-    HttpResponse::Ok().json(response)
+    let repository = CriteriaRepository::new(pool.get_ref().clone());
+    match repository
+        .add_criterion_to_criteria_set(*criteria_set_id, &criterion)
+        .await
+    {
+        Ok(_) => HttpResponse::Ok().json("Criterion added successfully"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
 
 #[get("/criteria/set/{id}")]
-async fn get_criteria_set(criteria_set_id: web::Path<u32>) -> impl Responder {
-    // Dummy veri dönüyoruz. DB entegrasyonu sonrası değiştiririz.
-    let mock_criteria_set = CriteriaSet {
-        id: *criteria_set_id,
-        name: "C# Project Criteria Set".to_string(),
-        set: vec![
-            Criterion {
-                name: "Use of OOP principles".to_string(),
-                point: 30,
-            },
-            Criterion {
-                name: "Originality".to_string(),
-                point: 5,
-            },
-            Criterion {
-                name: "Model design".to_string(),
-                point: 5,
-            },
-            Criterion {
-                name: "Clean code factors".to_string(),
-                point: 20,
-            },
-            Criterion {
-                name: "Warning counts".to_string(),
-                point: 15,
-            },
-            Criterion {
-                name: "Memory consumption".to_string(),
-                point: 5,
-            },
-            Criterion {
-                name: "User experience".to_string(),
-                point: 5,
-            },
-            Criterion {
-                name: "Tooling".to_string(),
-                point: 5,
-            },
-            Criterion {
-                name: "Source code repo check".to_string(),
-                point: 10,
-            },
-        ],
-    };
-    HttpResponse::Ok().json(mock_criteria_set)
+async fn get_criteria_set(
+    criteria_set_id: web::Path<u32>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = CriteriaRepository::new(pool.get_ref().clone());
+    match repository.get_criteria_set(*criteria_set_id).await {
+        Ok(team) => HttpResponse::Ok().json(team),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
