@@ -1,28 +1,51 @@
+use crate::dto::prelude::*;
 use crate::model::prelude::*;
+use crate::repository::assignment_repository::AssignmentRepository;
 use actix_web::*;
-use chrono::{Duration, Utc};
-use std::ops::Add;
+use sqlx::SqlitePool;
 
 #[post("/assignment")]
-async fn create_assignment(assignment: web::Json<Assignment>) -> impl Responder {
-    let response = format!(
-        "Assignment to team {} created for project id {}!",
-        assignment.team_id, assignment.project_id
-    );
-    HttpResponse::Ok().json(response)
+async fn create_assignment(
+    assignment: web::Json<Assignment>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = AssignmentRepository::new(pool.get_ref().clone());
+    match repository.create_assignment(&assignment).await {
+        Ok(_) => HttpResponse::Ok().json("Assignment created"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
 
-#[get("/assignment/{id}")]
-async fn get_assignment_by_team(team_id: web::Path<u32>) -> impl Responder {
-    // Dummy veri dönüyoruz. DB entegrasyonu sonrası değiştiririz.
-    let now = Utc::now();
-    let mock_assignment = Assignment {
-        project_id: 1,
-        team_id: *team_id,
-        status: Status::InProgress,
-        start_date: now,
-        end_date: now.add(Duration::days(60)),
-        repository: "https://github.com/buraksenyurt".to_string(),
-    };
-    HttpResponse::Ok().json(mock_assignment)
+#[patch("/assignment")]
+async fn change_assignment_status(
+    payload: web::Json<ChangeAssignmentStatusRequest>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = AssignmentRepository::new(pool.get_ref().clone());
+    match repository
+        .change_assignment_status(
+            payload.project_id,
+            payload.team_id,
+            Status::from(payload.status.as_str()),
+        )
+        .await
+    {
+        Ok(_) => HttpResponse::Ok().json("Assignment status changed"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[get("/assignment")]
+async fn get_assignment_by_team(
+    payload: web::Json<GetAssignmentRequest>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = AssignmentRepository::new(pool.get_ref().clone());
+    match repository
+        .get_assignment(payload.project_id, payload.team_id)
+        .await
+    {
+        Ok(team) => HttpResponse::Ok().json(team),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
