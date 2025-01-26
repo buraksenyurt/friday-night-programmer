@@ -8,6 +8,7 @@ mod controller;
 mod dto;
 mod model;
 mod repository;
+mod utility;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -33,10 +34,10 @@ async fn main() -> std::io::Result<()> {
                     .service(criteria_controller::create_criteria_set)
                     .service(criteria_controller::add_criterion_to_set)
                     .service(criteria_controller::get_criteria_set)
+                    .service(history_controller::get_history)
                     .service(assignment_controller::create_assignment)
                     .service(assignment_controller::get_assignment_by_team)
                     .service(assignment_controller::change_assignment_status)
-                    .service(history_controller::create_history)
                     .service(project_controller::create_project)
                     .service(project_controller::get_project_by_id),
             )

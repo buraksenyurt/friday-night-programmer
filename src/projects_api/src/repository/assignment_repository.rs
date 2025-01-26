@@ -1,14 +1,21 @@
+use crate::dto::prelude::NewHistory;
 use crate::model::prelude::*;
-use chrono::Utc;
+use crate::repository::history_repository::HistoryRepository;
+use crate::utility::*;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
 pub struct AssignmentRepository {
     pool: SqlitePool,
+    history_repository: HistoryRepository,
 }
 
 impl AssignmentRepository {
     pub fn new(pool: SqlitePool) -> Self {
-        AssignmentRepository { pool }
+        let history_repository = HistoryRepository::new(pool.clone());
+        AssignmentRepository {
+            pool,
+            history_repository,
+        }
     }
 
     pub async fn create_assignment(&self, assignment: &Assignment) -> Result<()> {
@@ -18,14 +25,21 @@ impl AssignmentRepository {
         VALUES (?, ?, ?, ?, ?, ?)
         "#,
         )
-        .bind(&assignment.project_id)
-        .bind(&assignment.team_id)
-        .bind(Status::Planned.to_string())
-        .bind(&assignment.start_date.to_string())
-        .bind(&assignment.end_date.to_string())
+        .bind(assignment.project_id)
+        .bind(assignment.team_id)
+        .bind(assignment.status.to_string())
+        .bind(format_datetime(&assignment.start_date))
+        .bind(format_datetime(&assignment.end_date))
         .bind(&assignment.repository)
         .execute(&self.pool)
         .await?;
+
+        self.history_repository
+            .create_history(&NewHistory {
+                event: "CreatedNewAssignment".to_string(),
+                description: format!("New assignment created for team {}", assignment.team_id),
+            })
+            .await?;
 
         Ok(())
     }
@@ -36,47 +50,64 @@ impl AssignmentRepository {
         team_id: u32,
         status: Status,
     ) -> Result<()> {
-        sqlx::query(
+        let old_status: (String,) = sqlx::query_as(
             r#"
-        UPDATE assignments SET status = ? WHERE project_id = ? AND team_id = ?
+        SELECT status FROM assignments WHERE project_id = ? AND team_id = ?
         "#,
-        )
-        .bind(project_id)
-        .bind(team_id)
-        .bind(status.to_string())
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-    pub async fn get_assignment(&self, project_id: u32, team_id: u32) -> Result<Assignment> {
-        let assignment_row = sqlx::query(
-            r#"
-            SELECT project_id, team_id, status, start_date, end_date, repository
-            FROM assignments
-            WHERE project_id = ? and team_id=?
-            "#,
         )
         .bind(project_id)
         .bind(team_id)
         .fetch_one(&self.pool)
         .await?;
 
-        let assignment = Assignment {
-            project_id,
-            team_id,
-            status: Status::from(assignment_row.get::<&str, _>(2)),
-            start_date: assignment_row
-                .get::<String, _>(3)
-                .parse()
-                .unwrap_or(Utc::now()),
-            end_date: assignment_row
-                .get::<String, _>(4)
-                .parse()
-                .unwrap_or(Utc::now()),
-            repository: assignment_row.get::<String, _>(5),
-        };
+        sqlx::query(
+            r#"
+        UPDATE assignments SET status = ? WHERE project_id = ? AND team_id = ?
+        "#,
+        )
+        .bind(status.to_string())
+        .bind(project_id)
+        .bind(team_id)
+        .execute(&self.pool)
+        .await?;
 
-        Ok(assignment)
+        self.history_repository
+            .create_history(&NewHistory {
+                event: "AssignmentStatusChanged".to_string(),
+                description: format!(
+                    "Assignment status changed to {} from {}",
+                    status.to_string(),
+                    old_status.0
+                ),
+            })
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_assignment(&self, project_id: u32, team_id: u32) -> Result<Assignment> {
+        let assignment_row = sqlx::query(
+            r#"
+        SELECT project_id, team_id, status, start_date, end_date, repository
+        FROM assignments
+        WHERE project_id = ? AND team_id = ?
+        "#,
+        )
+        .bind(project_id)
+        .bind(team_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(Assignment {
+            project_id: assignment_row.get::<u32, _>("project_id"),
+            team_id: assignment_row.get::<u32, _>("team_id"),
+            status: assignment_row
+                .get::<&str, _>("status")
+                .parse()
+                .unwrap_or(Status::Planned),
+            start_date: parse_datetime(&assignment_row.get::<String, _>("start_date")),
+            end_date: parse_datetime(&assignment_row.get::<String, _>("end_date")),
+            repository: assignment_row.get::<String, _>("repository"),
+        })
     }
 }

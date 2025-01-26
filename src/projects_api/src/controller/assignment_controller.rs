@@ -26,7 +26,7 @@ async fn change_assignment_status(
         .change_assignment_status(
             payload.project_id,
             payload.team_id,
-            Status::from(payload.status.as_str()),
+            Status::from(payload.status.as_str().parse().unwrap_or(Status::Planned)),
         )
         .await
     {

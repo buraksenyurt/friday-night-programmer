@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use std::str::FromStr;
+
 #[derive(Default, Serialize, Deserialize)]
 pub enum Status {
     #[default]
@@ -7,7 +9,6 @@ pub enum Status {
     InProgress,
     Completed,
     Failed,
-    Unknown,
 }
 
 impl Display for Status {
@@ -17,20 +18,21 @@ impl Display for Status {
             Status::InProgress => "InProgress".to_string(),
             Status::Completed => "Completed".to_string(),
             Status::Failed => "Failed".to_string(),
-            Status::Unknown => "Unknown".to_string(),
         };
         write!(f, "{}", str)
     }
 }
 
-impl From<&str> for Status {
-    fn from(str: &str) -> Self {
-        match str {
-            "Planned" => Status::Planned,
-            "InProgress" => Status::InProgress,
-            "Completed" => Status::Completed,
-            "Failed" => Status::Failed,
-            _ => Status::Unknown,
+impl FromStr for Status {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Planned" => Ok(Status::Planned),
+            "InProgress" => Ok(Status::InProgress),
+            "Completed" => Ok(Status::Completed),
+            "Failed" => Ok(Status::Failed),
+            _ => Err(format!("Invalid status value: {}", s)),
         }
     }
 }
