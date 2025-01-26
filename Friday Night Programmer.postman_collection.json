@@ -31,6 +31,26 @@
 					"response": []
 				},
 				{
+					"name": "Get History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/history",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Project By Id",
 					"request": {
 						"method": "GET",
@@ -112,7 +132,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Dream Team\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10092\",\r\n            \"full_name\": \"Alice Doe\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-10294\",\r\n            \"full_name\": \"Bob Smith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"Dream Team II\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10098\",\r\n            \"full_name\": \"Alice Doee\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-11294\",\r\n            \"full_name\": \"Bob Smmith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -229,7 +249,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"status\": \"Completed\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"status\": \"Planned\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -246,35 +266,6 @@
 							"path": [
 								"api",
 								"assignment"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create History",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"event\": \"Assignment\",\r\n    \"description\": \"Project 1 assigned to team 2\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/api/history",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"api",
-								"history"
 							]
 						}
 					},
