@@ -1,11 +1,12 @@
-use crate::model::prelude::*;
+use crate::repository::history_repository::HistoryRepository;
 use actix_web::*;
+use sqlx::SqlitePool;
 
-#[post("/history")]
-async fn create_history(history: web::Json<History>) -> impl Responder {
-    // history.time = Utc::now();
-    // history db'ye yazılırken burada zaman damgasını otomatik üretebiliriz
-
-    let response = format!("Created history event '{}'", history.event);
-    HttpResponse::Ok().json(response)
+#[get("/history")]
+async fn get_history(pool: web::Data<SqlitePool>) -> impl Responder {
+    let repository = HistoryRepository::new(pool.get_ref().clone());
+    match repository.get_history().await {
+        Ok(history_list) => HttpResponse::Ok().json(history_list),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
