@@ -1,14 +1,20 @@
 use crate::dto::prelude::*;
 use crate::model::prelude::*;
+use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
 pub struct ProjectRepository {
     pool: SqlitePool,
+    history_repository: HistoryRepository,
 }
 
 impl ProjectRepository {
     pub fn new(pool: SqlitePool) -> Self {
-        ProjectRepository { pool }
+        let history_repository = HistoryRepository::new(pool.clone());
+        ProjectRepository {
+            pool,
+            history_repository,
+        }
     }
 
     pub async fn create_project(&self, project: &Project) -> Result<CreatedProject> {
@@ -25,6 +31,13 @@ impl ProjectRepository {
         .bind(&project.criteria_set_id)
         .fetch_one(&self.pool)
         .await?;
+
+        self.history_repository
+            .create_history(&NewHistory {
+                event: "ProjectCreated".to_string(),
+                description: format!("'{}' created with id '{}'", project.name, inserted.0),
+            })
+            .await?;
 
         Ok(CreatedProject {
             id: inserted.0 as u32,

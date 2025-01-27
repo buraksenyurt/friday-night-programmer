@@ -11,7 +11,13 @@ async fn create_assignment(
 ) -> impl Responder {
     let repository = AssignmentRepository::new(pool.get_ref().clone());
     match repository.create_assignment(&assignment).await {
-        Ok(_) => HttpResponse::Ok().json("Assignment created"),
+        Ok(inserted) => {
+            if inserted == 1 {
+                HttpResponse::Ok().json("Assignment created")
+            } else {
+                HttpResponse::BadRequest().json("Assignment did not create!")
+            }
+        }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
@@ -30,7 +36,13 @@ async fn change_assignment_status(
         )
         .await
     {
-        Ok(_) => HttpResponse::Ok().json("Assignment status changed"),
+        Ok(updated) => {
+            if updated > 0 {
+                HttpResponse::Ok().json(format!("{} assignment status changed.", updated))
+            } else {
+                HttpResponse::BadRequest().json("Assignment status did not change!")
+            }
+        }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

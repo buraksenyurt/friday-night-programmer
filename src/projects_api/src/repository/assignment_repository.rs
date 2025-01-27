@@ -18,8 +18,8 @@ impl AssignmentRepository {
         }
     }
 
-    pub async fn create_assignment(&self, assignment: &Assignment) -> Result<()> {
-        sqlx::query(
+    pub async fn create_assignment(&self, assignment: &Assignment) -> Result<u64> {
+        let inserted = sqlx::query(
             r#"
         INSERT INTO assignments (project_id, team_id, status, start_date, end_date, repository)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -41,7 +41,7 @@ impl AssignmentRepository {
             })
             .await?;
 
-        Ok(())
+        Ok(inserted.rows_affected())
     }
 
     pub async fn change_assignment_status(
@@ -49,7 +49,7 @@ impl AssignmentRepository {
         project_id: u32,
         team_id: u32,
         status: Status,
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let old_status: (String,) = sqlx::query_as(
             r#"
         SELECT status FROM assignments WHERE project_id = ? AND team_id = ?
@@ -60,7 +60,7 @@ impl AssignmentRepository {
         .fetch_one(&self.pool)
         .await?;
 
-        sqlx::query(
+        let updated = sqlx::query(
             r#"
         UPDATE assignments SET status = ? WHERE project_id = ? AND team_id = ?
         "#,
@@ -82,7 +82,7 @@ impl AssignmentRepository {
             })
             .await?;
 
-        Ok(())
+        Ok(updated.rows_affected())
     }
 
     pub async fn get_assignment(&self, project_id: u32, team_id: u32) -> Result<Assignment> {

@@ -1,14 +1,20 @@
-use crate::dto::prelude::CreatedCriteria;
+use crate::dto::prelude::{CreatedCriteria, NewHistory};
 use crate::model::prelude::*;
+use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
 pub struct CriteriaRepository {
     pool: SqlitePool,
+    history_repository: HistoryRepository,
 }
 
 impl CriteriaRepository {
     pub fn new(pool: SqlitePool) -> Self {
-        CriteriaRepository { pool }
+        let history_repository = HistoryRepository::new(pool.clone());
+        CriteriaRepository {
+            pool,
+            history_repository,
+        }
     }
 
     pub async fn create_criteria_set(&self, criteria_set: &CriteriaSet) -> Result<CreatedCriteria> {
@@ -27,6 +33,16 @@ impl CriteriaRepository {
             self.add_criterion_to_criteria_set(inserted.0 as u32, criterion)
                 .await?;
         }
+
+        self.history_repository
+            .create_history(&NewHistory {
+                event: "CriteriaSetCreated".to_string(),
+                description: format!(
+                    "'{}' created with id '{}'",
+                    criteria_set.name, criteria_set.id
+                ),
+            })
+            .await?;
 
         Ok(CreatedCriteria {
             id: inserted.0 as u32,
@@ -51,6 +67,13 @@ impl CriteriaRepository {
         .bind(criteria_set_id)
         .execute(&self.pool)
         .await?;
+
+        self.history_repository
+            .create_history(&NewHistory {
+                event: "CriterionAddedToSet".to_string(),
+                description: format!("'{}' added to set '{}'", criterion.name, criteria_set_id),
+            })
+            .await?;
 
         Ok(())
     }
