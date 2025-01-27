@@ -10,6 +10,7 @@ pub enum HistoryEvent {
     TeamCreated,
     MemberAddedToTeam,
     ScoresUpdated,
+    TeamDeleted,
 }
 
 impl Display for HistoryEvent {
@@ -38,6 +39,9 @@ impl Display for HistoryEvent {
             }
             HistoryEvent::ScoresUpdated => {
                 write!(f, "ScoresUpdated")
+            }
+            HistoryEvent::TeamDeleted => {
+                write!(f, "TeamDeleted")
             }
         }
     }

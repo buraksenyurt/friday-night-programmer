@@ -33,6 +33,7 @@ async fn main() -> std::io::Result<()> {
                     .service(team_controller::add_member_to_team)
                     .service(team_controller::get_team)
                     .service(team_controller::update_team_members_scores)
+                    .service(team_controller::delete_team)
                     .service(criteria_controller::create_criteria_set)
                     .service(criteria_controller::add_criterion_to_set)
                     .service(criteria_controller::get_criteria_set)

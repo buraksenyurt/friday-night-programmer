@@ -1,6 +1,7 @@
 use crate::dto::prelude::{CreatedTeam, NewHistory};
 use crate::enums::history_event::HistoryEvent;
 use crate::model::prelude::*;
+use crate::repository::assignment_repository::AssignmentRepository;
 use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
@@ -55,8 +56,8 @@ impl TeamRepository {
         })
     }
 
-    pub async fn add_member_to_team(&self, team_id: u32, member: &Member) -> Result<()> {
-        sqlx::query(
+    pub async fn add_member_to_team(&self, team_id: u32, member: &Member) -> Result<u64> {
+        let inserted = sqlx::query(
             r#"
             INSERT INTO members (identity, full_name, score, team_id)
             VALUES (?, ?, ?, ?)
@@ -69,14 +70,18 @@ impl TeamRepository {
         .execute(&self.pool)
         .await?;
 
-        self.history_repository
-            .create_history(&NewHistory {
-                event: HistoryEvent::MemberAddedToTeam.to_string(),
-                description: format!("Member '{}' added to team '{}'", member.full_name, team_id),
-            })
-            .await?;
-
-        Ok(())
+        if inserted.rows_affected() == 1 {
+            self.history_repository
+                .create_history(&NewHistory {
+                    event: HistoryEvent::MemberAddedToTeam.to_string(),
+                    description: format!(
+                        "Member '{}' added to team '{}'",
+                        member.full_name, team_id
+                    ),
+                })
+                .await?;
+        }
+        Ok(inserted.rows_affected())
     }
 
     pub async fn update_team_members_scores(&self, team_id: u32, score: u32) -> Result<u64> {
@@ -150,5 +155,49 @@ impl TeamRepository {
             name: team.name,
             members,
         })
+    }
+
+    pub async fn delete_team(&self, team_id: u32) -> Result<u64> {
+        let assignment_repository = AssignmentRepository::new(self.pool.clone());
+
+        let delete_assignment = assignment_repository
+            .clear_team_assignments(team_id)
+            .await?;
+        if delete_assignment == 0 {
+            return Ok(0);
+        }
+
+        let deleted_members = sqlx::query(
+            r#"
+        DELETE FROM members WHERE team_id = ?
+        "#,
+        )
+        .bind(team_id)
+        .execute(&self.pool)
+        .await?;
+
+        if deleted_members.rows_affected() == 0 {
+            return Ok(0);
+        }
+
+        let deleted_team = sqlx::query(
+            r#"
+        DELETE FROM teams WHERE id = ?
+        "#,
+        )
+        .bind(team_id)
+        .execute(&self.pool)
+        .await?;
+
+        if deleted_team.rows_affected() > 0 {
+            self.history_repository
+                .create_history(&NewHistory {
+                    event: HistoryEvent::TeamDeleted.to_string(),
+                    description: format!("Team with id '{}' and its members deleted.", team_id),
+                })
+                .await?;
+        }
+
+        Ok(deleted_team.rows_affected())
     }
 }

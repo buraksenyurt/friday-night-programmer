@@ -1,7 +1,7 @@
 use crate::dto::prelude::UpdateScoresRequest;
 use crate::model::prelude::*;
 use crate::repository::team_repository::TeamRepository;
-use actix_web::{get, patch, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use sqlx::SqlitePool;
 
 #[post("/teams")]
@@ -21,7 +21,28 @@ async fn add_member_to_team(
 ) -> impl Responder {
     let repository = TeamRepository::new(pool.get_ref().clone());
     match repository.add_member_to_team(*team_id, &member).await {
-        Ok(_) => HttpResponse::Ok().json("Member added successfully"),
+        Ok(inserted) => {
+            if inserted > 0 {
+                HttpResponse::Ok().json(format!("{} member added successfully.", inserted))
+            } else {
+                HttpResponse::BadRequest().json("Did not add member to team!")
+            }
+        }
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[delete("/teams/{id}")]
+async fn delete_team(team_id: web::Path<u32>, pool: web::Data<SqlitePool>) -> impl Responder {
+    let repository = TeamRepository::new(pool.get_ref().clone());
+    match repository.delete_team(*team_id).await {
+        Ok(deleted) => {
+            if deleted > 0 {
+                HttpResponse::Ok().json(format!("{} record deleted successfully", deleted))
+            } else {
+                HttpResponse::NotFound().json("Did not delete team and members!")
+            }
+        }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

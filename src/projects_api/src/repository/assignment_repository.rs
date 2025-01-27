@@ -111,4 +111,17 @@ impl AssignmentRepository {
             repository: assignment_row.get::<String, _>("repository"),
         })
     }
+
+    pub async fn clear_team_assignments(&self, team_id: u32) -> Result<u64> {
+        let deleted = sqlx::query(
+            r#"
+                DELETE FROM assignments WHERE team_id = ?
+                "#,
+        )
+        .bind(team_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(deleted.rows_affected())
+    }
 }

@@ -132,7 +132,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Dream Team II\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-10098\",\r\n            \"full_name\": \"Alice Doee\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-11294\",\r\n            \"full_name\": \"Bob Smmith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"Cost Busters\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-30098\",\r\n            \"full_name\": \"Belice Doee\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-41294\",\r\n            \"full_name\": \"Aob Smmith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -149,6 +149,36 @@
 							"path": [
 								"api",
 								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Cost Busters\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-30098\",\r\n            \"full_name\": \"Belice Doee\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-41294\",\r\n            \"full_name\": \"Aob Smmith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"1"
 							]
 						}
 					},
@@ -220,7 +250,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 2,\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 3,\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -249,7 +279,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"status\": \"Planned\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 3,\r\n    \"status\": \"InProgress\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -307,7 +337,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"identity\": \"MTH-10088\",\r\n    \"full_name\": \"Billi The Geyts\",\r\n    \"score\": 0\r\n}",
+							"raw": "{\r\n    \"identity\": \"CTH-10088\",\r\n    \"full_name\": \"Kayote Kid\",\r\n    \"score\": 0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
