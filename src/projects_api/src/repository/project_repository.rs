@@ -29,7 +29,7 @@ impl ProjectRepository {
         .bind(&project.name)
         .bind(&project.language)
         .bind(&project.summary)
-        .bind(&project.criteria_set_id)
+        .bind(project.criteria_set_id)
         .fetch_one(&self.pool)
         .await?;
 

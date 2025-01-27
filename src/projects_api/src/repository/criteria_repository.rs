@@ -64,7 +64,7 @@ impl CriteriaRepository {
             "#,
         )
         .bind(&criterion.name)
-        .bind(&criterion.point)
+        .bind(criterion.point)
         .bind(criteria_set_id)
         .execute(&self.pool)
         .await?;

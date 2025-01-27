@@ -77,8 +77,7 @@ impl AssignmentRepository {
                 event: HistoryEvent::AssignmentStatusChanged.to_string(),
                 description: format!(
                     "Assignment status changed to {} from {}",
-                    status.to_string(),
-                    old_status.0
+                    status, old_status.0
                 ),
             })
             .await?;

@@ -14,39 +14,25 @@ pub enum HistoryEvent {
     MemberMoved,
 }
 
+impl HistoryEvent {
+    fn as_str(&self) -> &'static str {
+        match self {
+            HistoryEvent::CreatedNewAssignment => "CreatedNewAssignment",
+            HistoryEvent::AssignmentStatusChanged => "AssignmentStatusChanged",
+            HistoryEvent::CriteriaSetCreated => "CriteriaSetCreated",
+            HistoryEvent::CriterionAddedToSet => "CriterionAddedToSet",
+            HistoryEvent::ProjectCreated => "ProjectCreated",
+            HistoryEvent::TeamCreated => "TeamCreated",
+            HistoryEvent::MemberAddedToTeam => "MemberAddedToTeam",
+            HistoryEvent::ScoresUpdated => "ScoresUpdated",
+            HistoryEvent::TeamDeleted => "TeamDeleted",
+            HistoryEvent::MemberMoved => "MemberMoved",
+        }
+    }
+}
+
 impl Display for HistoryEvent {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            HistoryEvent::CreatedNewAssignment => {
-                write!(f, "CreatedNewAssignment")
-            }
-            HistoryEvent::AssignmentStatusChanged => {
-                write!(f, "AssignmentStatusChanged")
-            }
-            HistoryEvent::CriteriaSetCreated => {
-                write!(f, "CriteriaSetCreated")
-            }
-            HistoryEvent::CriterionAddedToSet => {
-                write!(f, "CriterionAddedToSet")
-            }
-            HistoryEvent::ProjectCreated => {
-                write!(f, "ProjectCreated")
-            }
-            HistoryEvent::TeamCreated => {
-                write!(f, "TeamCreated")
-            }
-            HistoryEvent::MemberAddedToTeam => {
-                write!(f, "MemberAddedToTeam")
-            }
-            HistoryEvent::ScoresUpdated => {
-                write!(f, "ScoresUpdated")
-            }
-            HistoryEvent::TeamDeleted => {
-                write!(f, "TeamDeleted")
-            }
-            HistoryEvent::MemberMoved => {
-                write!(f, "MemberMoved")
-            }
-        }
+        write!(f, "{}", self.as_str())
     }
 }

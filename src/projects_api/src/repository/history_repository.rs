@@ -44,7 +44,7 @@ impl HistoryRepository {
         let result = rows
             .iter()
             .map(|row| History {
-                time: utility::parse_datetime(&*row.get::<String, _>(0)),
+                time: utility::parse_datetime(&row.get::<String, _>(0)),
                 event: row.get::<String, _>(1),
                 description: row.get::<String, _>(2),
             })
