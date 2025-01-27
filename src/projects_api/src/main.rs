@@ -42,7 +42,8 @@ async fn main() -> std::io::Result<()> {
                     .service(assignment_controller::get_assignment_by_team)
                     .service(assignment_controller::change_assignment_status)
                     .service(project_controller::create_project)
-                    .service(project_controller::get_project_by_id),
+                    .service(project_controller::get_project_by_id)
+                    .service(member_controller::move_member_to_another_team),
             )
     })
     .bind(server_address)?
