@@ -1,4 +1,5 @@
 use crate::dto::prelude::{CreatedCriteria, NewHistory};
+use crate::enums::history_event::HistoryEvent;
 use crate::model::prelude::*;
 use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
@@ -36,7 +37,7 @@ impl CriteriaRepository {
 
         self.history_repository
             .create_history(&NewHistory {
-                event: "CriteriaSetCreated".to_string(),
+                event: HistoryEvent::CriteriaSetCreated.to_string(),
                 description: format!(
                     "'{}' created with id '{}'",
                     criteria_set.name, criteria_set.id
@@ -70,7 +71,7 @@ impl CriteriaRepository {
 
         self.history_repository
             .create_history(&NewHistory {
-                event: "CriterionAddedToSet".to_string(),
+                event: HistoryEvent::CriterionAddedToSet.to_string(),
                 description: format!("'{}' added to set '{}'", criterion.name, criteria_set_id),
             })
             .await?;

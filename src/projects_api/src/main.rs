@@ -6,6 +6,7 @@ use std::env;
 
 mod controller;
 mod dto;
+mod enums;
 mod model;
 mod repository;
 mod utility;

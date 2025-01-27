@@ -1,4 +1,5 @@
 use crate::dto::prelude::*;
+use crate::enums::history_event::HistoryEvent;
 use crate::model::prelude::*;
 use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
@@ -34,7 +35,7 @@ impl ProjectRepository {
 
         self.history_repository
             .create_history(&NewHistory {
-                event: "ProjectCreated".to_string(),
+                event: HistoryEvent::ProjectCreated.to_string(),
                 description: format!("'{}' created with id '{}'", project.name, inserted.0),
             })
             .await?;

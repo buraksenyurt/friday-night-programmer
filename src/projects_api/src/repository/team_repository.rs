@@ -1,4 +1,5 @@
 use crate::dto::prelude::{CreatedTeam, NewHistory};
+use crate::enums::history_event::HistoryEvent;
 use crate::model::prelude::*;
 use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
@@ -35,6 +36,18 @@ impl TeamRepository {
             self.add_member_to_team(inserted.0 as u32, member).await?;
         }
 
+        self.history_repository
+            .create_history(&NewHistory {
+                event: HistoryEvent::TeamCreated.to_string(),
+                description: format!(
+                    "'{}' created with {} members via id '{}'",
+                    team.name,
+                    team.members.len(),
+                    inserted.0
+                ),
+            })
+            .await?;
+
         Ok(CreatedTeam {
             id: inserted.0 as u32,
             name: team.name.clone(),
@@ -56,6 +69,13 @@ impl TeamRepository {
         .execute(&self.pool)
         .await?;
 
+        self.history_repository
+            .create_history(&NewHistory {
+                event: HistoryEvent::MemberAddedToTeam.to_string(),
+                description: format!("Member '{}' added to team '{}'", member.full_name, team_id),
+            })
+            .await?;
+
         Ok(())
     }
 
@@ -74,7 +94,7 @@ impl TeamRepository {
         if updated.rows_affected() > 0 {
             self.history_repository
                 .create_history(&NewHistory {
-                    event: "ScoresUpdated".to_string(),
+                    event: HistoryEvent::ScoresUpdated.to_string(),
                     description: format!(
                         "Team no '{}' members scores updated to '{}'",
                         team_id, score

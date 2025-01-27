@@ -1,4 +1,5 @@
 use crate::dto::prelude::NewHistory;
+use crate::enums::history_event::HistoryEvent;
 use crate::model::prelude::*;
 use crate::repository::history_repository::HistoryRepository;
 use crate::utility::*;
@@ -36,7 +37,7 @@ impl AssignmentRepository {
 
         self.history_repository
             .create_history(&NewHistory {
-                event: "CreatedNewAssignment".to_string(),
+                event: HistoryEvent::CreatedNewAssignment.to_string(),
                 description: format!("New assignment created for team {}", assignment.team_id),
             })
             .await?;
@@ -73,7 +74,7 @@ impl AssignmentRepository {
 
         self.history_repository
             .create_history(&NewHistory {
-                event: "AssignmentStatusChanged".to_string(),
+                event: HistoryEvent::AssignmentStatusChanged.to_string(),
                 description: format!(
                     "Assignment status changed to {} from {}",
                     status.to_string(),

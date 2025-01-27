@@ -1,4 +1,4 @@
-use crate::model::status::Status;
+use crate::enums::status::Status;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

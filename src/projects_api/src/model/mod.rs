@@ -5,5 +5,4 @@ mod history;
 mod member;
 pub mod prelude;
 mod project;
-mod status;
 mod team;
