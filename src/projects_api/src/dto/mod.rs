@@ -6,3 +6,4 @@ mod get_assignment_request;
 mod new_history;
 pub mod prelude;
 mod project_with_criteria;
+mod update_scores_request;

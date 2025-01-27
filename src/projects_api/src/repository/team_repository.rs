@@ -1,14 +1,20 @@
-use crate::dto::prelude::CreatedTeam;
+use crate::dto::prelude::{CreatedTeam, NewHistory};
 use crate::model::prelude::*;
+use crate::repository::history_repository::HistoryRepository;
 use sqlx::{sqlite::SqlitePool, Result, Row};
 
 pub struct TeamRepository {
     pool: SqlitePool,
+    history_repository: HistoryRepository,
 }
 
 impl TeamRepository {
     pub fn new(pool: SqlitePool) -> Self {
-        TeamRepository { pool }
+        let history_repository = HistoryRepository::new(pool.clone());
+        TeamRepository {
+            pool,
+            history_repository,
+        }
     }
 
     pub async fn create_team(&self, team: &Team) -> Result<CreatedTeam> {
@@ -51,6 +57,33 @@ impl TeamRepository {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn update_team_members_scores(&self, team_id: u32, score: u32) -> Result<u64> {
+        let updated = sqlx::query(
+            r#"
+            UPDATE members SET score = ?
+            WHERE team_id = ?
+            "#,
+        )
+        .bind(score)
+        .bind(team_id)
+        .execute(&self.pool)
+        .await?;
+
+        if updated.rows_affected() > 0 {
+            self.history_repository
+                .create_history(&NewHistory {
+                    event: "ScoresUpdated".to_string(),
+                    description: format!(
+                        "Team no '{}' members scores updated to '{}'",
+                        team_id, score
+                    ),
+                })
+                .await?;
+        }
+
+        Ok(updated.rows_affected())
     }
 
     pub async fn get_team(&self, team_id: u32) -> Result<Team> {

@@ -272,6 +272,35 @@
 					"response": []
 				},
 				{
+					"name": "Update Team Member Scores",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"team_id\": 1,\r\n    \"score\": 92\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add Member to Existing Team",
 					"request": {
 						"method": "POST",
