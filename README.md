@@ -9,7 +9,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
   - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
   - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
-  - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one)
+  - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
   - [Chapter 04 - Enemy at the Gates](#chapter-04---enemy-at-the-gates)
   - [Chapter 05 - Back to the Future](#chapter-05---back-to-the-future)
   - [Chapter 06 - Memento](#chapter-06---memento)
@@ -104,11 +104,28 @@ Bu programda aşağıdaki konulardan bahsettik.
 - Readme dokümanlarını hazırlarken yazı stillerini düzenlemekte kullanabileceğimiz kavramların özetine [buradan](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) ulaşabilirsiniz.
 - .Net platformu için kullanılabilecek araçların [derlenmiş bir listesi](https://github.com/quozd/awesome-dotnet?tab=readme-ov-file#tools) Arada sırada güncellense de topluca türlü bilgilere ulaşabileceğimiz bir alan.
 
-## Chapter 03 - Ready, Player One
+## Chapter 03 - Ready, Player One _(31 Ocak 2025 Cuma, 21:30 - 22:30)_
 
-## Chapter 04 - Enemy At The Gates
+[Yayın Linki](https://www.youtube.com/live/4jxHRzlo77E)
 
-## Chapter 05 - Back to the Future
+Bu programda aşağıdaki konulardan bahsettik.
+
+- Futbol ekonomisinin büyüklüğünü gözler önüne seren Deloitte analizi ile başladık. Detaylar [burada](https://www.deloitte.com/uk/en/services/financial-advisory/analysis/deloitte-football-money-league.html). Ayrıca La Liga'nın [Microsoft CoPilot](https://unlocked.microsoft.com/laliga-beyond-stats/) ile olan işbirlikteliğine baktık.
+- Dünyanın ilk ev içi oyun konsolu olan Magnavox'u ve 1972 yılı yapımı Tennis oyununa baktık. [Youtube](https://www.youtube.com/watch?v=vB5fE9eTVmk) videosu burada. Oyun konsolunun kullanım kılavuzuna da [Internet Arşivinden](https://archive.org/details/Odyssey_Installation_and_Game_Rules_1972_Magnavox_US/mode/2up) bakılabilir. Ayrıca diğer oyun konsolları ile ilgili detaylı bir sitede var. Teknoloji tarihçesini sevenler için tam bir hazine, [Video Game Console Library](https://www.videogameconsolelibrary.com/index.html)
+- Bu bölüm değindiğim iki kitap var. Birisi [The Nostalgia Nerd's Retro Tech](https://amzn.eu/d/bn7aPWd) diğeri ise [System Programming with Rust](https://www.amazon.com.tr/dp/B0DP21NGJY)
+- Rust'ın Linux çekirdeğindeki kullanımı da artıyor. Bilgilendirme yazısı [şurada](https://www.phoronix.com/news/Linux-6.14-Rust)
+- Eğer Rust ile bir işletim sistemi yazmayı düşünüyorsanız hangi yollardan ilerleyebileceğinizi anlatan dolu dolu bir blog var. İlk bölümde bare metal programming'e giriş yapıyor ardından VGA kartının belleğine doğrudan erişerek işletim sisteminin terminal ekranını tasarlıyorsunuz. [Kaçırmayın](https://os.phil-opp.com/)
+- Rust ile C# ın belli noktalarda kıyaslandığı bir [yazıya](https://woodruff.dev/exploring-programming-paradigms-c-and-rust-side-by-side/?amp=1) da değindik. Hatta sevgili Salih Cantekin hocanın blog yazısına da uğradık, [In place string reverse in Rust](https://salihcantekin.com/in-place-string-reverse-in-rust/) Bora Kaşmer hocamızı unutur muyuz? [Microsoft Teams’e bir Worker Üzerinden Mesaj Atmak](https://www.borakasmer.com/microsoft-teamse-bir-worker-uzerinden-mesaj-atmak/)
+- Eğer 2025 yılında bir yazılım geliştirici olarak kendinize çeşitli challenge'lar arıyorsanız [bu yazı](https://www.upgrad.com/blog/software-engineering-challenges/) size birkaç fikir verebilir.
+- Sıklıkla ThoughtWorks firmasının teknoloji radarını takip etmenizi öneriyorum. Bu son yazıda en çok dikkatimi çeken [Replacing pair programming with AI](https://www.thoughtworks.com/radar/techniques/summary/replacing-pair-programming-with-ai) tekniğinin uzun vadede zarar vereceğini ve kullanılmamasının tavsiye edildiğini belirten kısım oldu.
+- Repodaki gelişmelere de değindik. Yeni bir Use Case' imiz var. [Use Case](./documents/UseCases.md) dokümanındaki UC01 kodlu vaka. Projemizde src klasöründe yer alıyor. İlk etapta servis tarafının geliştirilmesi söz konusu. projects_api isimli rust uygulamasına bakabilirsiniz. Test için gerekli postman dosyası ise [burada](./Friday%20Night%20Programmer.postman_collection.json). Ayrıca Rust ile WASM kullanımının ele alındığı basit bir senaryodan da bahsettik. Detaylara [bu yazıdan](https://www.buraksenyurt.com/post/sunucu-metriklerini-izleme-rust-ve-wasm-ile) ulaşabilirsiniz.
+- Gelen bir soru üzerine ufakta olsa CAP teoremi üzerine konuştuk. Kısaca bir dağıtık sistemde Consistency, Availability ve Partition Tolerance kavramlarının üçü bir arada olamaz üzerine dayalı.
+
+Sonraki yayında yazılım mimarilerine de değineceğiz.
+
+## Chapter 04 - The Usual Suspects
+
+## Chapter 05 - Dark City
 
 ## Chapter 06 - Memento
 
