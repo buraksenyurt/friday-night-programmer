@@ -5,6 +5,7 @@ mod created_team;
 mod get_assignment_request;
 mod move_member_request;
 mod new_history;
+mod operation_response;
 pub mod prelude;
 mod project_with_criteria;
 mod update_scores_request;

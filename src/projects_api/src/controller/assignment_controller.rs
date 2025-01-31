@@ -13,9 +13,19 @@ async fn create_assignment(
     match repository.create_assignment(&assignment).await {
         Ok(inserted) => {
             if inserted == 1 {
-                HttpResponse::Ok().json("Assignment created")
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    "Assignment created",
+                    None,
+                    None::<()>,
+                ))
             } else {
-                HttpResponse::BadRequest().json("Assignment did not create!")
+                HttpResponse::BadRequest().json(OperationResponse::new(
+                    false,
+                    "Assignment did not create!",
+                    None,
+                    None::<()>,
+                ))
             }
         }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -38,7 +48,12 @@ async fn change_assignment_status(
     {
         Ok(updated) => {
             if updated > 0 {
-                HttpResponse::Ok().json(format!("{} assignment status changed.", updated))
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} assignment status changed.", updated).as_str(),
+                    None,
+                    None::<()>,
+                ))
             } else {
                 HttpResponse::BadRequest().json("Assignment status did not change!")
             }
@@ -57,7 +72,12 @@ async fn get_assignment_by_team(
         .get_assignment(payload.project_id, payload.team_id)
         .await
     {
-        Ok(team) => HttpResponse::Ok().json(team),
+        Ok(team) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            "Assignment data is ready",
+            None,
+            Some(team),
+        )),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

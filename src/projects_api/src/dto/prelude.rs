@@ -5,5 +5,6 @@ pub use crate::dto::created_team::CreatedTeam;
 pub use crate::dto::get_assignment_request::GetAssignmentRequest;
 pub use crate::dto::move_member_request::MoveMemberRequest;
 pub use crate::dto::new_history::NewHistory;
+pub use crate::dto::operation_response::OperationResponse;
 pub use crate::dto::project_with_criteria::ProjectWithCriteria;
 pub use crate::dto::update_scores_request::UpdateScoresRequest;
