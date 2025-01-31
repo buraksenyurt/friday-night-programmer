@@ -1,4 +1,4 @@
-use crate::dto::prelude::UpdateScoresRequest;
+use crate::dto::prelude::{OperationResponse, UpdateScoresRequest};
 use crate::model::prelude::*;
 use crate::repository::team_repository::TeamRepository;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
@@ -8,7 +8,12 @@ use sqlx::SqlitePool;
 async fn create_team(team: web::Json<Team>, pool: web::Data<SqlitePool>) -> impl Responder {
     let repository = TeamRepository::new(pool.get_ref().clone());
     match repository.create_team(&team).await {
-        Ok(created) => HttpResponse::Ok().json(created),
+        Ok(created) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            "Team has been created successfully",
+            None,
+            Some(created),
+        )),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
@@ -23,9 +28,19 @@ async fn add_member_to_team(
     match repository.add_member_to_team(*team_id, &member).await {
         Ok(inserted) => {
             if inserted > 0 {
-                HttpResponse::Ok().json(format!("{} member added successfully.", inserted))
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} member added successfully.", inserted).as_str(),
+                    None,
+                    None::<()>,
+                ))
             } else {
-                HttpResponse::BadRequest().json("Did not add member to team!")
+                HttpResponse::BadRequest().json(OperationResponse::new(
+                    false,
+                    "Did not add member to team!",
+                    None,
+                    None::<()>,
+                ))
             }
         }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -38,9 +53,19 @@ async fn delete_team(team_id: web::Path<u32>, pool: web::Data<SqlitePool>) -> im
     match repository.delete_team(*team_id).await {
         Ok(deleted) => {
             if deleted > 0 {
-                HttpResponse::Ok().json(format!("{} record deleted successfully", deleted))
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} record deleted successfully", deleted).as_str(),
+                    None,
+                    None::<()>,
+                ))
             } else {
-                HttpResponse::NotFound().json("Did not delete team and members!")
+                HttpResponse::NotFound().json(OperationResponse::new(
+                    false,
+                    "Did not delete team and members!",
+                    None,
+                    None::<()>,
+                ))
             }
         }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -59,9 +84,19 @@ async fn update_team_members_scores(
     {
         Ok(updated) => {
             if updated > 0 {
-                HttpResponse::Ok().json(format!("{} Member scores updated successfully", updated))
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} Member scores updated successfully", updated).as_str(),
+                    None,
+                    None::<()>,
+                ))
             } else {
-                HttpResponse::NotFound().json("Team mates scores could not be updated.")
+                HttpResponse::NotFound().json(OperationResponse::new(
+                    false,
+                    "Team mates scores could not be updated.",
+                    None,
+                    None::<()>,
+                ))
             }
         }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -72,7 +107,12 @@ async fn update_team_members_scores(
 async fn get_team(team_id: web::Path<u32>, pool: web::Data<SqlitePool>) -> impl Responder {
     let repository = TeamRepository::new(pool.get_ref().clone());
     match repository.get_team(*team_id).await {
-        Ok(team) => HttpResponse::Ok().json(team),
+        Ok(team) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            "Team and members has been retrieved successfully!",
+            None,
+            Some(team),
+        )),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

@@ -15,9 +15,19 @@ async fn move_member_to_another_team(
     {
         Ok(updated) => {
             if updated > 0 {
-                HttpResponse::Ok().json(format!("{} Member moved to a new team", updated))
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} Member moved to a new team", updated).as_str(),
+                    None,
+                    None::<()>,
+                ))
             } else {
-                HttpResponse::NotFound().json("Member moved to a team did not completed!")
+                HttpResponse::NotFound().json(OperationResponse::new(
+                    false,
+                    "'Member moved to a team' did not completed!",
+                    None,
+                    None::<()>,
+                ))
             }
         }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),

@@ -1,3 +1,4 @@
+use crate::dto::prelude::OperationResponse;
 use crate::model::prelude::*;
 use crate::repository::project_repository::ProjectRepository;
 use actix_web::*;
@@ -10,7 +11,12 @@ async fn create_project(
 ) -> impl Responder {
     let repository = ProjectRepository::new(pool.get_ref().clone());
     match repository.create_project(&project).await {
-        Ok(created) => HttpResponse::Ok().json(created),
+        Ok(created) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            "Project created",
+            None,
+            Some(created),
+        )),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
@@ -22,7 +28,16 @@ async fn get_project_by_id(
 ) -> impl Responder {
     let repository = ProjectRepository::new(pool.get_ref().clone());
     match repository.get_project(*project_id).await {
-        Ok(team) => HttpResponse::Ok().json(team),
+        Ok(project_with_criteria) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            format!(
+                "'{}' has been retrieved.",
+                project_with_criteria.project.name
+            )
+            .as_str(),
+            None,
+            Some(project_with_criteria),
+        )),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
