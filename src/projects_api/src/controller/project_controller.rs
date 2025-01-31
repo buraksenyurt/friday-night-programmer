@@ -17,7 +17,12 @@ async fn create_project(
             None,
             Some(created),
         )),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -38,6 +43,11 @@ async fn get_project_by_id(
             None,
             Some(project_with_criteria),
         )),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }

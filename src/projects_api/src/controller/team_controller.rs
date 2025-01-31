@@ -14,7 +14,12 @@ async fn create_team(team: web::Json<Team>, pool: web::Data<SqlitePool>) -> impl
             None,
             Some(created),
         )),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -43,7 +48,12 @@ async fn add_member_to_team(
                 ))
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -68,7 +78,12 @@ async fn delete_team(team_id: web::Path<u32>, pool: web::Data<SqlitePool>) -> im
                 ))
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -99,7 +114,12 @@ async fn update_team_members_scores(
                 ))
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -113,6 +133,11 @@ async fn get_team(team_id: web::Path<u32>, pool: web::Data<SqlitePool>) -> impl 
             None,
             Some(team),
         )),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }

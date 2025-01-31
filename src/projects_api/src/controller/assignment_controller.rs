@@ -28,7 +28,12 @@ async fn create_assignment(
                 ))
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -58,7 +63,12 @@ async fn change_assignment_status(
                 HttpResponse::BadRequest().json("Assignment status did not change!")
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
 
@@ -78,6 +88,11 @@ async fn get_assignment_by_team(
             None,
             Some(team),
         )),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }

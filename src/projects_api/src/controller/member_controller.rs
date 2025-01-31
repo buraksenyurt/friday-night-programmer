@@ -30,6 +30,11 @@ async fn move_member_to_another_team(
                 ))
             }
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
     }
 }
