@@ -86,6 +86,24 @@
 					"response": []
 				},
 				{
+					"name": "Get All Criteria Sets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{projects_api_base_address}}/api/criteria",
+							"host": [
+								"{{projects_api_base_address}}"
+							],
+							"path": [
+								"api",
+								"criteria"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Assignment by Project and Team",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
@@ -165,6 +183,33 @@
 								"api",
 								"teams",
 								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete criterion",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"set_id\": 1,\r\n    \"name\": \"Runnable\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{projects_api_base_address}}/api/criterion",
+							"host": [
+								"{{projects_api_base_address}}"
+							],
+							"path": [
+								"api",
+								"criterion"
 							]
 						}
 					},
