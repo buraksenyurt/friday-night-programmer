@@ -4,7 +4,7 @@
     ViewData["Title"] = "Manage Criteria Sets";
 }
 
-<h1>Create Criteria Set</h1>
+<h1>Manage Criteria Sets</h1>
 
 @if (TempData["SuccessMessage"] != null)
 {
@@ -15,30 +15,43 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<form method="post">
+<h2>Add Criterion</h2>
+<form method="post" asp-page-handler="AddCriterion">
     <div class="mb-3">
-        <label asp-for="Criteria.Name" class="form-label">Criteria Set Name</label>
-        <input asp-for="Criteria.Name" class="form-control" />
+        <label for="SelectedSetId" class="form-label">Select Existing Criteria Set</label>
+        <select asp-for="SelectedSetId" class="form-control" id="SelectedSetId">
+            <option value="">-- Create New Criteria Set --</option>
+            @foreach (var set in Model.CriteriaSets)
+            {
+                <option value="@set.Id">@set.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3" id="newSetName">
+        <label asp-for="Criteria.Name" class="form-label">New Criteria Set Name</label>
+        <input asp-for="Criteria.Name" class="form-control" placeholder="Enter new criteria set name" />
         <span asp-validation-for="Criteria.Name" class="text-danger"></span>
     </div>
 
-    <h4>Criterion List</h4>
-    <div id="criteria-items">
-        <div class="criteria-item mb-3">
-            <input name="Criteria.Set[0].Name" class="form-control mb-2" placeholder="Criterion Name" />
-            <input type="number" name="Criteria.Set[0].Point" class="form-control" placeholder="Point" />
-        </div>
+    <div class="mb-3">
+        <label asp-for="NewCriterion.Name" class="form-label">Criterion Name</label>
+        <input asp-for="NewCriterion.Name" class="form-control" placeholder="Enter criterion name" />
+        <span asp-validation-for="NewCriterion.Name" class="text-danger"></span>
     </div>
 
-    <button type="button" class="btn btn-secondary" id="add-criteria">Add More Criteria</button>
-    <br /><br />
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <div class="mb-3">
+        <label asp-for="NewCriterion.Point" class="form-label">Points</label>
+        <input asp-for="NewCriterion.Point" type="number" class="form-control" placeholder="Enter points" />
+        <span asp-validation-for="NewCriterion.Point" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Criterion</button>
 </form>
 
 <hr />
 
 <h2>Existing Criteria Sets</h2>
-
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -63,11 +76,14 @@
                 foreach (var criterion in set.Set)
                 {
                     <tr>
-                        <td class="text-primary">@set.Name</td>
+                        <td>@set.Name</td>
                         <td>@criterion.Name</td>
                         <td>@criterion.Point</td>
                         <td>
-                            <form method="post" asp-page-handler="DeleteCriterion" asp-route-setId="@set.Id" asp-route-criterionName="@criterion.Name" onsubmit="return confirm('Are you sure you want to delete this criterion?');">
+                            <form method="post" asp-page-handler="DeleteCriterion"
+                                  asp-route-setId="@set.Id"
+                                  asp-route-criterionName="@criterion.Name"
+                                  onsubmit="return confirm('Are you sure you want to delete this criterion?');">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
@@ -80,17 +96,23 @@
 
 @section Scripts {
     <script>
-        let criteriaIndex = 1;
-        document.getElementById("add-criteria").addEventListener("click", function () {
-            const container = document.getElementById("criteria-items");
-            const newItem = document.createElement("div");
-            newItem.classList.add("criteria-item", "mb-3");
-            newItem.innerHTML = `
-                <input name="Criteria.Set[${criteriaIndex}].Name" class="form-control mb-2" placeholder="Criteria Name" />
-                <input type="number" name="Criteria.Set[${criteriaIndex}].Point" class="form-control" placeholder="Point" />
-            `;
-            container.appendChild(newItem);
-            criteriaIndex++;
+        document.getElementById("SelectedSetId").addEventListener("change", function () {
+            const newSetName = document.getElementById("newSetName");
+            if (this.value === "") {
+                newSetName.style.display = "block";
+            } else {
+                newSetName.style.display = "none";
+            }
+        });
+
+        window.addEventListener("load", function () {
+            const selectedSet = document.getElementById("SelectedSetId").value;
+            const newSetName = document.getElementById("newSetName");
+            if (selectedSet === "") {
+                newSetName.style.display = "block";
+            } else {
+                newSetName.style.display = "none";
+            }
         });
     </script>
 }

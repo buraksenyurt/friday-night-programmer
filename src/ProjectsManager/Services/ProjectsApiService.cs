@@ -7,20 +7,20 @@ namespace ProjectsManager.Services;
 public class ProjectsApiService(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
-
+    private readonly string baseAddress = "http://localhost:6503";
     public async Task<bool> CreateCriteriaAsync(Criteria criteria)
     {
         var json = JsonSerializer.Serialize(criteria);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync("http://localhost:6503/api/criteria/set", content);
+        var response = await _httpClient.PostAsync($"{baseAddress}/api/criteria/set", content);
 
         return response.IsSuccessStatusCode;
     }
 
     public async Task<List<Criteria>> GetAllCriteriaSetsAsync()
     {
-        var response = await _httpClient.GetAsync("http://localhost:6503/api/criteria");
+        var response = await _httpClient.GetAsync($"{baseAddress}/api/criteria");
         if (response.IsSuccessStatusCode)
         {
             var json = await response.Content.ReadAsStringAsync();
@@ -32,6 +32,15 @@ public class ProjectsApiService(HttpClient httpClient)
             return apiResponse?.Data ?? [];
         }
         return [];
+    }
+
+    public async Task<bool> AddCriterionToSetAsync(int setId, Criterion criterion)
+    {
+        var json = JsonSerializer.Serialize(criterion);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync($"{baseAddress}/api/criteria/set/{setId}/criterion", content);
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCriterionAsync(int setId, string criterionName)
@@ -48,12 +57,14 @@ public class ProjectsApiService(HttpClient httpClient)
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Delete,
-            RequestUri = new Uri("http://localhost:6503/api/criterion"),
+            RequestUri = new Uri($"{baseAddress}/api/criterion"),
             Content = content
         };
 
         var response = await _httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
+
+
 
 }
