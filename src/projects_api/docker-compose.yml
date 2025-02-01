@@ -1,0 +1,5 @@
+services:
+  projects-api-service:
+    build: .
+    ports:
+      - "6503:8080"
