@@ -1,7 +1,7 @@
 ﻿@page
 @model ProjectsManager.Pages.CriteriaModel
 @{
-    ViewData["Title"] = "Create Criteria";
+    ViewData["Title"] = "Manage Criteria Sets";
 }
 
 <h1>Create Criteria Set</h1>
@@ -9,6 +9,10 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
 <form method="post">
@@ -30,6 +34,49 @@
     <br /><br />
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+
+<hr />
+
+<h2>Existing Criteria Sets</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Set</th>
+            <th>Criterion</th>
+            <th>Point</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var set in Model.CriteriaSets)
+        {
+            if (set.Set.Count == 0)
+            {
+                <tr>
+                    <td>@set.Name</td>
+                    <td colspan="2" class="text-center">No criteria defined</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var criterion in set.Set)
+                {
+                    <tr>
+                        <td class="text-primary">@set.Name</td>
+                        <td>@criterion.Name</td>
+                        <td>@criterion.Point</td>
+                        <td>
+                            <form method="post" asp-page-handler="DeleteCriterion" asp-route-setId="@set.Id" asp-route-criterionName="@criterion.Name" onsubmit="return confirm('Are you sure you want to delete this criterion?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+        }
+    </tbody>
+</table>
 
 @section Scripts {
     <script>

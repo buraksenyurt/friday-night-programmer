@@ -12,8 +12,12 @@ public class CriteriaModel(ProjectsApiService apiService) : PageModel
     [BindProperty]
     public Criteria Criteria { get; set; } = new();
 
-    public void OnGet()
+    public List<Criteria> CriteriaSets { get; set; } = [];
+    public string ApiMessage { get; set; } = string.Empty;
+
+    public async Task OnGet()
     {
+        CriteriaSets = await _apiService.GetAllCriteriaSetsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -32,7 +36,24 @@ public class CriteriaModel(ProjectsApiService apiService) : PageModel
         else
         {
             ModelState.AddModelError(string.Empty, "Failed to create criteria.");
+            CriteriaSets = await _apiService.GetAllCriteriaSetsAsync();
             return Page();
         }
     }
+
+    public async Task<IActionResult> OnPostDeleteCriterionAsync(int setId, string criterionName)
+    {
+        bool success = await _apiService.DeleteCriterionAsync(setId, criterionName);
+        if (success)
+        {
+            TempData["SuccessMessage"] = "Criterion successfully deleted!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Failed to delete criterion.";
+        }
+
+        return RedirectToPage("/CriteriaSet");
+    }
+
 }
