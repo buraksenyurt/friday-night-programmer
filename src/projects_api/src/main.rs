@@ -37,6 +37,8 @@ async fn main() -> std::io::Result<()> {
                     .service(criteria_controller::create_criteria_set)
                     .service(criteria_controller::add_criterion_to_set)
                     .service(criteria_controller::get_criteria_set)
+                    .service(criteria_controller::get_all_criteria)
+                    .service(criteria_controller::delete_criterion)
                     .service(history_controller::get_history)
                     .service(assignment_controller::create_assignment)
                     .service(assignment_controller::get_assignment_by_team)

@@ -2,6 +2,7 @@ pub use crate::dto::change_assignment_status_request::ChangeAssignmentStatusRequ
 pub use crate::dto::created_criteria::CreatedCriteria;
 pub use crate::dto::created_project::CreatedProject;
 pub use crate::dto::created_team::CreatedTeam;
+pub use crate::dto::delete_criterion_request::DeleteCriterionRequest;
 pub use crate::dto::get_assignment_request::GetAssignmentRequest;
 pub use crate::dto::move_member_request::MoveMemberRequest;
 pub use crate::dto::new_history::NewHistory;

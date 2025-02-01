@@ -1,4 +1,4 @@
-use crate::dto::prelude::OperationResponse;
+use crate::dto::prelude::{DeleteCriterionRequest, OperationResponse};
 use crate::model::prelude::*;
 use crate::repository::criteria_repository::CriteriaRepository;
 use actix_web::*;
@@ -65,6 +65,63 @@ async fn get_criteria_set(
             None,
             Some(criteria_set),
         )),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
+    }
+}
+
+#[get("/criteria")]
+async fn get_all_criteria(pool: web::Data<SqlitePool>) -> impl Responder {
+    let repository = CriteriaRepository::new(pool.get_ref().clone());
+    match repository.get_all_criteria().await {
+        Ok(criteria_sets) => HttpResponse::Ok().json(OperationResponse::new(
+            true,
+            format!(
+                "'{}' criteria has been successfully retrieved.",
+                criteria_sets.len()
+            )
+            .as_str(),
+            None,
+            Some(criteria_sets),
+        )),
+        Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
+            false,
+            err.to_string().as_str(),
+            None,
+            None::<()>,
+        )),
+    }
+}
+
+#[delete("/criterion")]
+async fn delete_criterion(
+    request: web::Json<DeleteCriterionRequest>,
+    pool: web::Data<SqlitePool>,
+) -> impl Responder {
+    let repository = CriteriaRepository::new(pool.get_ref().clone());
+    let name = request.name.clone();
+    match repository.delete_criterion(request.set_id, name).await {
+        Ok(deleted) => {
+            if deleted > 0 {
+                HttpResponse::Ok().json(OperationResponse::new(
+                    true,
+                    format!("{} record deleted successfully", deleted).as_str(),
+                    None,
+                    None::<()>,
+                ))
+            } else {
+                HttpResponse::NotFound().json(OperationResponse::new(
+                    false,
+                    "Did not delete criterion!",
+                    None,
+                    None::<()>,
+                ))
+            }
+        }
         Err(err) => HttpResponse::InternalServerError().json(OperationResponse::new(
             false,
             err.to_string().as_str(),

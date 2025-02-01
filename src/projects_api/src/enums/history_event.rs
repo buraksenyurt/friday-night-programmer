@@ -12,6 +12,7 @@ pub enum HistoryEvent {
     ScoresUpdated,
     TeamDeleted,
     MemberMoved,
+    CriterionDeleted,
 }
 
 impl HistoryEvent {
@@ -27,6 +28,7 @@ impl HistoryEvent {
             HistoryEvent::ScoresUpdated => "ScoresUpdated",
             HistoryEvent::TeamDeleted => "TeamDeleted",
             HistoryEvent::MemberMoved => "MemberMoved",
+            HistoryEvent::CriterionDeleted => "CriterionDeleted",
         }
     }
 }
