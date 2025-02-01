@@ -1,0 +1,49 @@
+﻿@page
+@model ProjectsManager.Pages.CriteriaModel
+@{
+    ViewData["Title"] = "Create Criteria";
+}
+
+<h1>Create Criteria Set</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Criteria.Name" class="form-label">Criteria Set Name</label>
+        <input asp-for="Criteria.Name" class="form-control" />
+        <span asp-validation-for="Criteria.Name" class="text-danger"></span>
+    </div>
+
+    <h4>Criterion List</h4>
+    <div id="criteria-items">
+        <div class="criteria-item mb-3">
+            <input name="Criteria.Set[0].Name" class="form-control mb-2" placeholder="Criterion Name" />
+            <input type="number" name="Criteria.Set[0].Point" class="form-control" placeholder="Point" />
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-secondary" id="add-criteria">Add More Criteria</button>
+    <br /><br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@section Scripts {
+    <script>
+        let criteriaIndex = 1;
+        document.getElementById("add-criteria").addEventListener("click", function () {
+            const container = document.getElementById("criteria-items");
+            const newItem = document.createElement("div");
+            newItem.classList.add("criteria-item", "mb-3");
+            newItem.innerHTML = `
+                <input name="Criteria.Set[${criteriaIndex}].Name" class="form-control mb-2" placeholder="Criteria Name" />
+                <input type="number" name="Criteria.Set[${criteriaIndex}].Point" class="form-control" placeholder="Point" />
+            `;
+            container.appendChild(newItem);
+            criteriaIndex++;
+        });
+    </script>
+}
