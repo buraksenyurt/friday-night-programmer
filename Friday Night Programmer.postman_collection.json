@@ -15,12 +15,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/teams/1",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/teams/1",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"teams",
@@ -36,12 +34,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/history",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/history",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"history"
@@ -56,12 +52,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/projects/1",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/projects/1",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"projects",
@@ -77,12 +71,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/criteria/set/1",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/criteria/set/1",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"criteria",
@@ -111,12 +103,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/assignment",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/assignment",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"assignment"
@@ -132,7 +122,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Cost Busters\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"MTH-30098\",\r\n            \"full_name\": \"Belice Doee\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"MTH-41294\",\r\n            \"full_name\": \"Aob Smmith\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"Team Armageddon\",\r\n    \"members\": [\r\n        {\r\n            \"identity\": \"ARG-01\",\r\n            \"full_name\": \"Betti Deyvis\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"ARG-02\",\r\n            \"full_name\": \"Elzibeth Teylor\",\r\n            \"score\": 0\r\n        },\r\n        {\r\n            \"identity\": \"ARG-03\",\r\n            \"full_name\": \"ve Burak Selim\",\r\n            \"score\": 0\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -140,12 +130,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/teams",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/teams",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"teams"
@@ -169,12 +157,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/teams/1",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/teams/1",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"teams",
@@ -199,12 +185,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/criteria/set",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/criteria/set",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"criteria",
@@ -229,12 +213,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/projects",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/projects",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"projects"
@@ -250,7 +232,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 3,\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"start_date\": \"2025-01-24T12:00:00Z\",\r\n    \"end_date\": \"2025-03-25T12:00:00Z\",\r\n    \"repository\": \"repository address\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -258,12 +240,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/assignment",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/assignment",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"assignment"
@@ -279,7 +259,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"member_id\": 3,\r\n    \"team_id\": 3\r\n}",
+							"raw": "{\r\n    \"member_id\": 1,\r\n    \"team_id\": 1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -287,12 +267,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/members",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/members",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"members"
@@ -308,7 +286,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 3,\r\n    \"status\": \"InProgress\"\r\n}",
+							"raw": "{\r\n    \"project_id\": 1,\r\n    \"team_id\": 1,\r\n    \"status\": \"InProgress\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -316,12 +294,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/assignment",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/assignment",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"assignment"
@@ -345,12 +321,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/teams",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/teams",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"teams"
@@ -374,12 +348,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/teams/1/members",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/teams/1/members",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"teams",
@@ -397,7 +369,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"Modularity\",\r\n    \"point\": 10\r\n}",
+							"raw": "{\r\n    \"name\": \"Runtime Performance\",\r\n    \"point\": 15\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -405,12 +377,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/criteria/set/1/criterion",
-							"protocol": "http",
+							"raw": "{{projects_api_base_address}}/api/criteria/set/1/criterion",
 							"host": [
-								"localhost"
+								"{{projects_api_base_address}}"
 							],
-							"port": "8080",
 							"path": [
 								"api",
 								"criteria",

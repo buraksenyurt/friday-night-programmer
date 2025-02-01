@@ -34,7 +34,7 @@ Genel Ortamlar başlığı altında yer alan enstrümanlar docker-compose üzeri
 docker-compose up -d
 ```
 
-Bununla birlikte servislerin sayısı arttıkça onları nasıl çağırdığımızı da unutabiliriz. Var olan ve ilerleyen zamanlarda eklenemsi düşünülen servisler için bir Postman koleksiyonundan yararlanılması iyi olacaktır. İlgili dosyaya [buradan](Friday%20Night%20Programmer.postman_collection.json) ulaşabilirsiniz.
+Bununla birlikte servislerin sayısı arttıkça onları nasıl çağırdığımızı da unutabiliriz. Var olan ve ilerleyen zamanlarda eklenemsi düşünülen servisler için bir Postman koleksiyonundan yararlanılması iyi olacaktır. İlgili dosyaya [buradan](Friday%20Night%20Programmer.postman_collection.json) ulaşabilirsiniz. Bu arada yer yer api adreslerini Environment değişkenleri ile de tutmak yararlı olabilir. Örneğin project_api servisi için docker adresi environment değişkeni olarak eklenmiştir. Bu anlamda [Environment](Docker%20Environment.postman_environment.json) dosyasını Postman ortamına aktarmakta yarar var.
 
 ## Yardımcı Dokümanlar
 
