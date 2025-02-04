@@ -49,4 +49,5 @@ impl Display for Command {
 pub const BUFFER_SIZE: usize = 1024;
 pub const EMAIL_DIR: &str = "temp";
 pub const INVALID_MAIL: &str = "thereisnomail@nowhere.nowhere";
-pub const ENDS_WITH:&str="\r\n.\r\n";
+pub const ENDS_WITH: &str = "\r\n.\r\n";
+pub const NO_BUFF_OR_EOF:usize = 0;
