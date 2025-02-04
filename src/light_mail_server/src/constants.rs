@@ -15,7 +15,7 @@ pub enum Command {
     ServiceNotAvailable,
     ServerReady,
     MessageAccepted,
-    ErrorSimulated
+    ErrorSimulated,
 }
 
 impl Command {
@@ -49,3 +49,4 @@ impl Display for Command {
 pub const BUFFER_SIZE: usize = 1024;
 pub const EMAIL_DIR: &str = "temp";
 pub const INVALID_MAIL: &str = "thereisnomail@nowhere.nowhere";
+pub const ENDS_WITH:&str="\r\n.\r\n";
