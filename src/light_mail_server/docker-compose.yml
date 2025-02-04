@@ -1,0 +1,5 @@
+services:
+  light-mail-server:
+    build: .
+    ports:
+      - "2525:2525"
