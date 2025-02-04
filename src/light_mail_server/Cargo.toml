@@ -1,0 +1,9 @@
+[package]
+name = "light_mail_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+env_logger = "0.11.6"
+log = "0.4.25"
+tokio = { version = "1.43.0", features = ["full"] }
