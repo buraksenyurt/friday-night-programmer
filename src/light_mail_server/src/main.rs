@@ -3,6 +3,7 @@ use log::*;
 use std::env;
 use tokio::fs::create_dir_all;
 use tokio::net::TcpListener;
+use crate::server::Server;
 
 mod constants;
 mod server;
@@ -22,6 +23,8 @@ async fn main() -> tokio::io::Result<()> {
         let (mut socket, addr) = listener.accept().await?;
         info!("Connection received from {}", addr);
 
-        tokio::spawn(async move {});
+        tokio::spawn(async move {
+            Server::handle(&mut socket).await.expect("Failed to run server");
+        });
     }
 }
