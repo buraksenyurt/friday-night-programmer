@@ -36,7 +36,7 @@ public class UploadService(ILogger<UploadService> logger) : CsvToJson.UploadServ
             }
             _logger.LogInformation("Uploaded {}", fileName);
 
-            return new FileUploadStatus { Success = true, Message = $"File uploaded: {fileName}" };
+            return new FileUploadStatus { Success = true, CreatedFileName = fileName, Message = $"File uploaded: {fileName}" };
         }
         catch (Exception ex)
         {

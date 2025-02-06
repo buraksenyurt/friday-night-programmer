@@ -25,7 +25,8 @@ message FileChunk {
 
 message FileUploadStatus {
   bool success = 1;
-  string message = 2;
+  string createdFileName = 2;
+  string message = 3;
 }
 
 message FileTransformStatus {

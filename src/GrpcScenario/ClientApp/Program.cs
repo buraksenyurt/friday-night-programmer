@@ -17,23 +17,24 @@ if (!File.Exists(sampleFilePath))
 }
 
 var fileUploadStatus = await UploadCsvFile(uploadClient, sampleFilePath);
-if (fileUploadStatus.Item1.Success)
+if (fileUploadStatus.Success)
 {
-    Console.WriteLine(fileUploadStatus.Item1.Message);
+    Console.WriteLine(fileUploadStatus.Message);
 }
 else
 {
     Console.WriteLine("File upload unsucceded.");
+    return;
 }
 
 using var transformFileChannel = GrpcChannel.ForAddress("http://localhost:5131");
 var transformClient = new TransformService.TransformServiceClient(transformFileChannel);
 
-var response = await transformClient.TransformAsync(new FileRequest { FileName = fileUploadStatus.Item2 });
+var response = await transformClient.TransformAsync(new FileRequest { FileName = fileUploadStatus.CreatedFileName });
 Console.WriteLine($"{response.Message}");
 
 
-static async Task<(FileUploadStatus, string)> UploadCsvFile(UploadService.UploadServiceClient client, string filePath)
+static async Task<FileUploadStatus> UploadCsvFile(UploadService.UploadServiceClient client, string filePath)
 {
     using var call = client.Upload();
     string fileName = Path.GetFileName(filePath);
@@ -52,5 +53,5 @@ static async Task<(FileUploadStatus, string)> UploadCsvFile(UploadService.Upload
     }
 
     await call.RequestStream.CompleteAsync();
-    return (await call.ResponseAsync, fileName);
+    return await call.ResponseAsync;
 }
