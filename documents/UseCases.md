@@ -70,4 +70,12 @@ mkdir -p /home/ftpuser/uploads
 chmod -R 755 /home/ftpuser/uploads
 chown -R userone:userone /home/ftpuser/uploads
 chmod -R 775 /home/ftpuser/uploads
+
+# CSV dosyalarının dönüştürüldüğü JSON dosyalar processed klasörüne alınır
+mkdir -p /home/ftpuser/processed
+
+# Bu klasör için de ttp kullanıcısına gerekli yetkiler verilir (yazma,okuma,silme)
+chmod -R 755 /home/ftpuser/processed
+chown -R userone:userone /home/ftpuser/processed
+chmod -R 775 /home/ftpuser/processed
 ```
