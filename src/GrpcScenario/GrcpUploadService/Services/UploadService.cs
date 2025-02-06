@@ -17,7 +17,7 @@ public class UploadService(ILogger<UploadService> logger) : CsvToJson.UploadServ
         try
         {
             string fileName = Guid.NewGuid().ToString() + ".csv";
-            string remotePath = $"/uploads/{fileName}";
+            string remotePath = $"/home/ftpuser/uploads/{fileName}";
 
             using (var ftpClient = new AsyncFtpClient(ftpHost, ftpUser, ftpPass))
             {

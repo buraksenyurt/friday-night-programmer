@@ -8,7 +8,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentFTP" Version="52.0.0" />
-		<PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
 	</ItemGroup>
 
 	<ItemGroup>
