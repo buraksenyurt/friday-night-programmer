@@ -53,3 +53,21 @@ Tabii zamanla bu senaryonun içerisine intranet, internet ve doğal olarak birç
 
 Konuyu uzattık o yüzden senaryomuza gelelim. Bu senaryoda üç gRPC servisi yer alıyor. Her biri farklı bir iş için tasarlanacak. Ana hedef legacy sistemlerden gelen CSV tabanlı dosyaları JSON'a çeviren bir kurgu. Tüm CSV dosyalarının ilk satırının kolon adlarını tuttuğunu ve tüm verileri | işareti ile ayrıldığını varsayacağız. Bir servisimize CSV dosyasını Upload etmek için, diğeri onu dönüştürmek için sonuncusu da sunmak için kullanılacak. Amaçlarımızdan birisi de gRPC servislerinde yüksek performans sunan stream özelliğini kullanmak. Çözüm ile ilgili kodlar GrpcScenario içerisinde yer almaktadır.
 
+Proje ile ilgili birkaç önemli notuda burada paylaşmak isterim. Grpc servisleri csv dosyasını yükleme ve json olarak dönüştürülen dosyayı saklama yeri olarak bir ftp container kullanıyor. [Roottaki docker compose](../docker-compose.yml) dosyasında bir FTP imajı yer almakta. Ancak bu tek başına yeterli olmayabilir. Nitekim ilgili kullanıcı için _(userone)_ uploads ve processed klasörlerinin oluşturulması ve bu yazma/okuma haklarının verilmesi lazım. Şimdilik manuel bir işlem ile bunu çözebiliriz. Öncelikle container çalışırken içerisine girmeliyiz ve aşağıdaki gibi ilerlemeliyiz.
+
+```bash
+# Docker container'a terminal açılır
+docker exec -it fnp-ftp-server sh
+
+# Ftp kullanıcısı eklenir ve şifresi belirlenir
+adduser -D -h /home/ftpuser userone
+echo "userone:123" | chpasswd
+
+# Senaryoda geçerli olan uploads klasörü oluşturulur
+mkdir -p /home/ftpuser/uploads
+
+# Ftp kullanıcısı için yetkiler verilir (yazma,okuma,silme)
+chmod -R 755 /home/ftpuser/uploads
+chown -R userone:userone /home/ftpuser/uploads
+chmod -R 775 /home/ftpuser/uploads
+```
