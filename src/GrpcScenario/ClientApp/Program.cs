@@ -1,5 +1,6 @@
 ﻿using CsvToJson;
 using Google.Protobuf;
+using Grpc.Core;
 using Grpc.Net.Client;
 
 Console.WriteLine("Press any key to start testing");
@@ -33,6 +34,25 @@ var transformClient = new TransformService.TransformServiceClient(transformFileC
 var response = await transformClient.TransformAsync(new FileRequest { FileName = fileUploadStatus.CreatedFileName });
 Console.WriteLine($"{response.Message}");
 
+if (!response.Success)
+{
+    Console.WriteLine(response.Message);
+    return;
+}
+
+using var accessFileChannel = GrpcChannel.ForAddress("http://localhost:5231");
+var accessClient = new AccessService.AccessServiceClient(accessFileChannel);
+var call = accessClient.Get(new FileRequest { FileName = Path.GetFileNameWithoutExtension(fileUploadStatus.CreatedFileName) + ".json" });
+
+Console.WriteLine("JSON Content:\n");
+await foreach (var chunk in call.ResponseStream.ReadAllAsync())
+{
+    string jsonPart = System.Text.Encoding.UTF8.GetString(chunk.Content.ToByteArray());
+    Console.Write(jsonPart);
+}
+
+Console.WriteLine("Press any key to exit");
+Console.ReadLine();
 
 static async Task<FileUploadStatus> UploadCsvFile(UploadService.UploadServiceClient client, string filePath)
 {
