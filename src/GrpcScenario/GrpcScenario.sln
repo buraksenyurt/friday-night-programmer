@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Contracts.csproj", "{FD506875-B494-4BE3-A3FE-1155EC165B4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrcpUploadService", "GrcpUploadService\GrcpUploadService.csproj", "{AD858C5F-C589-47B7-A4DF-44513967B4DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FD506875-B494-4BE3-A3FE-1155EC165B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD506875-B494-4BE3-A3FE-1155EC165B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD506875-B494-4BE3-A3FE-1155EC165B4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD858C5F-C589-47B7-A4DF-44513967B4DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD858C5F-C589-47B7-A4DF-44513967B4DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD858C5F-C589-47B7-A4DF-44513967B4DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD858C5F-C589-47B7-A4DF-44513967B4DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package data;
+package CsvToJson;
 
 service UploadService {
   rpc Upload (stream FileChunk) returns (FileUploadStatus);
