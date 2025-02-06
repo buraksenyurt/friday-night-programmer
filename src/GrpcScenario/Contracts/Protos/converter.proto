@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package data;
+
+service UploadService {
+  rpc Upload (stream FileChunk) returns (FileUploadStatus);
+}
+
+service TransformService {
+  rpc Transform (FileRequest) returns (FileTransformStatus);
+}
+
+service AccessService {
+  rpc Get (FileRequest) returns (stream FileChunk);
+}
+
+message FileRequest {
+  string fileName = 1;
+}
+
+message FileChunk {
+  bytes content = 1;
+  string fileName = 2;
+}
+
+message FileUploadStatus {
+  bool success = 1;
+  string message = 2;
+}
+
+message FileTransformStatus {
+  bool success = 1;
+  string message = 2;
+}
