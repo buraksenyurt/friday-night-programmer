@@ -10,7 +10,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
   - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
   - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
-  - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects)
+  - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
   - [Chapter 05 - Dark City](#chapter-05---dark-city)
   - [Chapter 06 - Memento](#chapter-06---memento)
   - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic)
@@ -123,7 +123,29 @@ Bu programda aşağıdaki konulardan bahsettik.
 
 Sonraki yayında yazılım mimarilerine de değineceğiz.
 
-## Chapter 04 - The Usual Suspects
+## Chapter 04 - The Usual Suspects _(7 Şubat 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki](https://www.youtube.com/live/1VNXT3lckns)
+
+Bu programa geçen bölümden gelen bir soru üzerine yazılım mimarisi seçiminde yaparken nelere dikkat ederiz ile başlıyoruz. Ben bu konu ile ilgili referans kitap olarak Richards & Ford’ un [Fundamentals of Software Architecture](https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/) kitabını öneriyorum.
+
+- Mimariler, servisler vs demişken kullandığımız çatıların her zaman kontrol altında tutulması da gerekiyor. Bu haftanın gündemine düşen bir diğer konuda güvenlik açıkları ile ilgili. [CISA tags Microsoft .NET and Apache OFBiz bugs as exploited in attacks](https://www.bleepingcomputer.com/news/security/cisa-tags-microsoft-net-and-apache-ofbiz-bugs-as-exploited-in-attacks/) yazısında belirtildiğine göre eski dostumuz .Net Remoting ile ilgili bir açıkda varmış. Diğeride Apache'nin Open For Business ürününe ait.
+- Haftanın oyunu _(Airborne Empire)_ Oyunla alakalı [Steamdb](https://steamdb.info/app/2438680/) üstünden de bilgi alınabilir. Oyun Unity ile geliştirilmiş bir koloni simülasyon oyunu. Diğerlerinden farklı olarak koloniniz havada uçan bir şehir ve sizi sık sık bela olan korsan pilotlar mevcut.
+- O'Reilly, kendi öğrenim platformundaki bilgilerden yararlanarak yıllık bir rapor yayınlamış ve 2025 yılı teknoloji trendlerinden bahsetmiş. Programda yazının detayları _(Özellikle programlama dilleri bölümü)_ üzerinde durduk. [Buradan okuyabilirsiniz](https://www.oreilly.com/radar/technology-trends-for-2025/).
+- The Angry Dev'in C# geliştiricilerinin neden Rust öğrenmesi gerektiğini vurguladığu güzel bir karşılaştırma yazısına denk geldim; [Why C# Developers Should Also Learn Rust, and What It Can Teach Them](https://www.darrenhorrocks.co.uk/why-csharp-developers-should-learn-rust-and-what-it-can-teach-them/)
+- Bir başka güzel yazıda Rust'ın özelliklerinin hangi dillerden esinlenilerek alındığını da içeren şu yazı. [Stop saying Rust is Complicated](https://rust-on-nails.com/blog/rust-complicated/). Bu yazıda Rust'ın sadece bir sistem programla dili olarak değil birçok alanda kullanılabileceği de belirtiliyor. Mesela WASM ile birlikte. Bende [ilkel bir WASM oyunumu paylaşayım](https://github.com/buraksenyurt/rust-farm/tree/main/handson/running_rectangle). Yarıda bırakmış olsam da ilgilenenler daha ileri bir seviyeye taşıyabilirler. 
+- Gömülü sistemler ve emniyet-kritik olanlar demişken güzel bir podcast'e de denk geldim. Volvo' da bir Rust eko sisteminin oluşturulmasının hikayesini merak ediyorsanız buyrun. [Volvo with Julius Gustavsson - Rust in Production Podcast](https://corrode.dev/podcast/s03e08-volvo/)
+- Gömülü sistemlerde Rust ile geliştirme yapmayı öğrenmek istiyorsanız [A 5-Step Guide For Learning Embedded Rust](https://www.theembeddedrustacean.com/p/embedded-rust-learning-guide) iyi bir giriş noktası olabilir _(Bu arada pek çok noktada HAL diye bir kavram geçiyor. Bu tabii Kubrick' in Space Odyssey filmindeki [HAL 9000](https://en.wikipedia.org/wiki/HAL_9000) değil :D Hardware Abstraction Layer manasında geçen bir kavram)_
+- Emniyet-kritik sistemler _(Safety-Critical Systems)_ açık kaynak yazılımların belirli güvenlik standartlarına göre sertifikalandırılmasını ifade eder. Bu tür yazılımlar, hataların ciddi sonuçlar doğurabileceği alanlarda kullanılır, örneğin:
+  - Otomotiv [ISO 26262-1:2018 Road vehicles — Functional safety](https://www.iso.org/standard/68383.html)
+  - Havacılık [DO-178C - DO-178C - Wikipedia](https://en.wikipedia.org/wiki/DO-178C)
+  - Tıp teknolojileri [IEC 62304 - IEC 62304:2006 - Software life cycle processes](https://www.iso.org/standard/38421.html)
+  - Endüstriyel otomasyon [IEC 61508 - IEC 61508 - Wikipedia](https://en.wikipedia.org/wiki/IEC_61508)
+- ESP kodlu mikro denetleyicilerde Rust ile geliştirme yapmak isterseniz genele açık şu kitabı tavsiye ederim. [Introduction - The Rust on ESP Book ESP](https://docs.esp-rs.org/book/introduction.html) 
+- Mikrodenetleyicilerde genellikle farklı bir işletim sistemi çalışır. RTOS _(Real Time Operating System)_ olarak adlandırılır. Temelleri için [RTOS Fundamentals - FreeRTOS™](https://www.freertos.org/Documentation/01-FreeRTOS-quick-start/01-Beginners-guide/01-RTOS-fundamentals) isimli dokümana bakılabilir. Ayrıca iki örnek işletim sistemi şunlar; [Zephyr Project](https://www.zephyrproject.org/) ve [FreeRTOS](https://www.freertos.org/Why-FreeRTOS/What-is-FreeRTOS)
+- Bu bölümde yer verdiğim kitap ise Sovyetler döneminin en önemli bilim kurgu yazarlarından olan Arkadi ve Boris Strugatski kardeşlerin 1997 yılında kaleme aldığı [Kıyamete Bir Milyar Yıl](https://amzn.eu/d/6xdEmQC)
+
+Programda ayrıca [Örnek Senaryolar](./documents/UseCases.md) dokümanındaki **UC02 - İzole Edilmiş SMTP Server** ve **UC03 - Servisler Arası İletişim içim gRPC Kullanımı** konularına da değinildi.
 
 ## Chapter 05 - Dark City
 
