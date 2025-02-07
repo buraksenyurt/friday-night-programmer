@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revolution", "Revolution\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinalBattle", "FinalBattle\FinalBattle.csproj", "{CA255649-6EB4-41B9-A7C4-E36F8A370111}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefactoredFinalBattle.Library", "RefactoredFinalBattle.Library\RefactoredFinalBattle.Library.csproj", "{9018C32D-67EF-49CF-AA1D-E92A892B83ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefactoredFinalBattle.Test", "RefactoredFinalBattle.Test\RefactoredFinalBattle.Test.csproj", "{C78972F7-8B5A-4BC6-B558-857C7C8A4B8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{CA255649-6EB4-41B9-A7C4-E36F8A370111}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA255649-6EB4-41B9-A7C4-E36F8A370111}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA255649-6EB4-41B9-A7C4-E36F8A370111}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9018C32D-67EF-49CF-AA1D-E92A892B83ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9018C32D-67EF-49CF-AA1D-E92A892B83ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9018C32D-67EF-49CF-AA1D-E92A892B83ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9018C32D-67EF-49CF-AA1D-E92A892B83ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C78972F7-8B5A-4BC6-B558-857C7C8A4B8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C78972F7-8B5A-4BC6-B558-857C7C8A4B8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C78972F7-8B5A-4BC6-B558-857C7C8A4B8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C78972F7-8B5A-4BC6-B558-857C7C8A4B8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
