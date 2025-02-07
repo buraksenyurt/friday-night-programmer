@@ -3,7 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Beginning", "Beginning\Beginning.csproj", "{79F5DC0D-056B-485F-B044-CEB00C5F5F7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstRefactoring", "FirstRefactoring\FirstRefactoring.csproj", "{B86FF0C0-531D-4D2B-BC6B-358891043FF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondRefactoring", "SecondRefactoring\SecondRefactoring.csproj", "{573C987A-5837-4224-A248-76314C721439}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79F5DC0D-056B-485F-B044-CEB00C5F5F7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79F5DC0D-056B-485F-B044-CEB00C5F5F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79F5DC0D-056B-485F-B044-CEB00C5F5F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79F5DC0D-056B-485F-B044-CEB00C5F5F7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B86FF0C0-531D-4D2B-BC6B-358891043FF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B86FF0C0-531D-4D2B-BC6B-358891043FF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B86FF0C0-531D-4D2B-BC6B-358891043FF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B86FF0C0-531D-4D2B-BC6B-358891043FF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{573C987A-5837-4224-A248-76314C721439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{573C987A-5837-4224-A248-76314C721439}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{573C987A-5837-4224-A248-76314C721439}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{573C987A-5837-4224-A248-76314C721439}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
