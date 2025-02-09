@@ -31,6 +31,10 @@ Paket boyutlarına dikkat etmekte de yarar var. Parametre sayısının artması 
 
 ![OllamaWithNet_01](../images/OllamaWithNet_01.png)
 
+Diğer modellerin kapladığı alan ise şöyle. Yazıyı yazdığım zaman itibariyle Chat GPT'nin 4o modelinin tahminen 2 trilyona yakın parametre ile çalıştığı ifade ediliyordu. Deepseek'in uzmanlaşmış dil modellerinin bir araya geldiği 671 milyar parametrelik versiyonunun 404 Gb yer tuttuğu düşünülürse gerçekten en iyi kalitede işçilik için yine bol miktarda sıfırı olan finansmana ihtiyaç var gibi :D
+
+![Models sizes](../images/OllamaWithNet_07.png)
+
 Artık local makinede çalışan bir dil modelimiz mevcut. Hatta bunu list parametresi ile görebilmemiz lazım.
 
 ![OllamaWithNet_02](../images/OllamaWithNet_02.png)
@@ -291,3 +295,120 @@ Kendi sistemimde bu prompt için aşağıdaki çıktıyı elde ettiğimi ifade e
 Bu sefer bu basit C# dosyasının analizi kendi sistemimde neredeyse beş dakikaya yakın sürede tamamlandı ancak biraz daha detaylı bilgi aldığımızı ifade edebilirim. Hatta yorum kısımlarında Deepseek sanki gerçekten Code Review yapan bir programcıymış gibi davranıyor desek yalan olmaz. 
 
 Yazının bundan sonraki kısmında farklı modellerden çeşitli prompt'lar üretip söz konusu dosyanın yorumlanmasını isteyebiliriz. Lakin endüstriyel anlamda baktığımda milyon satır kod tabanına ulaşabilen sistemlerin kod dosyalarını kalitesinin ölçümü için çok daha fazla parametre ile çalışan _(ki tahminlere göre Chat Gpt 4o versiyonu neredeyse 2 trilyon parametre ile çalışıyor)_ ve pek tabii çok daha yüksek sistem konfigürasyonuna ihtiyaç duyan ve pek tabiii daha çok enerji ihtiyacı duyacak ortamlara ihtiyacımız olacağı kesin. Tüm bu gelişmelere karşın Microsoft'un yapay zeka modellerini kod tabanında kolayca kullanabilmemiz için soyutlamalar getirmesi, Ollama'nın OpenAI'ın tüm karşıt görüşleri ve tutumlarına rağmen DeepSeek'i model kataloğunda tutması çok farklı bir geleceğin göstergesi gibi.
+
+## Modeli Zorlayalım
+
+Gelin modeli biraz daha zorlayalım. Bu sefer içerisinde bazı SOLID ilkelerinin ihlal edildiği aşağıdaki kod dosyasını ele alalım.
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Mail;
+
+public class Developer
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+    public string Email { get; set; }
+}
+
+public class CompanyManager
+{
+    private List<Developer> _developers = new();
+
+    public void RegisterDeveloper(string username, string password, string email)
+    {
+        var developer = new Developer { Username = username, Password = password, Email = email };
+        _developers.Add(developer);
+        Console.WriteLine($"{username} registered successfully.");
+        SendEmail(email, "Welcome", "Thank you for registering!");
+    }
+
+    public void SendEmail(string to, string subject, string body)
+    {
+        try
+        {
+            var client = new SmtpClient("smtp.azoncorp.com");
+            var mailMessage = new MailMessage("no-reply@example.com", to, subject, body);
+            client.Send(mailMessage);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+}
+
+public class Logger
+{
+    public void Log(string message)
+    {
+        File.AppendAllText("log.txt", $"{DateTime.Now}: {message}\n");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var companyManager = new CompanyManager();
+        companyManager.RegisterDeveloper("johndoe", "P@ssw0rd", "john.doe@azoncorp.com");
+
+        var logger = new Logger();
+        logger.Log("Developer registered.");
+    }
+}
+```
+
+Bu sefer cevapları almak biraz daha fazla sürdü elbette. Bu basit iyi bir programcının bir dakikadan az sürede analiz edebileceği kod içeriği için neredeyse 7 dakika civarında. Ancak DeepSeek'in bunu nasıl yorumladığını da paylaşmak isterim.
+
+Yorumlama kısmı;
+
+```text
+Okay, so I'm looking at this C# code that someone provided. Let me try to understand what it does and figure out the analysis parts.
+
+First, there are three main classes: Developer, CompanyManager, and Logger. The Program class has a static Main method which creates instances of these classes and calls some methods.
+
+Starting with the Developer class-it's pretty straightforward. It has properties for Username, Password, and Email, but no constructors or setters beyond those properties. So when you create a new Developer, you have to set all three properties each time.
+
+Next is CompanyManager. It has a private list of Developers called _developers. The RegisterDeveloper method takes in username, password, email, creates a new Developer object, adds it to the list, and sends an email with some standard messages. I notice that in the SendEmail method, they're using the SmtpClient class but not closing the client after sending emails. That might be a resource leak because once the program ends, the client could remain open.
+
+The SendEmail method creates a new MailMessage each time it's called, which is fine but maybe inefficient if done frequently. Also, catching exceptions just logs them to the console without any meaningful error messages-maybe that should provide more details for debugging or include logging of errors.
+
+Looking at the Logger class, the Log method appends messages to log.txt using DateTime.Now. It doesn't have any logging level flags like Debug, Info, Warning, etc., which could be useful for differentiating message severities. Also, if this is part of a larger system, it might not handle rotation or truncation correctly-though that's more about how the file is managed elsewhere.
+
+In the Program class, Main is static and top-level as expected in an executable class. It creates a CompanyManager instance and calls RegisterDeveloper with test values. Then it logs that a developer was registered. There are no issues shown here at first glance-it seems correct but maybe could be made more robust.
+
+Now, moving on to the analysis questions:
+
+1. Functionality Summary: The code appears to manage developers for an application. It allows registering developers with basic information and sends confirmation emails. Logging is done to a file for record-keeping.
+
+2. Key Components:
+   - Developer class: Manages individual developer data.
+   - CompanyManager class: Handles registration of developers, including adding them to the list and sending emails.
+   - Logger class: Logs messages to a text file.
+
+3. Potential Issues:
+   - Resource leak in SendEmail method where the SmtpClient is not closed after use.
+   - Inefficient email sending by recreating MailMessage objects each time.
+   - No logging of error exceptions, which could hinder debugging if something goes wrong during email sending.
+   - Lack of logging for other parts like registration success or failures-though in this code, it's just a test, so maybe not an issue here. But if there were errors in RegisterDeveloper, the logs wouldn't capture them unless added.
+
+4. Code Quality Score: Considering readability and maintainability. The code is okay but could use better variable names (like email instead of to). There are some inefficiencies with creating MailMessage each time. Could benefit from method-level logging for errors or warnings. The list in Program's Main isn't defensive programming, so it might throw an exception if the constructor fails.
+
+5. Recommendations:
+   - Rename variables like 'to' to something more descriptive.
+   - Use string formatting instead of concatenation for better readability and maintainability.
+   - Refactor the SendEmail method to send multiple emails in a single call if possible or improve efficiency.
+   - Close resources properly by using try-with-resources where applicable, especially for the SmtpClient.
+   - Consider adding logging for error cases when email sending fails so that issues can be tracked down more easily.
+
+Notes: The code as provided seems complete. It's a simple example without any missing parts mentioned.s
+```
+
+Üretilen JSON içeriği ise şu şekilde.
+
+![Code metrix runtime last](../images/OllamaWithNet_08.png)
+
+Bu kadar şeyden sonra artık daha ne desem bilemedim :D Biz programcılara halen daha çok ihtiyaç var ve bu düşüncemin sonuna kadar arkasındayım.
