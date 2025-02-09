@@ -45,6 +45,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Ollama Yardımıyla Deepseek Dil Modelini .Net Platformunda Kullanmak](./documents/OllamaWithDotNet.md)
 - [Pub/Sub mesajlaşma için Nats Kullanımı(Rust ile)](./documents/HowToNats.md)
 - [Rust ile WASM Kullanımında İkinci Round](./documents/RustAndWasmRoundTwo.md)
 - [Rust ile WASM Kullanımı](./documents/RustAndWasm.md)
