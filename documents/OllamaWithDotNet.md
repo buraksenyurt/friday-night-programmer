@@ -1,12 +1,12 @@
 # Ollama Yardımıyla Deepseek Dil Modelini .Net Platformunda Kullanmak
 
-Son yıllarda hayatımıza girmiş bulunan bir çok dil modeli ve pek tabii bunları işleterek çeşitli konularda bizi asiste eden GenAI ürünleri geliştirildi. Yeni modeller de geliştirilmeye, parametre sayıları milyarlar mertebesinde muazzam değerlere de ulaşmaya devam ediyor. Herhalde en popülerlerinden birisi ChatGPT olsa gerek. Ancak maliyet açısından bakıldığında bireysel kullanım için dahi olsa gerçekten işe yarar sonuçlara götürecek olan versiyonlar biraz pahalı gibi. Yazıyı kaleme aldığım tarih itibariyle benimde kullandığım bireysel paket fiyatı aylık 20 dolar seviyesinde. Oysa ki OpenAI'ın kuruluş aşamalarında her şeyin açık kaynak ve ücretsiz olacağına dair bir bildiri vardı diye hatırlıyorum. Geçen günlerde çıkan Çin merkezli [Deepseek](https://github.com/deepseek-ai) bu durumu biraz değiştirdi gibi. Çok daha düşük bir maliyetle _(ki haber kanallarında geçen bilgilere göre sadece 6 milyon dolar civarında bir yatırımla)_ tamamen açık kaynak sunulup epey de iyi bir sonuç elde ederek büyük oyuncuların tüm hisselerini kısa süreliğine de olsa sarsmış durumda.
+Son yıllarda hayatımıza girmiş bulunan bir çok dil modeli ve pek tabii bunları işleterek çeşitli konularda bizi asiste eden GenAI ürünleri geliştirildi. Yeni modeller de geliştirilmeye, parametre sayıları milyarlar mertebesinde muazzam değerlere de ulaşmaya devam ediyor. Herhalde en popülerlerinden birisi ChatGPT olsa gerek. Ancak maliyet açısından bakıldığında bireysel kullanım için dahi olsa gerçekten işe yarar sonuçlara götürecek olan versiyonlar biraz pahalı gibi. Yazıyı kaleme aldığım tarih itibariyle benimde kullandığım bireysel paket fiyatı aylık 20 dolar seviyesinde. Oysa ki OpenAI'ın kuruluş aşamalarında her şeyin açık kaynak ve ücretsiz olacağına dair bir bildiri vardı diye hatırlıyorum. Geçen günlerde çıkan Çin merkezli [Deepseek](https://github.com/deepseek-ai) bu durumu biraz değiştirdi gibi. Çok daha düşük bir maliyetle _(ki haber kanallarında geçen bilgilere göre sadece 5.8 milyon dolar civarında bir yatırımla)_ tamamen açık kaynak sunulup epey de iyi bir sonuç elde ederek büyük oyuncuların tüm hisselerini kısa süreliğine de olsa sarsmış durumda.
 
 _Yapay zeka dil modellerinin ve buna dayalı çalışan kod asistanlarının biz programcıların işini elimizden alacağına pek inanmıyorum. Bunun yerine verimliliğimizi artıracak şekilde bizi daha da iyi asiste edeceklerini düşünüyorum._
 
 Yakın zamanda AI hizmetlerini .Net uygulamalarına adapte edebilmek için iki soyutlama paketi tanıtıldı. [Microsoft.Extensions.AI](https://learn.microsoft.com/en-us/dotnet/ai/ai-extensions) ve Microsoft.Extensions.AI.Abstractions. Bu kütüphanelerden yararlanarak belli başlı dil modeli servislerini kullanabiliyoruz. OpenAO, Azure OpenAI, Azure AI Infrence ve [Ollama](https://ollama.com/) gibi. Bu servisler birçok dil modelini çalıştırmak için birer sunucu gibi hareket ediyorlar. .Net kütüphaneleri ise bu servisleri kullanmak için gerekli fonksiyonellikleri sağlayarak kullanımı kolaylaştırıyor.
 
-Bu özet yazıda söz konusu süreci nasıl işleteceğimizi bir örnek üzerinden ele almaya çalışacağız. Senaryomuz C# kod dosyalarının analiz edilmesi ve kod kalitesinin ölçülmesi üzerine bir çalışma. Tabii çok basit bir şekilde ele alacağız. Dilerseniz adım adım ilerleyelim.
+Bu özet yazıda söz konusu süreci nasıl işleteceğimizi bir örnek üzerinden ele almaya çalışacağız. Senaryomuz C# kod dosyalarının analiz edilmesi ve kod kalitesinin ölçülmesi üzerine bir çalışma olacak. Tabii çok basit bir şekilde ele alacağız ki niyetimiz Sonarqube metrikleri ile yarışmak değil. Dilerseniz adım adım ilerleyelim.
 
 ## Dil Modeli için Gerekli Ortamın Hazırlanması
 
@@ -136,8 +136,158 @@ Bu arada kodu çalıştırdıktan ve soruyu sorduktan sonra buraya dönüp makal
 
 ![Ollama runtime sample 2](../images/OllamaWithNet_04.png)
 
-Pek tabii daha üst modelleri çalıştırmak için daha güçlü bir sisteme ihtiyacım var. Bu noktada güçlü sunucularda daha iyi ve yüksek parametreli dil modellerinden çok daha iyi sonuçlar alınabileceği öngörülebilir fakat şu haliyle dahi Deepseek bana kalırsa epey etkili. 
+Pek tabii daha üst modelleri çalıştırmak için daha güçlü bir sisteme ihtiyacım var. Bu noktada güçlü sunucularda daha iyi ve yüksek parametreli dil modellerinden çok daha iyi sonuçlar alınabileceği öngörülebilir fakat şu haliyle dahi Deepseek bana kalırsa epey etkili.
 
-Şimdi yazımızın başlarında belirttiğim senaryo ile devam edelim. C# dosyalarını bu dil modeline verip kalitesini yorumlatmak istiyoruz. Pek tabii burada çok iyi prompt girilmesi gerekiyor. Dolayısıyla farklı bir yaklaşıma gideceğiz.
+Şimdi yazımızın başlarında belirttiğim senaryo ile devam edelim. C# dosyalarını bu dil modeline verip kalitesini yorumlatmak istiyoruz. Pek tabii burada çok iyi prompt girilmesi gerekiyor. Dolayısıyla farklı bir yaklaşıma gideceğiz. Kodlarımızı aşağıdaki gibi geliştirerek ilerleyelim.
 
-**YENİ ÖRNEK EKLENECEK**
+```csharp
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
+
+var builder = Host.CreateApplicationBuilder();
+builder.Services.AddChatClient(new OllamaChatClient(new Uri("http://localhost:11434"), "deepseek-r1:7b"));
+var app = builder.Build();
+var chatClient = app.Services.GetRequiredService<IChatClient>();
+
+var codeFiles = Directory.GetFiles("C:\\samples", "*.cs").ToArray();
+Console.WriteLine($"Looking for {codeFiles.Length} code files");
+foreach (var codeFile in codeFiles)
+{
+    var time = Stopwatch.StartNew();
+    Console.WriteLine($"Analysing {codeFile}. Time {DateTime.Now.ToLongTimeString()}");
+    string prompt = $$"""
+    You are an expert in analyzing C# source code. Your task is to quickly summarize the given code file.
+
+    ## Expected Response:
+    - **Purpose**: A one-sentence description of what this code does.
+    - **Main Components**: A list of important classes and methods with a short explanation.
+    - **Potential Issues**: Mention one or two possible problems, if any.
+    
+    ## Response Format:
+    ```json
+    {
+        "purpose": "Short description of the code's functionality.",
+        "main_components": [
+            {
+                "name": "ClassName",
+                "type": "class",
+                "description": "Short explanation."
+            },
+            {
+                "name": "MethodName",
+                "type": "method",
+                "description": "Short explanation."
+            }
+        ],
+        "potential_issues": [
+            "Brief mention of possible issues (if any)."
+        ]
+    }
+    ```
+
+    ## C# Code:
+    {{File.ReadAllText(codeFile)}}
+    """;
+
+    var chatCompletion = await chatClient.CompleteAsync(prompt);
+    Console.WriteLine(chatCompletion.Message.Text);
+    Console.WriteLine(Environment.NewLine);
+    Console.WriteLine($"Total time of analysis {time.Elapsed.TotalSeconds}");
+}
+```
+
+Örnek kodun en önemli kısmı prompt içeriği. Burada görüldüğü üzere chatbot konuşmalarından çok daha farklı bir bildiri söz konusu. İstediğimiz kod analizini yapması için dil modeline detaylı bilgiler veriyoruz. Bu arada söz konusu promptu chatgpt'ye yaptırdığımı ifade edeyim ama kendisi Deepseek için bunu istediğimi henüz önemsememiş gibi :D Dolayısıyla Prompt Engineering mevzusu oldukça önemli olabilir. Sonuçta bu tip bir promptu yazdırmak içinde iyi seviyede programlama bilgisine en azından programlama dilinin yapısı ile ilgili kavramlara hakim olmak lazım. Korkma sayın programcı bize hala iş var :D Neyse biz konumuza geri dönelim dilerseniz. Örneğin aşağıdaki kod parçası için çalıştırdım.
+
+```csharp
+using System;
+
+public class GameInfo
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int UserPoint { get; private set; }
+
+    public GameInfo(string name, string description)
+    {
+        Name = name;
+        Description = description;
+    }
+    public void IncreaseAveragePoint(int value)
+    {
+        UserPoint += value;
+    }
+    public override string ToString()
+    {
+        return $"{Name}:{Description}";
+    }
+}
+```
+
+Programı çalıştırmadan önce bu kod dosyasını yorumlamanızı öneririm. Birkaç özellik barındıran basit bir sınıf tasarımı söz konusu. Object sınıfından gelen ToString metodu override edilmiş halde. Ayrıca dışarıya kapatılmış UserPoint özelliğini değiştirebildiğimiz birde metodumuz var. String interpolation kullanılmış vs Bakalım DeepSeek-r1:7b dil modeli bunu nasıl yorumluyor. İşte çalışma zamanına ait bir ekran görüntüsü.
+
+![Code metrix runtime 1](../images/OllamaWithNet_05.png)
+
+Bu basit kod dosyası için ilgili dil modelinin epey isabetli sonuçlara ulaştığını söylemek yanlış olmaz her halde. Tüm analiz örneği geliştirdiğim bilgisayarda yaklaşık olarak 2.5 dakika kadar sürdü diyebilirim. Bu arada makinenin özelliklerini de paylaşayım.
+
+| Key                   | Value                             |
+| ----------------------| --------------------------------- |
+| System Manufacturer | MONSTER   |
+| System Model | HUMA H4 V5.2  |
+| OS Name | Microsoft Windows 11 Pro |
+| Processor |12th Gen Intel(R) Core(TM) i7-1255U, 1700 Mhz, 10 Core(s), 12 Logical Processor(s) |
+| RAM |32.0 GB    |
+| VGA | Intel(R) Iris(R) Xe Graphics  |
+
+Elbette prompt içeriğini biraz daha detaylandırıp çıktı isteyebiliriz. Sevgili Çeto'nun (ChatGpt'ye böyle diyorum) katkılarıyla aşağıdaki promptu deneyebiliriz.
+
+```text
+You are an expert in analyzing and evaluating C# source code. You will receive a C# code file as input, and your task is to analyze it and produce a structured JSON response that includes:
+
+1. **Functionality Summary**: A brief description of what the code does.
+2. **Key Components**: A list of major classes, methods, and their responsibilities.
+3. **Potential Issues**: A list of possible issues such as security vulnerabilities, performance bottlenecks, or bad coding practices.
+4. **Code Quality Score**: A rating (1-10) based on readability, maintainability, and adherence to best practices.
+5. **Recommendations**: Concrete suggestions to improve the code quality.
+
+## Important Notes:
+- Provide **only** a strict RFC8259 compliant JSON response.
+- Do **not** modify or infer missing parts of the code.
+- If the code is incomplete, specify it in the `"notes"` section.
+
+## JSON Format Example:
+```json
+{
+    "functionality_summary": "Brief description of what the code does.",
+    "key_components": [
+        {
+            "name": "ClassName",
+            "type": "class",
+            "description": "Purpose of this class"
+        },
+        {
+            "name": "MethodName",
+            "type": "method",
+            "description": "What this method does"
+        }
+    ],
+    "potential_issues": [
+        "List of possible security risks, performance issues, or bad practices"
+    ],
+    "code_quality_score": 8,
+    "recommendations": [
+        "Improve variable naming",
+        "Refactor long methods into smaller functions"
+    ],
+    "notes": "Additional comments if necessary"
+}
+```
+
+Kendi sistemimde bu prompt için aşağıdaki çıktıyı elde ettiğimi ifade edebilirim.
+
+![Code metrix runtime 2](../images/OllamaWithNet_06.png)
+
+Bu sefer bu basit C# dosyasının analizi kendi sistemimde neredeyse beş dakikaya yakın sürede tamamlandı ancak biraz daha detaylı bilgi aldığımızı ifade edebilirim. Hatta yorum kısımlarında Deepseek sanki gerçekten Code Review yapan bir programcıymış gibi davranıyor desek yalan olmaz. 
+
+Yazının bundan sonraki kısmında farklı modellerden çeşitli prompt'lar üretip söz konusu dosyanın yorumlanmasını isteyebiliriz. Lakin endüstriyel anlamda baktığımda milyon satır kod tabanına ulaşabilen sistemlerin kod dosyalarını kalitesinin ölçümü için çok daha fazla parametre ile çalışan _(ki tahminlere göre Chat Gpt 4o versiyonu neredeyse 2 trilyon parametre ile çalışıyor)_ ve pek tabii çok daha yüksek sistem konfigürasyonuna ihtiyaç duyan ve pek tabiii daha çok enerji ihtiyacı duyacak ortamlara ihtiyacımız olacağı kesin. Tüm bu gelişmelere karşın Microsoft'un yapay zeka modellerini kod tabanında kolayca kullanabilmemiz için soyutlamalar getirmesi, Ollama'nın OpenAI'ın tüm karşıt görüşleri ve tutumlarına rağmen DeepSeek'i model kataloğunda tutması çok farklı bir geleceğin göstergesi gibi.
