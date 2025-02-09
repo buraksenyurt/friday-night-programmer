@@ -27,9 +27,37 @@ ollama -v
 ollama run deepseek-r1:7b
 ```
 
-Paket boyutlarına dikkat etmekte de yarar var. Parametre sayısının artması daha iyi ekran kartları haricinde daha fazla disk alanına da ihtiyaç duymamızı gerektirebilir :D
+Paket boyutlarına dikkat etmekte de yarar var. Parametre sayısının artması daha iyi ekran kartları haricinde daha fazla disk alanına da ihtiyaç duymamızı gerektirebilir :D Örnekte kullandığım Deepseek-r1:7b _(7 milyar parametre alan)_ versiyon 4.7 Gb'lık bir download paketine sahip.
 
 ![OllamaWithNet_01](../images/OllamaWithNet_01.png)
+
+Artık local makinede çalışan bir dil modelimiz mevcut. Hatta bunu list parametresi ile görebilmemiz lazım.
+
+![OllamaWithNet_02](../images/OllamaWithNet_02.png)
+
+Sıradaki adımımız Ollama servisini bir Console uygulamasında kullanabilmek. 
+
+## Hello World
+
+Basit bir adımla başlayalım ve dil modeli ile karşılıklı sohbet edebileceğimiz bir kod parçası geliştirelim. Console uygulamasında AI soyutlamalarını kullanabilmek için aşağıdaki paketleri eklememiz gerekiyor. _(Yazıyı yazdığımız vakitte AI ve Ollama paketleri henüz prerelease sürümdeydi. Bu nedenle eklerken --prerelease ile eklemem gerekti)_
+
+```bash
+# Önce projeyi oluşturalım
+dotnet new console -o HelloOllama
+
+# Ardından gerekli paketleri ekleyelim
+cd HelloOllama
+dotnet add package Microsoft.Extensions.AI --prerelease
+dotnet add package Microsoft.Extensions.AI.Ollama --prerelease
+dotnet add package Microsoft.Extensions.Hosting # DI Container için gerekli
+```
+
+İlk kodlarımızı da aşağıdaki gibi geliştirebiliriz.
+
+```csharp
+
+
+```
 
 - Ollama Sürücüsünün Sisteme Yüklenmesi
 - Dil Modelinin Yüklenmesi
