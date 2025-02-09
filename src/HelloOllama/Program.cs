@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using HelloOllama;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
@@ -20,40 +21,7 @@ foreach (var codeFile in codeFiles)
 {
     var time = Stopwatch.StartNew();
     Console.WriteLine($"Analysing {codeFile}. Time {DateTime.Now.ToLongTimeString()}");
-    string prompt = $$"""
-    You are an expert in analyzing C# source code. Your task is to quickly summarize the given code file.
-
-    ## Expected Response:
-    - **Purpose**: A one-sentence description of what this code does.
-    - **Main Components**: A list of important classes and methods with a short explanation.
-    - **Potential Issues**: Mention one or two possible problems, if any.
-    
-    ## Response Format:
-    ```json
-    {
-        "purpose": "Short description of the code's functionality.",
-        "main_components": [
-            {
-                "name": "ClassName",
-                "type": "class",
-                "description": "Short explanation."
-            },
-            {
-                "name": "MethodName",
-                "type": "method",
-                "description": "Short explanation."
-            }
-        ],
-        "potential_issues": [
-            "Brief mention of possible issues (if any)."
-        ]
-    }
-    ```
-
-    ## C# Code:
-    {{File.ReadAllText(codeFile)}}
-    """;
-
+    var prompt=Prompts.GetLevel200(codeFile);
     var chatCompletion = await chatClient.CompleteAsync(prompt);
     Console.WriteLine(chatCompletion.Message.Text);
     Console.WriteLine(Environment.NewLine);
