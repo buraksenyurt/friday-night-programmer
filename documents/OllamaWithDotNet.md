@@ -1,23 +1,23 @@
 # Ollama Yardımıyla Deepseek Dil Modelini .Net Platformunda Kullanmak
 
-Son yıllarda hayatımıza girmiş bulunan bir çok dil modeli ve pek tabii bunları işleterek çeşitli konularda bizi asiste eden GenAI ürünleri geliştirildi. Yeni modeller de geliştirilmeye, parametre sayıları milyarlar mertebesinde muazzam değerlere de ulaşmaya devam ediyor. Herhalde en popülerlerinden birisi ChatGPT olsa gerek. Ancak maliyet açısından bakıldığında bireysel kullanım için dahi olsa gerçekten işe yarar sonuçlara götürecek olan versiyonlar biraz pahalı gibi. Yazıyı kaleme aldığım tarih itibariyle benimde kullandığım bireysel paket fiyatı aylık 20 dolar seviyesinde. Oysa ki OpenAI'ın kuruluş aşamalarında her şeyin açık kaynak ve ücretsiz olacağına dair bir bildiri vardı diye hatırlıyorum. Geçen günlerde çıkan Çin merkezli [Deepseek](https://github.com/deepseek-ai) bu durumu biraz değiştirdi gibi. Çok daha düşük bir maliyetle _(ki haber kanallarında geçen bilgilere göre sadece 5.8 milyon dolar civarında bir yatırımla)_ tamamen açık kaynak sunulup epey de iyi bir sonuç elde ederek büyük oyuncuların tüm hisselerini kısa süreliğine de olsa sarsmış durumda.
+Son yıllarda hayatımıza girmiş bulunan bir çok dil modeli var ve pek tabii bunları işleterek çeşitli konularda bizi asiste eden sayısız GenAI ürünü. Yeni modeller de geliştirilmeye, parametre sayıları milyarlar mertebesinde muazzam değerlere ulaşmaya da devam ediyor. Herhalde en popülerlerinden birisi ChatGPT olsa gerek. Ancak maliyet açısından bakıldığında bireysel kullanım için dahi olsa gerçekten işe yarar sonuçlara götürecek olan versiyonlar biraz pahalı. Yazıyı kaleme aldığım tarih itibariyle benimde kullandığım bireysel paket fiyatı aylık 20 dolar seviyesindeydi. Oysa ki OpenAI'ın kuruluş aşamasında her şeyin açık kaynak ve ücretsiz olacağına dair verilmiş sözler vardı diye hatırlıyorum. Lakin geçen günlerde çıkan Çin merkezli [Deepseek](https://github.com/deepseek-ai) bu durumu değiştirebilir. Çok daha düşük bir maliyetle _(ki haber kanallarında geçen bilgilere göre sadece 5.8 milyon dolar civarında bir yatırımla)_ tamamen açık kaynak sunulup epey de iyi bir sonuç elde ederek büyük oyuncuların tüm hisselerini kısa süreliğine de olsa sarstı.
 
-_Yapay zeka dil modellerinin ve buna dayalı çalışan kod asistanlarının biz programcıların işini elimizden alacağına pek inanmıyorum. Bunun yerine verimliliğimizi artıracak şekilde bizi daha da iyi asiste edeceklerini düşünüyorum._
+_Yapay zeka dil modellerinin ve buna dayalı çalışan kod asistanlarının biz programcıların işini elimizden alacağına şahsen pek inanmıyorum. Bunun yerine verimliliğimizi artıracak şekilde bizi daha da iyi asiste edeceklerini düşünüyorum._
 
-Yakın zamanda AI hizmetlerini .Net uygulamalarına adapte edebilmek için iki soyutlama paketi tanıtıldı. [Microsoft.Extensions.AI](https://learn.microsoft.com/en-us/dotnet/ai/ai-extensions) ve Microsoft.Extensions.AI.Abstractions. Bu kütüphanelerden yararlanarak belli başlı dil modeli servislerini kullanabiliyoruz. OpenAO, Azure OpenAI, Azure AI Infrence ve [Ollama](https://ollama.com/) gibi. Bu servisler birçok dil modelini çalıştırmak için birer sunucu gibi hareket ediyorlar. .Net kütüphaneleri ise bu servisleri kullanmak için gerekli fonksiyonellikleri sağlayarak kullanımı kolaylaştırıyor.
+Yakın zamanda AI hizmetlerini .Net uygulamalarına adapte edebilmek için iki soyutlama paketi tanıtıldı. [Microsoft.Extensions.AI](https://learn.microsoft.com/en-us/dotnet/ai/ai-extensions) ve Microsoft.Extensions.AI.Abstractions. Bu kütüphanelerden yararlanarak birçok dil modelini basit metot çağrıları ile kullanabiliyoruz. OpenAI, Azure OpenAI, Azure AI Infrence ve [Ollama](https://ollama.com/) kullanabileceğimiz servislerden birkaçı. Bu servisler birçok dil modelini çalıştırmak için birer sunucu olarak da hareket ediyorlar. Microsoft .Net kütüphaneleri ise bu servisleri kullanmak için gerekli fonksiyonellikleri sağlayarak kullanımı kolaylaştırıyor.
 
-Bu özet yazıda söz konusu süreci nasıl işleteceğimizi bir örnek üzerinden ele almaya çalışacağız. Senaryomuz C# kod dosyalarının analiz edilmesi ve kod kalitesinin ölçülmesi üzerine bir çalışma olacak. Tabii çok basit bir şekilde ele alacağız ki niyetimiz Sonarqube metrikleri ile yarışmak değil. Dilerseniz adım adım ilerleyelim.
+Bu özet yazıda söz konusu süreci nasıl işleteceğimizi basit örnekler üzerinden ele almaya çalışacağız. Senaryomuz C# kod dosyalarının analiz edilmesi ve kod kalitesinin ölçülmesi üzerine bir çalışma olacak. Tabii çok basit bir şekilde ele alacağız ki niyetimiz **Sonarqube** metrikleri ile yarışmak değil. Dilerseniz adım adım ilerleyelim.
 
 ## Dil Modeli için Gerekli Ortamın Hazırlanması
 
-İlk olarak seçtiğimiz dil modelini işletecek ortamı hazırlamak lazım. Bu noktada kodu analiz ettireceğimiz dil modelini çalıştıracak bir servise de ihtiyacımız var. Ben [Ollama'yı](https://ollama.com/) tercih ediyorum. Kodu yazmakta olduğum makine Windows 11 işletim sistemine sahip. Ollama'yı macOs ve Linux platformları için de kullanabiliyoruz.
+İlk olarak seçtiğimiz dil modelini işletecek araçları kurmamız gerekiyor. Bu noktada kodu analiz ettireceğimiz dil modelini çalıştıracak bir servise de ihtiyacımız var. Bu yazıda [Ollama'yı](https://ollama.com/) tercih ettim. Kodu yazmakta olduğum makine Windows 11 işletim sistemine sahip ama Ollama'yı macOs ve Linux platformları için de kullanabiliyoruz.
 
 ```bash
-# Kurulumun başarılı olup olmadığını versiyon kontrolü ile yapabilriz
+# Kurulumun başarılı olup olmadığını versiyon kontrolü ile sağlayabiliriz
 ollama -v
 ```
 
-İndirme ve kurulum işlemi tamamlandıktan sonra birde dil modeline ihtiyacımız olacak elbette. Ollama'nın [buradaki sayfasından](https://ollama.com/search) yararlanarak çalışmak istediğimiz dil modelini çalışacağı sisteme almamız lazım.Burada dikkat edilmesi gereken birkaç nokta var. Belli konulara özel geliştirilmiş dil modelleri mevcut. Örneğin kimisi görsel öğelere has kabiliyetlere sahip, yani fotoğraf analizi yaptırmak gibi konularda başarılı. Kimisi genel dil modelleri. Bazı dil modelleri çalışmak için yüksek konfigürasyon makinelere ihtiyaç duyabilir. Özellikle kaç parametre ile çalışacağımızı seçerken buna dikkat etmek lazım. Örneğimizde ben deepseek-r1 modelini ve 7 milyar parametre ile çalışan sürümünü kullanmayı tercih ettim.
+İndirme ve kurulum işlemi tamamlandıktan sonra birde dil modeline ihtiyacımız olacak elbette. Ollama'nın [buradaki sayfasından](https://ollama.com/search) yararlanarak çalışmak istediğimiz dil modelini çalışacağı sisteme alabiliriz. Biraz Docker Image'ı indirmeye benziyor diyebilirim. Dil modeli seçimi ile ilgili dikkat edilmesi gereken birkaç nokta var. Belli konulara özel geliştirilmiş dil modelleri mevcut. Örneğin kimisi fotoğrafları yorumlamak gibi görsel öğelere has kabiliyetlere sahipken  kimisi genel dil modeli özelliklerini taşımakta. Bazı dil modelleri çalışmak için yüksek konfigürasyon makinelere ihtiyaç duyabilir. Özellikle kaç parametre ile çalışacağımızı seçerken buna dikkat etmek lazım. Örneğimizde ben **deepseek-r1** modelinin 7 milyar parametre ile çalışan sürümünü kullanmayı tercih ettim.
 
 ![OllamaWithNet_00](../images/OllamaWithNet_00.png)
 
@@ -27,19 +27,19 @@ ollama -v
 ollama run deepseek-r1:7b
 ```
 
-Paket boyutlarına dikkat etmekte de yarar var. Parametre sayısının artması daha iyi ekran kartları haricinde daha fazla disk alanına da ihtiyaç duymamızı gerektirebilir :D Örnekte kullandığım Deepseek-r1:7b _(7 milyar parametre alan)_ versiyon 4.7 Gb'lık bir download paketine sahip.
+Paket boyutlarına dikkat etmekte de yarar var. Parametre sayısının artması daha iyi ekran kartları haricinde daha fazla disk alanına da ihtiyaç duymamızı gerektirebilir. Örnekte kullandığım **Deepseek-r1:7b** _(7 milyar parametre alan)_ versiyon **4.7 Gb'lık download paketine** sahip.
 
 ![OllamaWithNet_01](../images/OllamaWithNet_01.png)
 
-Diğer modellerin kapladığı alan ise şöyle. Yazıyı yazdığım zaman itibariyle Chat GPT'nin 4o modelinin tahminen 2 trilyona yakın parametre ile çalıştığı ifade ediliyordu. Deepseek'in uzmanlaşmış dil modellerinin bir araya geldiği 671 milyar parametrelik versiyonunun 404 Gb yer tuttuğu düşünülürse gerçekten en iyi kalitede işçilik için yine bol miktarda sıfırı olan finansmana ihtiyaç var gibi :D
+Yazıyı yazdığım zaman itibariyle Chat GPT'nin 4o modelinin tahminen 2 trilyona yakın parametre ile çalıştığı ifade ediliyordu. Deepseek'in uzmanlaşmış dil modellerinin bir araya geldiği 671 milyar parametrelik versiyonunun 404 Gb yer tuttuğu düşünülürse gerçekten en iyi kalitede işçilik için yine bol miktarda sıfırı olan finansmana ihtiyaç var gibi :D
 
 ![Models sizes](../images/OllamaWithNet_07.png)
 
-Artık local makinede çalışan bir dil modelimiz mevcut. Hatta bunu list parametresi ile görebilmemiz lazım.
+Artık local makinede çalışan bir dil modelimiz mevcut. Hatta bunu **list** parametresi ile terminalden de görebilmemiz lazım.
 
 ![OllamaWithNet_02](../images/OllamaWithNet_02.png)
 
-Ollama ile bir dil modeli hizmeti başlatıldığında makine restart olsa bile servisin çalışmaya devam ettiğini fark ettim. Makinede yüklü olan servisleri görmek için ps komutu kullanılabilir.
+Denemeler sırasında **Ollama** ile bir dil modeli hizmeti başlatıldığında makine restart olsa bile servisin çalışmaya devam ettiğini fark ettim. Makinede yüklü olan servisleri görmek için **ps** komutu kullanılabilir.
 
 ```bash
 # Hali hazırda çalışan servisleri görmek için
@@ -61,11 +61,11 @@ ollama help
 ollama rm --help
 ```
 
-Sıradaki adımımız Ollama servisini bir Console uygulamasında kullanabilmek.
+Sıradaki adımımız Ollama servisine erişip seçtiğimiz dil modelini bir Console uygulamasında kullanmak.
 
 ## Hello World
 
-Basit bir adımla başlayalım ve dil modeli ile karşılıklı sohbet edebileceğimiz bir kod parçası geliştirelim. Console uygulamasında AI soyutlamalarını kullanabilmek için aşağıdaki paketleri eklememiz gerekiyor. _(Yazıyı yazdığımız vakitte AI ve Ollama paketleri henüz prerelease sürümdeydi. Bu nedenle eklerken --prerelease ile eklemem gerekti)_
+Basit bir adımla başlayalım ve dil modeli ile karşılıklı sohbet edebileceğimiz bir kod parçası geliştirelim. Console uygulamasında AI soyutlamalarını kullanabilmek için aşağıdaki Nuget paketlerini eklememiz gerekiyor. _(Yazıyı yazdığım vakitte AI ve Ollama paketleri henüz prerelease sürümdeydi. Bu nedenle --prerelease anahtarı ile eklemem gerekti)_
 
 ```bash
 # Önce projeyi oluşturalım
@@ -78,7 +78,7 @@ dotnet add package Microsoft.Extensions.AI.Ollama --prerelease
 dotnet add package Microsoft.Extensions.Hosting # Dependency Injection Container için gerekli
 ```
 
-İlk kodlarımızı da aşağıdaki gibi geliştirebiliriz.
+Console uygulamamızın kodlarını aşağıdaki gibi geliştirebiliriz.
 
 ```csharp
 using Microsoft.Extensions.AI;
@@ -132,17 +132,17 @@ while (true)
 }
 ```
 
-Bu uygulamayı çalıştırdıktan sonra Deepseek ile konuşabiliriz. Örneğin dünyanın en yüsek 5 dağının listesini istediğimizi düşünelim. İşte sonuç. Bu arada Deepseek'in espri anlayışı da var gibi :D
+Bu kod Deepseek ile karşılıklı sobhet edebileceğimiz basit bir chatbot ortamı oluşturuyor. Örneğin dünyanın en yüsek 5 dağının listesini istediğimizi düşünelim. İşte sonuç. Bu arada Deepseek'in espri anlayışı da var gibi :D
 
 ![Ollama runtime sample 1](../images/OllamaWithNet_03.png)
 
-Bu arada kodu çalıştırdıktan ve soruyu sorduktan sonra buraya dönüp makaleyi düzenlemeye devam ettim ve üstünden neredeyse beş dakika geçti. Deepseek kararsızlıklar yaşayarak cevaplar vermeye devam etti ve duruma göre ilk beşteki dağlardan bazıları arasında sıralama değişiklikleri yaptı. Bu elbette kullandığımız dil modelinin 7 milyar parametreli versiyonundan ya da sorduğum sorunun kalitesinden de kaynaklanıyor olabilir.
+Diğer yandan programı çalıştırdıktan ve soruyu sorduktan sonra makaleye dönüp düzenlemeye devam ettim ve üstünden neredeyse beş dakika geçti. Deepseek kararsızlıklar yaşayarak cevaplar vermeye devam etti ve duruma göre ilk beşteki dağlardan bazıları arasında sıralama değişiklikleri yaptı. Bu elbette kullandığımız dil modelinin 7 milyar parametreli versiyonundan ya da sorduğum sorunun kalitesinden de kaynaklanıyor olabilir. Yani iyi bir prompt verememiş de olabilirim.
 
 ![Ollama runtime sample 2](../images/OllamaWithNet_04.png)
 
-Pek tabii daha üst modelleri çalıştırmak için daha güçlü bir sisteme ihtiyacım var. Bu noktada güçlü sunucularda daha iyi ve yüksek parametreli dil modellerinden çok daha iyi sonuçlar alınabileceği öngörülebilir fakat şu haliyle dahi Deepseek bana kalırsa epey etkili.
+Pek tabii daha üst modelleri çalıştırmak için daha güçlü bir sisteme ihtiyacımız var. Güçlü sunucularda daha iyi ve yüksek parametreli dil modellerinden çok daha iyi sonuçlar alınabileceği öngörülebilir fakat şu haliyle dahi Deepseek bana kalırsa epey etkili.
 
-Şimdi yazımızın başlarında belirttiğim senaryo ile devam edelim. C# dosyalarını bu dil modeline verip kalitesini yorumlatmak istiyoruz. Pek tabii burada çok iyi prompt girilmesi gerekiyor. Dolayısıyla farklı bir yaklaşıma gideceğiz. Kodlarımızı aşağıdaki gibi geliştirerek ilerleyelim.
+Şimdi yazımızın başlarında belirttiğim senaryo ile devam edelim. C# dosyalarını bu dil modeline verip kalitesini yorumlatmak istiyoruz. Pek tabii burada çok iyi prompt girilmesi gerekiyor. Dolayısıyla farklı bir yaklaşıma gideceğiz. Console uygulamamıza ait kodları aşağıdaki gibi değiştirelim.
 
 ```csharp
 using Microsoft.Extensions.AI;
@@ -202,7 +202,7 @@ foreach (var codeFile in codeFiles)
 }
 ```
 
-Örnek kodun en önemli kısmı prompt içeriği. Burada görüldüğü üzere chatbot konuşmalarından çok daha farklı bir bildiri söz konusu. İstediğimiz kod analizini yapması için dil modeline detaylı bilgiler veriyoruz. Bu arada söz konusu promptu chatgpt'ye yaptırdığımı ifade edeyim ama kendisi Deepseek için bunu istediğimi henüz önemsememiş gibi :D Dolayısıyla Prompt Engineering mevzusu oldukça önemli olabilir. Sonuçta bu tip bir promptu yazdırmak içinde iyi seviyede programlama bilgisine en azından programlama dilinin yapısı ile ilgili kavramlara hakim olmak lazım. Korkma sayın programcı bize hala iş var :D Neyse biz konumuza geri dönelim dilerseniz. Örneğin aşağıdaki kod parçası için çalıştırdım.
+Örnek kodun en önemli kısmı prompt içeriği. Burada görüldüğü üzere chatbot konuşmalarından çok daha farklı bir bildiri söz konusu. İstediğimiz kod analizini yapması için dil modeline detaylı bilgiler veriyoruz. Örnekte kullandığım promptu chatgpt'ye yaptırdığımı ifade edeyim ama kendisi Deepseek için bunu istediğimi henüz önemsememiş gibi :D Dolayısıyla **Prompt Engineering** mevzusu hayatımızın bundan sonraki aşamalarında oldukça önemli hale gelebilir. Diğer yandan bu tip bir promptu yazdırmak içinde iyi seviyede programlama bilgisine, en azından programlama dilinin yapısı ile ilgili kavramlara hakim olmak gerekiyor. **Korkma sayın programcı bize hala iş var :D** Neyse neyse biz konumuza geri dönelim. Örneğin aşağıdaki kod parçası için çalıştırabiliriz.
 
 ```csharp
 using System;
@@ -229,13 +229,13 @@ public class GameInfo
 }
 ```
 
-Programı çalıştırmadan önce bu kod dosyasını yorumlamanızı öneririm. Birkaç özellik barındıran basit bir sınıf tasarımı söz konusu. Object sınıfından gelen ToString metodu override edilmiş halde. Ayrıca dışarıya kapatılmış UserPoint özelliğini değiştirebildiğimiz birde metodumuz var. String interpolation kullanılmış vs Bakalım DeepSeek-r1:7b dil modeli bunu nasıl yorumluyor. İşte çalışma zamanına ait bir ekran görüntüsü.
+Programı çalıştırmadan önce bu kod dosyasını yorumlamanızı öneririm. Birkaç özellik barındıran basit bir sınıf tasarımı söz konusu. Object sınıfından gelen ToString metodu override edilmiş halde. Ayrıca set bloğu private olarak belirlenmiş UserPoint özelliğinin verisini değiştirebilmek için ayrı bir metodumuz var. Kimbilir belki içerisine bazı kurallar dahil olacak. String interpolation'da yakalanabilecek diğer özelliklerden birisi. Bakalım DeepSeek-r1:7b dil modeli bunu nasıl yorumluyor. İşte çalışma zamanına ait bir ekran görüntüsü.
 
 ![Code metrix runtime 1](../images/OllamaWithNet_05.png)
 
-Bu basit kod dosyası için ilgili dil modelinin epey isabetli sonuçlara ulaştığını söylemek yanlış olmaz her halde. Tüm analiz örneği geliştirdiğim bilgisayarda yaklaşık olarak 2.5 dakika kadar sürdü diyebilirim. Bu arada makinenin özelliklerini de paylaşayım.
+Bu basit kod dosyası için ilgili dil modelinin epey isabetli sonuçlara ulaştığını söylemek yanlış olmaz herhalde. Tüm analiz örneği geliştirdiğim bilgisayarda yaklaşık olarak 2.5 dakika kadar sürdü. Çalışmakta olduğum makinenin özellikleri ise şöyle.
 
-| Key                   | Value                             |
+| **Key**                   | **Value**                             |
 | ----------------------| --------------------------------- |
 | System Manufacturer | MONSTER   |
 | System Model | HUMA H4 V5.2  |
@@ -244,7 +244,7 @@ Bu basit kod dosyası için ilgili dil modelinin epey isabetli sonuçlara ulaşt
 | RAM |32.0 GB    |
 | VGA | Intel(R) Iris(R) Xe Graphics  |
 
-Elbette prompt içeriğini biraz daha detaylandırıp çıktı isteyebiliriz. Sevgili Çeto'nun (ChatGpt'ye böyle diyorum) katkılarıyla aşağıdaki promptu deneyebiliriz.
+Elbette prompt içeriğini biraz daha detaylandırıp farklı çıktılar da isteyebiliriz. Örneğin sevgili Çeto'nun *(ChatGpt'ye böyle diyorum)* katkılarıyla aşağıdaki promptu deneyebiliriz.
 
 ```text
 You are an expert in analyzing and evaluating C# source code. You will receive a C# code file as input, and your task is to analyze it and produce a structured JSON response that includes:
@@ -288,17 +288,17 @@ You are an expert in analyzing and evaluating C# source code. You will receive a
 }
 ```
 
-Kendi sistemimde bu prompt için aşağıdaki çıktıyı elde ettiğimi ifade edebilirim.
+Kendi sistemimde bu prompt için aşağıdaki çıktıyı elde ettim.
 
 ![Code metrix runtime 2](../images/OllamaWithNet_06.png)
 
-Bu sefer bu basit C# dosyasının analizi kendi sistemimde neredeyse beş dakikaya yakın sürede tamamlandı ancak biraz daha detaylı bilgi aldığımızı ifade edebilirim. Hatta yorum kısımlarında Deepseek sanki gerçekten Code Review yapan bir programcıymış gibi davranıyor desek yalan olmaz. 
+Bu sefer bu basit C# dosyasının analizi neredeyse beş dakikaya yakın sürede tamamlandı ancak biraz daha detaylı bilgi üretildiğini ifade edebilirim. Hatta yorum kısımlarında Deepseek sanki gerçekten **Code Review** yapan bir programcıymış gibi davranıyor desek yalan olmaz. 
 
-Yazının bundan sonraki kısmında farklı modellerden çeşitli prompt'lar üretip söz konusu dosyanın yorumlanmasını isteyebiliriz. Lakin endüstriyel anlamda baktığımda milyon satır kod tabanına ulaşabilen sistemlerin kod dosyalarını kalitesinin ölçümü için çok daha fazla parametre ile çalışan _(ki tahminlere göre Chat Gpt 4o versiyonu neredeyse 2 trilyon parametre ile çalışıyor)_ ve pek tabii çok daha yüksek sistem konfigürasyonuna ihtiyaç duyan ve pek tabiii daha çok enerji ihtiyacı duyacak ortamlara ihtiyacımız olacağı kesin. Tüm bu gelişmelere karşın Microsoft'un yapay zeka modellerini kod tabanında kolayca kullanabilmemiz için soyutlamalar getirmesi, Ollama'nın OpenAI'ın tüm karşıt görüşleri ve tutumlarına rağmen DeepSeek'i model kataloğunda tutması çok farklı bir geleceğin göstergesi gibi.
+Yazının bundan sonraki kısmında farklı modellerden çeşitli prompt'lar üretip söz konusu dosyanın yorumlanmasını isteyebiliriz. Lakin endüstriyel anlamda baktığımda milyon satır kod tabanına ulaşabilen sistemlerin kod kalitesinin ölçümü için çok daha fazla parametre ile çalışan _(ki tahminlere göre Chat Gpt-4o versiyonu neredeyse 2 trilyon parametre ile çalışıyor)_ ve pek tabii çok daha yüksek sistem konfigürasyonuna ihtiyaç duyan ve pek tabiii daha çok enerji ihtiyacı duyacak ortamlara ihtiyacımız olacağı kesin. Tüm bu gelişmelere karşın Microsoft'un yapay zeka modellerini kod tabanında kolayca kullanabilmemiz için soyutlamalar getirmesi, Ollama'nın OpenAI'ın tüm karşıt görüşleri ve tutumlarına rağmen DeepSeek'i model kataloğunda tutması _(en azından şimdilik)_ çok farklı bir geleceğin göstergesi gibi.
 
 ## Modeli Zorlayalım
 
-Gelin modeli biraz daha zorlayalım. Bu sefer içerisinde bazı SOLID ilkelerinin ihlal edildiği aşağıdaki kod dosyasını ele alalım.
+Gelin modeli biraz daha zorlayalım. Bu sefer içerisinde bazı **SOLID** ilkelerinin ihlal edildiği aşağıdaki kod dosyasını ele alalım.
 
 ```csharp
 using System;
@@ -361,9 +361,7 @@ class Program
 }
 ```
 
-Bu sefer cevapları almak biraz daha fazla sürdü elbette. Bu basit iyi bir programcının bir dakikadan az sürede analiz edebileceği kod içeriği için neredeyse 7 dakika civarında. Ancak DeepSeek'in bunu nasıl yorumladığını da paylaşmak isterim.
-
-Yorumlama kısmı;
+Bu sefer cevapları almak biraz daha fazla sürdü elbette. Çalışma süresi bu sefer yetkin bir programcının bir dakikadan az sürede analiz edebileceği kod içeriği için neredeyse 7 dakika seviyelerine çıktı. DeepSeek bunu aşağıdaki metinle yorumladı.
 
 ```text
 Okay, so I'm looking at this C# code that someone provided. Let me try to understand what it does and figure out the analysis parts.
@@ -411,4 +409,7 @@ Notes: The code as provided seems complete. It's a simple example without any mi
 
 ![Code metrix runtime last](../images/OllamaWithNet_08.png)
 
-Bu kadar şeyden sonra artık daha ne desem bilemedim :D Biz programcılara halen daha çok ihtiyaç var ve bu düşüncemin sonuna kadar arkasındayım.
+Bu kadar şeyden sonra artık daha ne desem bilemedim :D Biz programcılara halen daha çok ihtiyaç var ve bu düşüncemin sonuna kadar arkasındayım. Önemli olan noktalardan birisi ise onların bize söylediklerini yorumlamak. Örneğin kod kalitesi ile ilgili yorumları değerlendirip kafamıza yatmayan kısımların veya eksiklerin farkında olacak kadar programlamaya hakim olmamız önemli. Yazıma burada son vermeden önce örnek uygulamaları Internet bağlantısı kapalı iken denemenizi de öneririm. Zira Ollama ile local ortama indirdiğimiz dil modeli offline çalışabilme özelliğine sahip. Bunu bir deneyin derim. 
+
+Tekrardan görüşünceye dek hepinize mutlu günler dilerim.
+Örnek kodlar için [repoya](https://github.com/buraksenyurt/friday-night-programmer/tree/develop/src/HelloOllama) bakabilirsiniz.
