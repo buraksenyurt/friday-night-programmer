@@ -18,7 +18,7 @@ public class CodeMetrics
     [JsonPropertyName("cyclomatic_complexity")]
     public int CyclomaticComplexity { get; set; }
     [JsonPropertyName("code_duplication_percentage")]
-    public int CodeDuplicationPercentage { get; set; }
+    public double CodeDuplicationPercentage { get; set; }
     [JsonPropertyName("maintainability_index")]
     public int MaintabilityIndex { get; set; }
     [JsonPropertyName("code_quality_score")]
