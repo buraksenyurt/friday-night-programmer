@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.AI;
 
-namespace HelloOllama;
+namespace HelloOllama.Drivers;
 
 class Basics
 {
@@ -14,18 +14,7 @@ class Basics
          Aslında taraflar için tek bir nesne modeli var. Bunlardan hangisinin kullanıcıya ait olduğu hangisinin chatbot'tan beklenen 
          bir mesaj olduğu genellikle ChatRole struct nesnesi üzerinden belirleniyor. (User ve Assistant kullanımlarına dikkat edelim) 
     */
-    public static async     /*
-         Aşağıdaki sonsuz döngü kısmında istemci nesne birden çok kez çağırılmakta. Bu nedenle ilgili nesneyi 
-         Dependency Injection Container'a alıp oradan tedarik ederek kullandırmak çok daha mantıklı.
-
-         Sonsuz döngü aslında bir chatbot ile konuşma efektini vermek için.
-
-         Sorulan sorular (prompts) bir ChatMessage nesnesi haline getirilerek kullanılmakta. 
-         Aslında taraflar için tek bir nesne modeli var. Bunlardan hangisinin kullanıcıya ait olduğu hangisinin chatbot'tan beklenen 
-         bir mesaj olduğu genellikle ChatRole struct nesnesi üzerinden belirleniyor. (User ve Assistant kullanımlarına dikkat edelim) 
-    */
-    Task
-Run(IChatClient chatClient)
+    public static async Task Run(IChatClient chatClient)
     {
         Console.WriteLine("Asistant mode has been started...");
 

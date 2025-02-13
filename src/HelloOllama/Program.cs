@@ -1,4 +1,5 @@
-﻿using HelloOllama;
+﻿using HelloOllama.Drivers;
+using HelloOllama.Mappers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,4 +16,5 @@ var chatClient = app.Services.GetRequiredService<IChatClient>();
 
 // await Basics.Run(chatClient);
 
-await TechDebtHunter.CheckCodeQuality(chatClient);
+// await TechDebtHunter.ReviewCode(chatClient, new CodeQualityAnalysisMapper(), PromptType.Advanced);
+await TechDebtHunter.ReviewCode(chatClient, new CodeAnalysisResultMapper(), PromptType.OnlyMetrics);
