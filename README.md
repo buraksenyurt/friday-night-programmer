@@ -11,7 +11,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
   - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
   - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
-  - [Chapter 05 - Dark City](#chapter-05---dark-city)
+  - [Chapter 05 - Dark City](#chapter-05---dark-city-14-şubat-2025-cuma-2130---2230)
   - [Chapter 06 - Memento](#chapter-06---memento)
   - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic)
   - [Chapter 08 - Return of the King](#chapter-08---return-of-the-king)
@@ -150,7 +150,16 @@ Bu programa geçen bölümden gelen bir soru üzerine yazılım mimarisi seçimi
 
 Programda ayrıca [Örnek Senaryolar](./documents/UseCases.md) dokümanındaki **UC02 - İzole Edilmiş SMTP Server** ve **UC03 - Servisler Arası İletişim içim gRPC Kullanımı** konularına da değinildi.
 
-## Chapter 05 - Dark City
+## Chapter 05 - Dark City _(14 Şubat 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki](https://www.youtube.com/live/4VumD_odU0E)
+
+- Bu programda Stanley G. Weinbaum' un Bir Mars Destanı isimli bilim kurgu öyküsünü ve başka öykülerini de içeren kitabı tavsiye ettik. Kitapla ilgili [Bilimkurgu.com](https://www.bilimkurgukulubu.com/edebiyat/bilimkurguya-yon-veren-oykuler-bir-mars-destani/) sitesinde güzel de bir bilgilendirme mevcut. 1930'larda bilim kurgu dergilerini merak ediyorsanız [şuraya](https://archive.org/details/pub_astounding-science-fiction) ve [buraya](https://onlinebooks.library.upenn.edu/webbin/serial?id=wonderstories) da bakabilirsiniz. Ayrıca Türkiye Bilişim Derneği'nin de bilim kurgu öyküleri üzerine yarışması olduğunu biliyor muydunuz? Detaylar [burada](https://www.tbd.org.tr/tbd-2024-bilimkurgu-oyku-yarismasi-sonucu/)
+- Haftanın oyunu yine Unity ile yazılmış olan [Kingdom two Crowns](https://www.kingdomthegame.com/). Ayrıca oyunun OST müziklerine de [buradan](https://music.youtube.com/playlist?list=OLAK5uy_nZEPO5nXPNMFPpUauYaoSvloN3MibpDL4&si=wtIOgiUAiPivTgoI) ulaşabilirsiniz.
+- Yayında değindiğimiz, Primitive Obsession olarak bilinen ve DDD içinde ayrı bir yeri olan Value Object konusuna ait Nuget paketine [buradan](https://www.nuget.org/packages/vogen) erişebilirsiniz. Github reposu ise [şurada](https://github.com/SteveDunn/Vogen)
+- Asp.Net Middleware konusunu tekrar etmek isterseniz [şu adresteki yazıya](https://developmentwithadot.blogspot.com/2025/01/aspnet-core-middleware.html) bakabilirsiniz.
+- Programda ayrıca Ollama üzerinden deepseek-r1 modelini kullanarak kod kalite ölçümüne değindik. Detaylar [şurada](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/OllamaWithDotNet.md)
+- Diğer yandan Rust dilinde enum türünün etkili kullanımına da baktık ki bu konuyla ilgili [şu yazıya](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/UsefulEnumInRust.md) bakabilirsiniz.
 
 ## Chapter 06 - Memento
 
