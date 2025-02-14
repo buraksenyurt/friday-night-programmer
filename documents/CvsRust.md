@@ -1,24 +1,24 @@
 # Rust ve Bellek Güvenliği
 
-Bir sistem programlama dili olarak tanınan Rust genellikle C veya C++ dillerinde kritik hatalar sebep olan bazlı programcı hatalarını henüz derleme aşamasında engellemesi ile öne çıkmaktadır. Rust'ın kendine has bellek yönetim mekanizması esas itibariyle de bu tip hataların önüne geçebilmek üzerine tasarlanmıştır. Kaynaklarda bu konuyla ilgili olarak Use Aftre Frees, Double Frees, Dangling Pointer, Buffer Overflow gibi problemelere rastlamaktayız. Esasında bunlar gerçekten de zaman içerisinde büyük problemlere neden olan açıkların tanımlarıdır. Internet kaynaklarında geçen bazı tarihi olaylar aşağıdaki gibidir.
+Bir sistem programlama dili olarak tanınan Rust genellikle C veya C++ dillerinde kritik hatalara sebep olan bazı kod parçalarının henüz derleme aşamasında _(compile time)_ tespit edilerek önlenmesi ile de ön plana çıkmaktadır. Rust'ın kendine has bellek yönetim mekanizması _(ownership, borrow checker, lifetime ve RAII mekanizması)_ esas itibariyle bu tip hataların önüne geçebilmek üzerine tasarlanmıştır. Kaynaklarda bu konuyla ilgili olarak Use Aftre Free, Double Free, Dangling Pointer, Buffer Overflow gibi kavramlara rastlamaktayız. Esasında bunlar gerçekten de zaman içerisinde büyük problemlere neden olan açıkların tanımlarıdır. Internet kaynaklarında geçen bazı tarihi olaylar ise aşağıdaki gibidir.
 
-- **Use After Frees :** Bellekten silinmiş bir değerin referansına silme işleminden sonra tekrardan erişmeye çalışmak.
-  - 2014 yılında OpenSSL kütüphanesindeki Use After Free açığı istismar edilerek saldırılar gerçekleşmiş. SSL/TLS kullanan birçok web sitesi bundan etkilendi ve kullanıcıların özel bilgilerine ulaşılabildiği ortaya çıktı. Heartbleed.
-  - 2010 yılında ise Windows işletim sistemini hedef alan ve Use After Frees hatasını kullanan Stuxnet isimli bir solucan peydahlandı. Bu solucan İran'ın nükleer santral santrifüjünün zarar görmesine neden olmuş. Böylece endüstriyel kontrol sistemlerinin siber saldırılardan nasıl etkilenebileceği de görülmüş oldu.
-- **Double Frees :** Serbest bırakılmış bir bellek bölgesini tekrardan serbest bırakmaya çalışmak.
-  - 2011 yılında Apache sunucularında Range başlığını içeren isteklerdeki Double Free hatası tetiklenerek saldırılar gerçekleştirilmiş. Saldırı apache kullanan sunucuların devre dışı kalmasına neden oluyordu. Hizmet kesintisi yaşayan sunucular oldu. Apache Killer.
-  - 2008 yılında Windows işletim sisteminin RPC işlevindeki Double Free hatası istismar edilerek saldırılar gerçekleştirilmiş. MS08-067.
-- **Dangling Pointer:** Bir işaretçinin(pointer) referans ettiği bellek adresi ve içeriği artık kullanılmıyordur ancak işaretçi, program içinde aktif kalmaya devam etmiştir.
-  - 2020 Apple'ın safari ve bazı uygulamalarında kullanılan WebKit paketinde bu açık görülmüş. Kötü niyetli kod yürütülmesine sebebiyet verebilirdi.
-  - 2015 Internet Explorer'daki bu açıktan faydalanan bir web sitesi uzaktan kod yürütmeye yönelik girişimlerde bulundu.
+- **Use After Free :** Bellekten silinmiş bir değerin referansına silme işleminden sonra tekrardan erişmeye çalışmak.
+  - 2014 yılında OpenSSL kütüphanesindeki Use After Free açığı istismar edilerek saldırılar gerçekleşti. SSL/TLS kullanan birçok web sitesi bundan etkilendi ve kullanıcıların özel bilgilerine ulaşılabildiği ortaya çıktı. Heartbleed olarak araştırılabilir.
+  - 2010 yılında ise Windows işletim sistemini hedef alan ve Use After Free hatasını kullanan Stuxnet isimli bir solucan peydahlandı. Bu solucan İran'ın nükleer santral santrifüjünün zarar görmesine neden olmuş. Böylece endüstriyel kontrol sistemlerinin siber saldırılardan nasıl etkilenebileceği de görülmüş oldu. Bunu tam olarak doğrulayan bir bilgi yok.
+- **Double Free :** Serbest bırakılmış bir bellek bölgesini tekrardan serbest bırakmaya çalışmak.
+  - 2011 yılında Apache sunucularında Range başlığını içeren isteklerdeki Double Free hatası tetiklenerek saldırılar gerçekleştirilmiş. Saldırı, Apache kullanan sunucuların devre dışı kalmasına ve birçok hizmet kesintisi yaşanmasına neden olmuş. Apache _(Helikopter olan değil :D )_ Killer olarak araştırılabilir.
+  - 2008 yılında Windows işletim sisteminin RPC işlevindeki Double Free hatası istismar edilerek saldırılar gerçekleştirilmiş. MS08-067 kodu ile araştırılabilir.
+- **Dangling Pointer:** Bir işaretçinin _(pointer)_ referans ettiği bellek adresi ve içeriği artık kullanılmıyordur ancak işaretçi, program içinde aktif kalmaya devam eder.
+  - 2020 Apple'ın safari ve bazı uygulamalarında kullanılan WebKit paketinde bu açık görülmüş. Kötü niyetli kod yürütülmesinin yolunu açan bir açık olarak kayıtlara geçmiş.
+  - 2015 Internet Explorer'daki bu açıktan faydalanan bir web sitesi uzaktan kod yürütmeye yönelik girişimlerde bulunmuş.
 - **Buffer Overflow:** Genellikle belli boyuttaki bir dizinin index dışındaki bir alanına erişip değer atamaya çalıştığımızda karşılaştığımız türden bir hata olduğunu söyleyebiliriz.
-  - Bu hata ile ilgili olarak kaynaklarda geçen bir solucan var. Morris solucanı olarak bilinen saldırı sonrası solucan 1988'de Internetteki 60bin makineye bulaşmış. Internetin büyük bölümü birkaç günlüğüne kapanmış. Morris, bazı Unix sistemlerindeki buffer overflow açığını kullanmış. Ama nasıl kullanmış henüz aklım almadı :D
+  - Bu hata ile ilgili olarak kaynaklarda geçen Morris isimli bir solucan _(worm)_ var. Bu solucan 1988'de Internetteki 60bin makineye bulaşmış. Internetin büyük bölümü birkaç günlüğüne devre dışı kalmış birçok hizmette aksamalar olmuş. Morris, bazı Unix sistemlerindeki buffer overflow açığını kullanmış. Ama nasıl kullanmış henüz aklım almadı :D
 
 Şimdi bu durumları göstermeye çalışalım. Bu amaçla herbir vakanın C++ ve Rust ile yazılmış versiyonlarını kıyaslayacağız.
 
-## Use After Frees
+## Use After Free
 
-Bellekten silinmiş bir değerin referansı eğer unutulursa sonradan bu referansı kullanarak bellekteki bir veri kümesini ele geçirmek mümkün olabilir. Bir başka deyişle bu sorun dinamik olarak tahsis edilen bir bellek bölgesinin serbest bırakıldıktan sonra tekrar kullanılmasıyla ortaya çıkar. Bu durum uygulamada çökmelere, bellek bozulmalarına veya güvenlik açıklarına sebep olur. Konuyu aşağıdaki C++ kodu ile değerlendirmeye çalışalım.
+Eğer bellekten düşürülmüş bir değerin referansı unutulursa sonradan bu referansı kullanarak bellekteki bir veri kümesini ele geçirmek mümkün olabilir. Bir başka deyişle bu sorun dinamik olarak tahsis edilen bir bellek bölgesinin serbest bırakıldıktan sonra tekrar kullanılmasıyla ortaya çıkar. Dikkatsiz kullanım uygulamalarda çökmelere, bellek bozulmalarına veya güvenlik açıklarına sebep olabilir. Konuyu aşağıdaki C++ kodu ile değerlendirmeye çalışalım.
 
 ```c++
 #include <iostream>
@@ -75,7 +75,11 @@ int main()
 }
 ```
 
-Buradaki durumu analiz edelim. main metodunda heap üzerinde bir Player nesnesi örnekliyoruz. Sonrasında title ve point gibi alanlarına bazı değerler veriyoruz. del fonksiyonuna yapılan çağrıyla da player nesnesini C++'ın delete metodu ile açıkça serbest bırakıyoruz. Kod bundan sonra ilginçleşiyor. Zira del çağrısı sonrası main metodunda halen duran player nesne referansını kullanarak Title ve Point bilgilerini çekmeye çalışıyoruz. Oysaki az önceki metot çağrısında bu referansa ait veri bellekten düşürüldü. Yani player referansının işaret ettiği bellek bölgesinde artık geçerli bir veri yok. Bellek yönetim sistemi, söz konusu alanı başka bir işlem veya başka bir veri için tahsis edebilir. Bu da belirsiz davranışlara neden olur. Program çökebilir, program eski veriler üzerine yazmaya çalışıp verinin tutarlılığını bozabilir ama daha da kötüsü saldırganlar serbest bırakılan belleği kullanarak programımız içerisinde art niyetli kodlar çalıştırabilir. Pek tabii burada elimiz kolumuz bağlı değil. Programcı olarak del fonksiyonu içinde player pointer'ına null ataması yapıp main içerisinde de null check yaparak ilerlenebilir ya da smart pointer kullanılabilir... Ancak tüm bunlar tahmin edeceğiniz gibi programıcının sorumluluğundadır. İşte managed dillerin bu gibi durumlara karşı sağladığı bellek güvenliği o dilleri çekici kılar. Ne var ki onun da bir maliyeti vardır. Rust bu maliyete girmeden sorunu derleme aşamasında çözmeyi vaat eder. Benzer bir durumu rust ile denemeden önce bu kodun çalışma zamanındaki davranışına bir bakalım.
+Buradaki durumu analiz edelim. main metodunda heap üzerinde bir Player nesnesi örnekliyoruz. Sonrasında title ve point gibi alanlarına bazı değerler veriyoruz. del fonksiyonuna yapılan çağrıyla da player nesnesini C++'ın delete metodu ile açıkça serbest bırakıyoruz. Kod bundan sonra ilginçleşiyor. Zira del çağrısı sonrası main metodunda halen duran player nesne referansını kullanarak Title ve Point bilgilerini çekmeye çalışıyor. Oysaki az önceki metot çağrısında bu referansa ait veri bellekten düşürüldü. Yani player referansının işaret ettiği bellek bölgesinde artık geçerli bir veri yok.
+
+Bellek yönetim sistemi, söz konusu alanı başka bir işlem veya başka bir veri için tahsis edebilir. Bu da belirsiz davranışlara neden olur. Program çökebilir, eski veriler üzerine yazmaya çalışıp verinin tutarlılığını bozabilir ama daha da kötüsü saldırganlar serbest bırakılan alanı kullanarak program içerisinde art niyetli kodlar çalıştırabilir.
+
+Pek tabii burada elimiz kolumuz bağlı değil. Programcı olarak del fonksiyonu içinde player pointer'ına null ataması yapıp main içerisinde de null check yaparak ilerlenebilir ya da smart pointer kullanılabilir ancak tüm bunlar tahmin edeceğiniz gibi programıcının sorumluluğundadır. İşte managed dillerin bu gibi durumlara karşı sağladığı bellek güvenliği ayarları bu sebepten de söz konusu dilleri çekici kılar. Ne var ki belleğin çalışma zamanında kontrol altında tutulmasının da bir maliyeti vardır. Rust bu maliyete girmeden sorunu derleme aşamasında çözmeyi vaat eder. Benzer bir durumu rust ile denemeden önce bu kodun çalışma zamanındaki davranışına bir bakalım.
 
 ```bash
 # Örneği çalıştırmak için general c compiler aracından yararlanabiliriz
@@ -127,13 +131,13 @@ fn delete(player: Player) {
 }
 ```
 
-Yine başrollerde Player isimli bir nesne var ve struct olarak tasarlanmış halde. player değişkeni bazı ilk değerler ile tanımlandıktan sonra delete isimli bir fonksiyona gönderiliyor. Rust'ın sahiplik ilkesi _(ownership)_ gereği ve RAII'den _(Resource Acquisition is Initialization)_ gelen scope mantığına göre delete metodunun son satırına gelindiğinde player referansı işaret ettiği veri ile birlikte otomatik olarak bellekten düşer. Buna göre main fonksiyonunda delete çağrısı sonrası player nesnesi artık geçersiz olur çünkü ortada yoktur. Bu Rust tarafında derleme zamanında aşağıdaki yorumlanır.
+Yine başrollerde Player isimli bir nesne var ve struct olarak tasarlanmış halde. player değişkeni bazı ilk değerler ile tanımlandıktan sonra delete isimli bir fonksiyona gönderiliyor. RAII'den _(Resource Acquisition is Initialization)_ gelen scope mantığına göre delete metodunun son satırına gelindiğinde player referansı işaret ettiği veri ile birlikte otomatik olarak bellekten düşer. Buna göre main fonksiyonunda delete çağrısı sonrası player nesnesi artık geçersiz olur çünkü ortada yoktur. Ki Rust, sahiplik ilkesi gereği bir verinin t anından tek bir sahibi olabileceğini belirtir. Sahipliğin bir fonksiyona geçmesi ve fonksiyon sonlandığından söz konusu verinin düşürülmesi sahibi olan referansın da ortadan kalması anlamına gelir. Bu kısıt sebebiyle program kodu derleme zamanında aşağıdaki hataları verir.
 
 ![No Use After Frees](../images/NoUseAfterFrees.png)
 
-## Double Frees
+## Double Free
 
-Zaten serbest kalmış bir bellek bölgesini tekrardan serbest bırakmaya çalışmak olarak yorumlanabilir. Bu durumu analiz etmek için aşağıdaki C++ kodunu ele alalım.
+Zaten serbest kalmış bir bellek bölgesini tekrardan serbest bırakmaya çalışmak olarak yorumlanabilir. Bu durumu analiz etmek içinse aşağıdaki C++ kodunu ele alalım.
 
 ```c++
 #include <iostream>
@@ -163,14 +167,14 @@ int main() {
 }
 ```
 
-Kahramanımız player nesnesi için bir pointer tanımlanmış sonrasında delete fonksiyonunu çağıran del metodu arka arkaya iki kez tetiklenmiştir. Bu kod derlenir ancak çalışma zamnında hata üretir.
+Kahramanımız player nesnesi için bir pointer tanımlanmış ve sonrasında delete fonksiyonunu çağıran del metodu arka arkaya iki kez tetiklenmiştir. Bu kod parçası derlenir ancak çalışma zamnında hata üretebilir _(Gerçekten de belli olmaz. Üretmeyebilir de :D )_
 
 ```bash
 gcc double_frees.cpp -lstdc++ -o double_frees
 ./double_frees.exe
 ```
 
-Burada biraz duralım. Normalde bu kod Linux üzerine segmentation fault hatasına giderken Windows 11 de bu sorun oluşmadı. Bunun sebebi Windows Heap Manager'ın ikinci serbest bırakma girişimini tespit edip sessizce bu durumu bertaraf etmesi. Elbette runtime hatası alınmaması çift serbest bırakma operasyonunun riskini gizlediğinden bu daha büyük bir problem olarak da düşünülebilir. Dolayısıyla örneği dilerseniz Windows sistemlerde WSL _(Windows Subsystem for Linux)_ üzerinden de yorumlayabilirsiniz. Aşağıdaki gibi hata almanız gerekir.
+Burada biraz duralım. Normalde bu kod Linux üzerine segmentation fault hatasına giderken Windows 11 sisteminde bu sorun oluşmuyor. En azından çalıştığım sistemdeki denemeler böyle sonuçlandı. Bunun sebebi Windows Heap Manager'ın ikinci serbest bırakma girişimini tespit edip sessizce bu durumu bertaraf etmesi. Elbette runtime hatası _alınmaması_ çift serbest bırakma operasyonunun riskini gizlediğinden bu daha büyük bir problem olarak da düşünülebilir. Dolayısıyla örneği dilerseniz Windows sistemlerde WSL _(Windows Subsystem for Linux)_ üzerinden de yorumlayabilirsiniz. Aşağıdaki gibi hata almanız gerekir.
 
 ![Segmentation Fault](../images/DoubleFreesError.png)
 
@@ -204,11 +208,11 @@ Açıkça bir delete operasyonu kullanmasak da Rust'ın sahiplikleri ve değerle
 
 ![No Double Frees](../images/NoDoubleFrees.png)
 
-Durum değerlendirmesi yapalım. player değişkeni do_something metoduna ilk gönderildiği anda sahipliği ile birlikte taşınır. do_something metodunun sonuna gelindiğinden ise bellekten düşer ve main fonksiyonundaki player değişkeni artık kullanım dışı kalır. Dolayısıyla ikinci do_something çağrısına aynı player değişkeni tekrar gönderilemez. Bu da derleme zamanı hatası anlamına gelir. Tabii şunu unutmayalım. Burada aynı referansı metoda taşımak veya metotdan yeni bir Player nesnesi ile geri dönmek gibi yollarla bu sağlanabilir fakat dikkatinizi çekerim. Bir verinin t anında sadece tek bir sahibi olabilir ilkesi bu yöntemlerde ihlal edilmez ;)
+Durum değerlendirmesi yapalım. player değişkeni do_something metoduna ilk gönderildiği anda sahipliği ile birlikte taşınır. do_something metodunun sonuna gelindiğinde ise bellekten düşer ve main fonksiyonundaki player değişkeni artık kullanım dışı kalır. Dolayısıyla ikinci do_something çağrısına aynı player değişkeni tekrar gönderilemez. Bu da derleme zamanı hatası anlamına gelir. Tabii şunu unutmayalım. Burada aynı referansı metoda taşımak veya metotdan yeni bir Player nesnesi ile geri döndürmek gibi yollarla player referansının birden çok kez kullanılması pakala sağlanabilir keza burada bir verinin t anında sadece tek bir sahibi olabilir ilkesi ihlal ihlal edilmez ;) _(Ownership ilkelerini hatırlamakta yarar var. İstediğimiz kadar immutable referans ama t anında sadece tek bir mutable referans...)_
 
 ## Dangling Pointers
 
-Bir işaretçinin(pointer) referans ettiği bellek adresi ve içeriği artık kullanılmıyordur ancak işaretçi, program içinde aktif kalmaya devam etmiştir. Bu durumda işaretçi rastgele bir veri içeriğini tutabilir şeklinde düşünülebilir. Konuyu C++ tarafında aşağıdaki kod parçası ile irdeleyelim.
+Bir işaretçinin _(pointer)_ referans ettiği bellek adresi ve içeriği artık kullanılmıyordur ancak işaretçi, program içinde aktif kalmaya devam etmiştir. Bu durumda işaretçi rastgele bir veri içeriğini tutabilir. Biraz Use After Free sendromunu hatırlatır gibi ama burada bir referansın başka bir kopyası işin içerisine dahil oluyor. Konuyu C++ tarafında aşağıdaki kod parçası ile irdeleyelim.
 
 ```c++
 #include <iostream>
@@ -251,7 +255,7 @@ int main() {
 }
 ```
 
-Öncelikle örnek kodda neler yaptığımız bakalım. player nesnesi örneklendikten sonra onu danglingPointer isimli başka bir referansa daha atıyoruz. Dolayısıyla her iki değişkenin Doktor Sitrenç'i işaret ettiğini söyleyebiliriz. Ardından calc_bonus fonksiyonuna ilk player nesne referansımızı gönderiyoruz. Kasıtlı olarak calc_bonus sonunda player nesnesini bellekten düşürüyoruz. Bu durumda ortada Doktor Sitrenç'i referans eden bir değişken kalmıyor ancak main metodunda yer alan danglingPlayer değişkeni bellekteki aynı bölgeyi ilk referans bağı kopsa da işaret etmeye devam ediyor. Sonuçta program bu noktaya kadar çalışıp ardından çakılıyor.
+Öncelikle örnek kodda neler yaptığımıza bakalım. player nesnesi örneklendikten sonra onu danglingPointer isimli başka bir referansa daha atıyoruz. Dolayısıyla her iki değişkenin Doktor Sitrenç'i işaret ettiğini söyleyebiliriz. Ardından calc_bonus fonksiyonuna ilk player nesne referansımızı gönderiyoruz. Kasıtlı olarak calc_bonus sonunda player nesnesini bellekten düşürüyoruz. Bu durumda ortada Doktor Sitrenç'i referans eden bir değişken kalmıyor ancak main metodunda yer alan danglingPlayer değişkeni bellekteki aynı bölgeyi ilk referans bağı kopsa da işaret etmeye devam ediyor. Sonuçta program bu noktaya kadar çalışıp ardından çakılıyor.
 
 ![Dangling pointer error](../images/DanglingPointerError.png)
 
@@ -286,11 +290,11 @@ fn calc_bonus(player: Player) {
 }
 ```
 
-C++ kod örneğindekine benzer şekilde dangling_pointer isimli değişken player nesnesinin referansını taşıyor. Kod derlendiğinde aşağıdaki hatayı alırız.
+C++ kod örneğindekine benzer şekilde dangling_pointer isimli değişken player nesnesinin referansını taşıyor. Ancak kod derlendiğinde aşağıdaki hatayı alırız.
 
 ![No Dangling Pointers](../images/NoDanglingPointers.png)
 
-Derleme mesajlarını sırasıyla dikkatli bir şekilde okumanızı tavsiye ederim. Özetle calc_bonus fonksiyonunun player nesnesinin sahipliğini aldığını, işleyişini tamamladığında da onu bellekten düşürdüğünü ve bu yüzden başka bir nesnenin onu referans etmesine müsaade edemeyeceğini söyler. Kibarca... Çünkü t anından bir değerin tek bir sahibi olabilir. Fakat yine vurgulamak isterim ki calc_bonus metodunun parametrik yapısı referans taşıma haline getirilebilir veya dönüşü yeni bir Player nesne örneği olarak ele alınabilir. Yani kodda örneğin aşağıdaki gibi bir değişiklik ihlali ortadan kaldırır ve bellek güvenli bir şekilde programın çalıştırılmasını sağlar.
+Derleme mesajlarını sırasıyla dikkatli bir şekilde okumanızı tavsiye ederim. Özetle calc_bonus fonksiyonunun player nesnesinin sahipliğini aldığını, işleyişini tamamladığında da onu bellekten düşürdüğünü ve bu yüzden başka bir nesnenin onu referans etmesine müsaade edemeyeceğini söyler. Kibarca...Çünkü t anında bir değerin tek bir sahibi olabilir. Fakat yine vurgulamak isterim ki calc_bonus metodunun parametrik yapısı referans taşıyan bir versiyone dönüştürülebilir veya dönüşü yeni bir Player nesne örneği olarak ele alınabilir. Yani kodda aşağıdaki gibi bir değişiklik söz konusu ihlali ortadan kaldırır ve bellek güvenli bir şekilde programın çalıştırılmasını sağlar.
 
 ```rust
 fn main() {
@@ -308,7 +312,7 @@ fn calc_bonus(player: &Player) { // player değişkeninin sahipliğini almak yer
 
 ## Buffer Overflow
 
-Genellikle belli boyuttaki bir dizinin index dışındaki bir alanına erişip değer atamaya çalıştığımızda karşılaştığımız türden bir hata olduğunu söyleyebiliriz. Şu C++ kodunu göz önüne alalım.
+Genellikle belli boyuttaki bir dizinin izin verilen indeksi dışındaki bir alanına erişip değer atamaya çalıştığımızda karşılaştığımız türden bir hata olduğunu söyleyebiliriz. Aşağıdaki C++ kodunu göz önüne alalım.
 
 ```c++
 #include <iostream>
@@ -328,7 +332,7 @@ int main(void){
 }
 ```
 
-Kod oldukça basit esasında. On byte'lık bir buffer ayarlanıyor ve bir for döngüsü yardımıyla içerisine veri aktarılıyor. Sorun şu ki döngü on birinci bir elemanı da yazmaya çalışıyor. Program kodu başarılı bir şekilde derlense de doğal olarak çalışma zamanında kırılacaktır. Burada sıkıntı taşma hatasına sebep olacak for döngüsünden önce atanan someData değişkeninin for döngüsünden sonraki kod satırı ile terminale çıktı olarak yazılmış olmasıdır. Yani kodun belli kısımlarının çalıştığını ve herhangibir noktada, ancak for döngüsü kullanıldığında hata alınarak sonlandığını söyleyebiliriz.
+Kod oldukça basit esasında. On byte'lık bir buffer ayarlanıyor ve bir for döngüsü yardımıyla içerisine veri aktarılıyor. Sorun şu ki döngü on birinci sıradan bir elemanı da yazmaya çalışıyor. Program kodu başarılı bir şekilde derlense de doğal olarak çalışma zamanında kırılacaktır. Burada sıkıntı taşma hatasına sebep olacak for döngüsünden önce atanan someData değişkeninin for döngüsünden sonraki kod satırı ile terminale çıktı olarak yazılmış olmasıdır. Yani kodun belli kısımlarının çalıştığını ve herhangibir noktada, ancak for döngüsü kullanıldığında hata alınarak sonlandığını yorumlayabiliriz.
 
 ![Buffer overflow error in c++](../images/BufferOverflowError.png)
 
@@ -347,7 +351,7 @@ fn main() {
 }
 ```
 
-Neredeyse aynı kodun yazıldığını söyleyebiliriz. Hatta rust derleyicisi de hata vermeden bu programı derleyecektir. Ne var ki çalışma zamanında söz konusu taşma algılanmış ama kodun kalan kısımları işletilmemiştir.
+Neredeyse aynı kodun yazıldığını söyleyebiliriz. Hatta rust bile hata vermeden bu programı derleyecektir. Ne var ki çalışma zamanında söz konusu taşma algılanmış ama kodun kalan kısımları işletilmemiştir.
 
 ![Buffer overflow in rust](../images/BufferOverflowRust.png)
 
@@ -372,6 +376,6 @@ Burada buffer[10] = 1 ile açıkça bir buffer overflow ihlali söz konusu. Rust
 
 ![Buffer overflow build error](../images/BufferOverflowBuildError.png)
 
-Bu örnekler aslında Rust'ın daha güvenli bellek yönetimine ihtiyaç duyan ve bunu yaparken managed environment'a ihtiyaç duyulmaması gereken performans kritik senaryolar için neden tercih edildiğinin minik bir gösterimidir. Rust bilindiği üzere ownership, borrow checker, lifetime mekanizmaları yanında RAII modelini baz alan bir bellek yönetimi sunar. Birçok olası hata yukarıdaki örneklerden de görüldüğü üzere derleme zamanında tespit edilir ve ihlal edilmesi önlenir. Buffer Overflow gibi masumane görünen ama stack corruption, code execution gibi saldırıların önünü açan durumlara karşı daha güçlü bir savunma mekanizması sağlar.
+Bu örnekler aslında Rust'ın daha güvenli bellek yönetimine ihtiyaç duyan ve bunu yaparken managed environment'a ihtiyaç duyulmaması gereken performans kritik senaryolar için neden tercih edildiğinin minik bir gösterimidir. Rust bilindiği üzere ownership, borrow checker, lifetime mekanizmaları yanında RAII modelini baz alan bir bellek yönetimi sunar. Birçok olası hata yukarıdaki örneklerden de görüldüğü üzere derleme zamanında tespit edilir ve risk oluşturacak ihlaller önlenir. Buffer Overflow gibi masumane görünen ama stack corruption, code execution gibi saldırıların önünü açan durumlara karşı daha güçlü bir savunma mekanizması sağlar.
 
-Son olarak bu özetin amacının C++ veya C gibi tarihe damga vurmuş ve halen daha geçerliliklerini koruyan dilleri kötülemek olmadığını belirtmek isterim. Esas amaç bu hatalar karşı Rust'ın nasıl bir tutum sergilediğini ve programcıyı korumakla kalmayıp runtime maliyetlerini en aza indirgediğini betimlemektir.
+Son olarak bu özetin amacının C++ veya C gibi tarihe damga vurmuş ve halen daha geçerliliklerini koruyan dilleri kötülemek olmadığını belirtmek isterim. Esas amaç bu hatalara karşı Rust'ın nasıl bir tutum sergilediğini ve programcıyı korumakla kalmayıp runtime maliyetlerini en aza indirgediğini vurgulamaktır.
