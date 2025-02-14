@@ -207,3 +207,103 @@ Açıkça bir delete operasyonu kullanmasak da Rust'ın sahiplikleri ve değerle
 Durum değerlendirmesi yapalım. player değişkeni do_something metoduna ilk gönderildiği anda sahipliği ile birlikte taşınır. do_something metodunun sonuna gelindiğinden ise bellekten düşer ve main fonksiyonundaki player değişkeni artık kullanım dışı kalır. Dolayısıyla ikinci do_something çağrısına aynı player değişkeni tekrar gönderilemez. Bu da derleme zamanı hatası anlamına gelir. Tabii şunu unutmayalım. Burada aynı referansı metoda taşımak veya metotdan yeni bir Player nesnesi ile geri dönmek gibi yollarla bu sağlanabilir fakat dikkatinizi çekerim. Bir verinin t anında sadece tek bir sahibi olabilir ilkesi bu yöntemlerde ihlal edilmez ;)
 
 ## Dangling Pointers
+
+Bir işaretçinin(pointer) referans ettiği bellek adresi ve içeriği artık kullanılmıyordur ancak işaretçi, program içinde aktif kalmaya devam etmiştir. Bu durumda işaretçi rastgele bir veri içeriğini tutabilir şeklinde düşünülebilir. Konuyu C++ tarafında aşağıdaki kod parçası ile irdeleyelim.
+
+```c++
+#include <iostream>
+#include <string>
+
+class Player {
+public:
+    Player(const std::string& name,int level) : name(name) {}
+
+    std::string GetName() {
+        return name;
+    }
+
+    int GetLevel(){
+        return level;
+    }
+
+private:
+    std::string name;
+    int level;
+};
+
+void calc_bonus(Player* player){
+    std::cout << "Bonus hesaplamaları" << std::endl;
+    // Başka bir fonksiyondan gelen player referansı ile bir şeyler yapılıyor
+    // ve bellekten atılıyor
+    delete player;
+}
+
+int main() {
+    Player* player = new Player("Doktor Sitrenç",400);
+    Player* danglingPlayer = player; // player başka bir işaretçiye atanıyor
+    std::cout << "Oyuncu " << player->GetName() << std::endl;
+    calc_bonus(player);
+    // danglingPointer, bellekten atılmış pointer'ın işaret ettiği veriyi
+    // referans etmeye devam ediyor.
+    std::cout <<"Danling pointer için oyuncu " << danglingPlayer->GetName() << std::endl;
+
+    return 0;
+}
+```
+
+Öncelikle örnek kodda neler yaptığımız bakalım. player nesnesi örneklendikten sonra onu danglingPointer isimli başka bir referansa daha atıyoruz. Dolayısıyla her iki değişkenin Doktor Sitrenç'i işaret ettiğini söyleyebiliriz. Ardından calc_bonus fonksiyonuna ilk player nesne referansımızı gönderiyoruz. Kasıtlı olarak calc_bonus sonunda player nesnesini bellekten düşürüyoruz. Bu durumda ortada Doktor Sitrenç'i referans eden bir değişken kalmıyor ancak main metodunda yer alan danglingPlayer değişkeni bellekteki aynı bölgeyi ilk referans bağı kopsa da işaret etmeye devam ediyor. Sonuçta program bu noktaya kadar çalışıp ardından çakılıyor.
+
+![Dangling pointer error](../images/DanglingPointerError.png)
+
+Çok daha büyük çapta bir projede böyle bir hata noktasına gelindiğini düşünün. Şimdi benzer senaryoyu birde Rust tarafında deneyimlemeye çalışalım.
+
+```rust
+struct Player {
+    name: String,
+    level: i32,
+}
+
+impl Player {
+    fn new(name: String, level: i32) -> Self {
+        Self { name, level }
+    }
+
+    fn get_name(&self) -> &str {
+        &self.name
+    }
+}
+
+fn main() {
+    let player = Player::new("Doktor Acayip".to_string(), 400);
+    let dangling_player = &player;
+    calc_bonus(player);
+    println!("İşlemleri yapılan oyuncu {}", dangling_player.get_name());
+}
+
+fn calc_bonus(player: Player) {
+    let player_name = player.get_name();
+    println!("{player_name} için bonus hesaplamaları.");
+}
+```
+
+C++ kod örneğindekine benzer şekilde dangling_pointer isimli değişken player nesnesinin referansını taşıyor. Kod derlendiğinde aşağıdaki hatayı alırız.
+
+![No Dangling Pointers](../images/NoDanglingPointers.png)
+
+Derleme mesajlarını sırasıyla dikkatli bir şekilde okumanızı tavsiye ederim. Özetle calc_bonus fonksiyonunun player nesnesinin sahipliğini aldığını, işleyişini tamamladığında da onu bellekten düşürdüğünü ve bu yüzden başka bir nesnenin onu referans etmesine müsaade edemeyeceğini söyler. Kibarca... Çünkü t anından bir değerin tek bir sahibi olabilir. Fakat yine vurgulamak isterim ki calc_bonus metodunun parametrik yapısı referans taşıma haline getirilebilir veya dönüşü yeni bir Player nesne örneği olarak ele alınabilir. Yani kodda örneğin aşağıdaki gibi bir değişiklik ihlali ortadan kaldırır ve bellek güvenli bir şekilde programın çalıştırılmasını sağlar.
+
+```rust
+fn main() {
+    let player = Player::new("Doktor Acayip".to_string(), 400);
+    let dangling_player = &player;
+    calc_bonus(&player); // nesne referansını gönderdik
+    println!("İşlemleri yapılan oyuncu {}", dangling_player.get_name());
+}
+
+fn calc_bonus(player: &Player) { // player değişkeninin sahipliğini almak yerine referansını kullanır
+    let player_name = player.get_name();
+    println!("{player_name} için bonus hesaplamaları.");
+}
+```
+
+## Buffer Overflow
