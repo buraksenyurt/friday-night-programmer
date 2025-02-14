@@ -14,13 +14,13 @@ public class CodeAnalysisResult
 public class CodeMetrics
 {
     [JsonPropertyName("cognitive_complexity_score")]
-    public int CognitiveComplexityScore { get; set; }
+    public double CognitiveComplexityScore { get; set; }
     [JsonPropertyName("cyclomatic_complexity")]
-    public int CyclomaticComplexity { get; set; }
+    public double CyclomaticComplexity { get; set; }
     [JsonPropertyName("code_duplication_percentage")]
     public double CodeDuplicationPercentage { get; set; }
     [JsonPropertyName("maintainability_index")]
-    public int MaintabilityIndex { get; set; }
+    public double MaintabilityIndex { get; set; }
     [JsonPropertyName("code_quality_score")]
-    public int QualityScore { get; set; }
+    public double QualityScore { get; set; }
 }
