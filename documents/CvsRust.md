@@ -79,7 +79,7 @@ Buradaki durumu analiz edelim. main metodunda heap üzerinde bir Player nesnesi 
 
 ```bash
 # Örneği çalıştırmak için general c compiler aracından yararlanabiliriz
-gcc use_after_frees_01.cpp -lstdc++ -o use_after_frees
+gcc use_after_frees.cpp -lstdc++ -o use_after_frees
 
 # Çalıştırmak içinse sistemde oluşan binary'yi çağırmak yeterli
 # Windows için bu bir exe dosyası olacaktır.
@@ -132,3 +132,78 @@ Yine başrollerde Player isimli bir nesne var ve struct olarak tasarlanmış hal
 ![No Use After Frees](../images/NoUseAfterFrees.png)
 
 ## Double Frees
+
+Zaten serbest kalmış bir bellek bölgesini tekrardan serbest bırakmaya çalışmak olarak yorumlanabilir. Bu durumu analiz etmek için aşağıdaki C++ kodunu ele alalım.
+
+```c++
+#include <iostream>
+#include <string>
+
+class Player {
+public:
+    Player(const std::string& title, int point) : title(title), point(point) {}
+
+private:
+    std::string title;
+    int point;
+};
+
+void del(Player* player){
+    delete player;
+}
+int main() {
+    Player* player = new Player("Şarlotte", 91);
+    del(player);
+
+    // Belleği tekrar serbest bırakmaya çalışmak "Double Free" durumunun oluşmasına sebebiyet verir.
+    // Kod derlenir ama çalışma zamanında Segmentation Fault hatası alınır.
+    del(player);
+
+    return 0;
+}
+```
+
+Kahramanımız player nesnesi için bir pointer tanımlanmış sonrasında delete fonksiyonunu çağıran del metodu arka arkaya iki kez tetiklenmiştir. Bu kod derlenir ancak çalışma zamnında hata üretir.
+
+```bash
+gcc double_frees.cpp -lstdc++ -o double_frees
+./double_frees.exe
+```
+
+Burada biraz duralım. Normalde bu kod Linux üzerine segmentation fault hatasına giderken Windows 11 de bu sorun oluşmadı. Bunun sebebi Windows Heap Manager'ın ikinci serbest bırakma girişimini tespit edip sessizce bu durumu bertaraf etmesi. Elbette runtime hatası alınmaması çift serbest bırakma operasyonunun riskini gizlediğinden bu daha büyük bir problem olarak da düşünülebilir. Dolayısıyla örneği dilerseniz Windows sistemlerde WSL _(Windows Subsystem for Linux)_ üzerinden de yorumlayabilirsiniz. Aşağıdaki gibi hata almanız gerekir.
+
+![Segmentation Fault](../images/DoubleFreesError.png)
+
+Birde benzer kodu Rust tarafında ele alalım.
+
+```rust
+struct Player {
+    title: String,
+    point: i32,
+}
+
+impl Player {
+    fn new(title: String, point: i32) -> Self {
+        Self { title, point }
+    }
+}
+
+fn main() {
+    let player = Player::new("Dolares".to_string(), 67);
+    do_something(player);
+
+    do_something(player);
+}
+
+fn do_something(player: Player) {
+    println!("{}-{}", player.title, player.point);
+}
+```
+
+Açıkça bir delete operasyonu kullanmasak da Rust'ın sahiplikleri ve değerlerini scope dışına çıkınca düşürmesi aynı senaryoyu işletmemizi sağlayacaktır. Bu kod tahmin edeceğiniz üzere derlenmez.
+
+![No Double Frees](../images/NoDoubleFrees.png)
+
+Durum değerlendirmesi yapalım. player değişkeni do_something metoduna ilk gönderildiği anda sahipliği ile birlikte taşınır. do_something metodunun sonuna gelindiğinden ise bellekten düşer ve main fonksiyonundaki player değişkeni artık kullanım dışı kalır. Dolayısıyla ikinci do_something çağrısına aynı player değişkeni tekrar gönderilemez. Bu da derleme zamanı hatası anlamına gelir. Tabii şunu unutmayalım. Burada aynı referansı metoda taşımak veya metotdan yeni bir Player nesnesi ile geri dönmek gibi yollarla bu sağlanabilir fakat dikkatinizi çekerim. Bir verinin t anında sadece tek bir sahibi olabilir ilkesi bu yöntemlerde ihlal edilmez ;)
+
+## Dangling Pointers
