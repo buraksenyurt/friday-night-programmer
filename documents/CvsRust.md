@@ -307,3 +307,71 @@ fn calc_bonus(player: &Player) { // player değişkeninin sahipliğini almak yer
 ```
 
 ## Buffer Overflow
+
+Genellikle belli boyuttaki bir dizinin index dışındaki bir alanına erişip değer atamaya çalıştığımızda karşılaştığımız türden bir hata olduğunu söyleyebiliriz. Şu C++ kodunu göz önüne alalım.
+
+```c++
+#include <iostream>
+using namespace std;
+
+int main(void){
+    int someData=1;
+    int buffer[10];
+
+    for(int i=0;i<=11;i++){
+        buffer[i]=5;
+    }
+
+    cout << "someData = " << someData << endl;
+
+    return 0;
+}
+```
+
+Kod oldukça basit esasında. On byte'lık bir buffer ayarlanıyor ve bir for döngüsü yardımıyla içerisine veri aktarılıyor. Sorun şu ki döngü on birinci bir elemanı da yazmaya çalışıyor. Program kodu başarılı bir şekilde derlense de doğal olarak çalışma zamanında kırılacaktır. Burada sıkıntı taşma hatasına sebep olacak for döngüsünden önce atanan someData değişkeninin for döngüsünden sonraki kod satırı ile terminale çıktı olarak yazılmış olmasıdır. Yani kodun belli kısımlarının çalıştığını ve herhangibir noktada, ancak for döngüsü kullanıldığında hata alınarak sonlandığını söyleyebiliriz.
+
+![Buffer overflow error in c++](../images/BufferOverflowError.png)
+
+Saldırganlar genellikle bu tip buffer bölgelerine fazladan veri yazarak zarar vermeye çalışabilir. Benzer senaryoyu birde Rust tarafında ele almaya çalışalım.
+
+```rust
+fn main() {
+    let some_data = 1;
+    let mut buffer = [0; 10]; // 10 elemanlı bir dizi oluşturuluyor
+
+    for i in 0..=11 {
+        buffer[i] = 5; // Dizi sınırlarını aşma girişimi, Rust derleyicisi tarafından yakalanır
+    }
+
+    println!("some_data = {}", some_data);
+}
+```
+
+Neredeyse aynı kodun yazıldığını söyleyebiliriz. Hatta rust derleyicisi de hata vermeden bu programı derleyecektir. Ne var ki çalışma zamanında söz konusu taşma algılanmış ama kodun kalan kısımları işletilmemiştir.
+
+![Buffer overflow in rust](../images/BufferOverflowRust.png)
+
+Bu arada Rust bazı hallerde derleme zamanında da bu taşmayı yakalayabilir _(Gerçi bunu C++' ta yakaladı)_ Son olarak aşağıdaki kod parçasını ele alalım.
+
+```rust
+fn main() {
+    let mut buffer = [0u8; 8]; // 8 byte uzunluğunda bir dizi
+
+    buffer[10] = 1; // Rust buradaki sorunu derleme zamanında fark ederek hata verir.
+
+    match buffer.get_mut(10) {
+        Some(byte) => *byte = 1,
+        None => println!("Kapasite sınırı aşılmaya çalışıldı"),
+    };
+
+    println!("Buffer: {:?}", buffer);
+}
+```
+
+Burada buffer[10] = 1 ile açıkça bir buffer overflow ihlali söz konusu. Rust derleyicisinin bu koda tepkisi aşağıdaki gibi olacaktır.
+
+![Buffer overflow build error](../images/BufferOverflowBuildError.png)
+
+Bu örnekler aslında Rust'ın daha güvenli bellek yönetimine ihtiyaç duyan ve bunu yaparken managed environment'a ihtiyaç duyulmaması gereken performans kritik senaryolar için neden tercih edildiğinin minik bir gösterimidir. Rust bilindiği üzere ownership, borrow checker, lifetime mekanizmaları yanında RAII modelini baz alan bir bellek yönetimi sunar. Birçok olası hata yukarıdaki örneklerden de görüldüğü üzere derleme zamanında tespit edilir ve ihlal edilmesi önlenir. Buffer Overflow gibi masumane görünen ama stack corruption, code execution gibi saldırıların önünü açan durumlara karşı daha güçlü bir savunma mekanizması sağlar.
+
+Son olarak bu özetin amacının C++ veya C gibi tarihe damga vurmuş ve halen daha geçerliliklerini koruyan dilleri kötülemek olmadığını belirtmek isterim. Esas amaç bu hatalar karşı Rust'ın nasıl bir tutum sergilediğini ve programcıyı korumakla kalmayıp runtime maliyetlerini en aza indirgediğini betimlemektir.
