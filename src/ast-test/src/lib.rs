@@ -45,7 +45,6 @@ fn test_find_classes() {
     );
 }
 
-//TODO@buraksenyurt Extend with return type and method parameters
 #[test]
 fn test_find_methods() {
     let code = r#"
@@ -85,7 +84,36 @@ fn test_find_methods() {
                                 .map(|n| code[n.byte_range()].to_string())
                                 .unwrap_or("Unknown".to_string());
 
-                            methods.push((class_name.clone(), method_name));
+                            let return_type = member
+                                .child_by_field_name("returns")
+                                .map(|n| code[n.byte_range()].to_string())
+                                .unwrap_or("Unknown".to_string());
+                            let mut parameters = Vec::new();
+
+                            for cm in member.children(&mut member.walk()) {
+                                if cm.kind() == "parameter_list" {
+                                    for p in cm.children(&mut cm.walk()) {
+                                        if p.kind() == "parameter" {
+                                            let p_name = p
+                                                .child_by_field_name("name")
+                                                .map(|n| code[n.byte_range()].to_string())
+                                                .unwrap_or("".to_string());
+
+                                            let p_type = p
+                                                .child_by_field_name("type")
+                                                .map(|n| code[n.byte_range()].to_string())
+                                                .unwrap_or("object".to_string());
+
+                                            // dbg!(format!("{} {}", p_type, &p_name));
+
+                                            parameters.push(format!("{} {}", p_type, &p_name));
+                                        }
+                                    }
+                                }
+                            }
+                            let param_str = parameters.join(", ");
+
+                            methods.push((class_name.clone(), method_name, return_type, param_str));
                         }
                     }
                 }
@@ -96,10 +124,30 @@ fn test_find_methods() {
     assert_eq!(
         methods,
         vec![
-            ("Einstein".to_string(), "Add".to_string(),),
-            ("Einstein".to_string(), "Mul".to_string(),),
-            ("Einstein".to_string(), "ClearTemp".to_string(),),
-            ("Einstein".to_string(), "GetRandomNumbers".to_string(),)
+            (
+                "Einstein".to_string(),
+                "Add".to_string(),
+                "double".to_string(),
+                "double x, double y".to_string()
+            ),
+            (
+                "Einstein".to_string(),
+                "Mul".to_string(),
+                "double".to_string(),
+                "double x, double y".to_string()
+            ),
+            (
+                "Einstein".to_string(),
+                "ClearTemp".to_string(),
+                "void".to_string(),
+                "".to_string()
+            ),
+            (
+                "Einstein".to_string(),
+                "GetRandomNumbers".to_string(),
+                "int[]".to_string(),
+                "int maxCount".to_string()
+            )
         ]
     );
 }
