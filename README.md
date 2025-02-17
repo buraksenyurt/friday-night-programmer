@@ -45,6 +45,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Oyun Programlamada ECS Kullanımı](./documents/AboutECS.md)
 - [Rust ve Bellek Güvenliği](./documents/CvsRust.md)
 - [Enum Veri Türünün Rust Tarafında Etkili Kullanımı](./documents/UsefulEnumInRust.md)
 - [Ollama Yardımıyla Deepseek Dil Modelini .Net Platformunda Kullanmak](./documents/OllamaWithDotNet.md)
