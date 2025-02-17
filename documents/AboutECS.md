@@ -5,7 +5,7 @@
 - [İçerik](#oyun-programlamada-ecs-kullanımı)
   - [Tanım](#tanım)
   - [ECS Neden Gereklidir?](#ecs-neden-gereklidir)
-  - [ECS Hakkında Genel Bilgiler](#ecs-hakkında-genel-bilgiler)
+  - [Örnek Senaryo](#örnek-senaryo)
   - [Composition Over Inheritance](#composition-over-inheritance)
   - [ECS ile OOP Arasındaki Farklar](#ecs-ile-oop-arasındaki-farklar)
   - [Tarihçe](#tarihçe)
