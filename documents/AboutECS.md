@@ -267,7 +267,7 @@ fn main() {
 
 Bu sefer ilk olarak component'leri tanımladık. İhtiyacımız olan karakterler bu component'leri birer özellik gibi alan komposit yapılar olarak tasarlandı. System fonksiyonlarına dikkat edecek olursak belli Component'leri referans olarak alıp kullanmakta olduklarını fark ederiz. Yani bir sistem fonksiyonunu sadece ilgili component'lere sahip olan aktörler üzerinde kullanırız. 
 
-Tabii buradaki örnek çok basit bir temsil şekli. ECS tabanlı oyun motorlarında component setleri üzerinde hareket edebilmemizi sağlayan dinamik fonksiyonlar bulunuyor. Hatta bir oyun motoru açısından düşündüğümüzde bir Entity nesnesinin örneklenip, ona programcı tarafından yazılmış component'lerin eklenebilmesi demek esasında oyun motorunun tariflediği sözleşmelere uygun bir bileşenin programcı tarafından yazılmasını gerektiriyor. Bunu oyun motoru tarafından tariflenen bir Interface türünün uygulanması gibi düşünebilir ya da Component isimli bir macro attribute ile bir veri yapısına uygulandığı anda gerekli kodun üretilmesi olarak  yorumlayabiliriz. 
+Tabii buradaki örnek çok basit bir temsil şekli. ECS tabanlı oyun motorlarında component setleri üzerinde hareket edebilmemizi sağlayan dinamik fonksiyonlar bulunuyor. Hatta bir oyun motoru açısından düşündüğümüzde bir Entity nesnesinin örneklenip, ona programcı tarafından yazılmış component'lerin eklenebilmesi demek esasında oyun motorunun tariflediği sözleşmelere uygun bir bileşenin programcı tarafından yazılmasını gerektiriyor. Bunu oyun motoru tarafından tariflenen bir Interface türünün uygulanması gibi düşünebilir ya da Component isimli bir macro attribute ile bir veri yapısına uygulandığı anda gerekli kodun üretilmesi olarak  yorumlayabiliriz.
 
 ## ECS ile OOP Arasındaki Farklar
 
@@ -307,7 +307,121 @@ Rust'ın en popüler oyun motorlarından birisi haline gelen **Bevy**, ECS çat�
 - **Commands:** World nesnesi içerisinde yapısal değişiklikler için kullanılır. Örneğin Entity'lerin spawn/despawn edilmeleri, Entity nesnelerine Component'lerin eklenmesi, Resource nesnelerinin yönetimi gibi
 - **System Sets:** Bazı özelliklerin birden fazla sisteme kolayca uygulanabilmesi için kullanılan enstrümandır.
 
-Esas itibariyle ECS tabanlı kendi oyun motorumuzu geliştirmek istediğimiz bir durumda sadece oyun döngüsü ve çevresine değil, oyun programcısının oyunla ilgili bileşenlerini yönetecek runtime'ın hangi operasyonları sağlayacağına da odaklanmak gerekiyor. Yukarıdaki enstrümanlar genel bir konsept hakkında fikir verebilir. 
+Esas itibariyle ECS tabanlı kendi oyun motorumuzu geliştirmek istediğimiz bir durumda sadece oyun döngüsü ve çevresine değil, oyun programcısının oyunla ilgili bileşenlerini yönetecek runtime'ın hangi operasyonları sağlayacağına da odaklanmak gerekiyor. Yukarıdaki enstrümanlar genel bir konsept hakkında fikir verebilir.
+
+Konuyu daha iyi pekiştirmek adına dilerseniz Bevy'nin ECS'i nasıl kullandığına kısaca bakalım. İşte örnek kod parçası.
+
+```rust
+use bevy::prelude::*;
+
+#[derive(Debug, Component)]
+struct Position {
+    x: f32,
+    y: f32,
+}
+
+#[derive(Debug, Component)]
+struct Velocity {
+    x: f32,
+    y: f32,
+}
+
+#[derive(Debug, Component)]
+struct Player;
+
+#[derive(Debug, Resource)]
+struct Timer(f32);
+
+fn main() {
+    let mut world = World::new();
+
+    let mut aragon = world.spawn_empty();
+    aragon.insert((
+        Position { x: 10.0, y: 0.0 },
+        Velocity { x: 1.0, y: 0.0 },
+        Player,
+    ));
+
+    let mut legolas = world.spawn_empty();
+    legolas.insert((
+        Position { x: 16.0, y: 0.0 },
+        Velocity { x: 1.0, y: 0.0 },
+        Player,
+    ));
+
+    let mut orc_warrior = world.spawn_empty();
+    orc_warrior.insert((Position { x: 50.0, y: 0.0 }, Velocity { x: -1.0, y: 0.0 }));
+
+    let mut tower = world.spawn_empty();
+    tower.insert(Position { x: 25.0, y: 25.0 });
+
+    world.insert_resource(Timer(0.2));
+
+    let mut schedule = Schedule::default();
+    schedule.add_systems((
+        (setup, show_players, show_enemies).chain(),
+        move_enemies
+            .after(setup)
+            .before(show_players)
+            .before(show_enemies),
+    )); // Yazıldığı sırada çalıştırır
+
+    // schedule.add_systems(setup);
+    // schedule.run(&mut world);
+    //
+    // println!();
+    //
+    // schedule.add_systems((show_players, show_enemies));
+    schedule.run(&mut world);
+}
+
+fn setup(query: Query<(Entity, &Position)>) {
+    println!("Setup system");
+    for (entity, position) in query.iter() {
+        println!("{:?}\t{:?}. ", entity, position);
+    }
+}
+
+// fn move_characters(mut query: Query<(&mut Position, &Velocity)>) {
+//     for (mut position, velocity) in query.iter_mut() {
+//         position.x += velocity.x;
+//         position.y += velocity.y;
+//     }
+// }
+
+fn show_players(query: Query<&Position, With<Player>>) {
+    println!("Show players");
+    for position in query.iter() {
+        println!("Player on {:?}. ", position);
+    }
+}
+
+fn show_enemies(query: Query<(&Position, &Velocity), Without<Player>>) {
+    println!("Show enemies");
+    for (position, _) in query.iter() {
+        println!("Enemy go to position {:?}. ", position);
+    }
+}
+
+fn move_enemies(mut query: Query<(&mut Position, &Velocity), Without<Player>>, timer: Res<Timer>) {
+    println!("Moving Enemies");
+    for (mut position, velocity) in query.iter_mut() {
+        position.x += velocity.x * timer.0;
+        position.y += velocity.y * timer.0;
+    }
+}
+```
+
+Bu kod parçasında Bevy'nin ana enstrümanları daha net görülebilir. Component nitelikleri ile imzalanmış olan Position ve Velocity birer bileşendir. Player' da benzer şekilde bir Component olarak ifade edilir. Timer isimli bir resource kullanılmaktadır. main fonksiyonunda dikkat edileceği üzere her şey World nesnesi üzerinden işler. Yeni bir Entity ihtiyacımız mı var, World nesnesinden isteyin _(spawn_entity fonksiyonu)_ Entity'ye yeni component'ler mi eklemek istiyoruz, nesne üzerinden çağırın insert fonksiyonunu eklensinler. Oyun dünyasına yeni bir resource mu eklemek istiyoruz, _(timer gibi)_ insert_resource fonksiyonunu çağırmak yeterli. World içindeki tüm sistem fonksiyonarı artık bu bileşenleri ve kaynakları kullanablir. Sistem fonksiyonlarının tanımı ise kayda değerdir. World nesnesindeki Entity ve Component'leri sorgulayabilmek için Query isimli yetenkli bir nesne kullanılır.
+
+- show_players metodunun Query ifadesi, Position bileşeni içeren Player Entity'lerini ele alır.
+- show_enemies fonksiyonu Position ve Velocity bileşeni bulunan ama Player olmayan Entity'lerin sorgulanması sağlar _(Örneğin düşmanlar)_
+- move_enemies metodu yine Position ve Velocity bileşeni içeren ama Player olmayan Entity'leri işlerken, hareket vektörünü değiştirmek için World'e eklenmiş ve kendisine parametre olarak gelen bir Resource'u kullanır.
+- Yorum satırında duran move_characters metodu Position ve Velocity bileşeni içeren her Entity'yi ele alır.
+
+World nesnesi aynı zamanda dahili bir planlayıcı _(scheduler)_ kullanılır. Planlayıcı nesne _(Schedule örneği)_ oluşturulurken kendisine sistem fonksiyonları bildirilir. Bu fonksiyonların sürekli mi çalışacağı, sadece girişte mi işletileceği veya sıralamaları ayarlanabilir. En nihayetinde planlayıcı tüm bu sistem fonksiyonlarını bir World nesne örneği için başlatır. 
+
+Bu arada fonksiyon adları değişiklik gösterebilir. Bevy'nin belki de en önemli sorunu versiyonlar arası bazen terk edilen veya değiştirilen kavramları barındırmasıdır. Migrate dokümanlarını okumakta yarar vardır. Gerçi bunun yerine benim tavsiyem Bevy'nin gerçekleştirdiği bu işi örneğin .Net tarafında yazmaya çalışmanızdır. Mesela şu yetenekli Query nesnesini nasıl yazabiliriz ya da class, struct veya record gibi bir türün bir Component olabileceğini nasıl belirtiriz, peki ya Scheduler... Siz bunları bi düşünün :)
 
 ## Kaynaklar
 
