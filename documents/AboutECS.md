@@ -102,7 +102,7 @@ struct Warrior {
     strength: f32,
 }
 
-impl crate::Warrior {
+impl Warrior {
     fn new(id: &str, health_value: f32, strength: f32) -> Self {
         Self {
             character: Character::new(id, health_value),
