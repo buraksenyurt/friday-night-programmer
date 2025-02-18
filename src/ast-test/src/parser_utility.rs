@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::Path;
 use tree_sitter::{Node, Tree};
 
 /// A simple Parser tool which is use tree-sitter library
@@ -184,7 +185,12 @@ impl ParserUtility {
 
             let interface_code = Self::generate_interface(&class_names[0], &methods, &properties);
 
-            let interface_filename = format!("I{}.cs", class_names[0]);
+            let interface_dir = Path::new("./interfaces");
+            if !interface_dir.exists() {
+                fs::create_dir(interface_dir).expect("Cannot create interfaces directory!");
+            }
+
+            let interface_filename = format!("./interfaces/I{}.cs", class_names[0]);
             fs::write(&interface_filename, interface_code).expect("File write error!");
 
             // dbg!("{} has been created.", interface_filename);
