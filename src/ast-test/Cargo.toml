@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chrono = "0.4.39"
 clap = { version = "4.5.30", features = ["derive"] }
+fern = "0.7.1"
+log = "0.4.25"
 tree-sitter = "0.25.1"
 tree-sitter-c-sharp = "0.23.1"

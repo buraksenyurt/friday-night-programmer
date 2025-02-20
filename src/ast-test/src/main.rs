@@ -1,6 +1,8 @@
 use ast_test::cli::{Args, Commands};
+use ast_test::logger::init_logger;
 use ast_test::parser_utility::ParserUtility;
 use clap::Parser;
+use log::{error, info};
 use std::io;
 /*
     Test etmek için komut satırından programı aşağıdaki gibi çalıştırabiliriz
@@ -11,30 +13,33 @@ use std::io;
 
 */
 fn main() -> Result<(), io::Error> {
+    init_logger()?;
+    info!("Application started");
     let args = Args::parse();
 
     match args.command {
         Commands::Directory { dir } => {
             if dir.exists() && dir.is_dir() {
-                println!("{:?}", dir);
+                info!("{:?}", dir);
 
                 for entry in dir.read_dir()? {
                     let entry = entry?;
                     let path = entry.path();
                     if path.extension().map_or(false, |ext| ext == "cs") {
-                        println!("Interface create operation start for {}", path.display());
+                        info!("Interface create operation start for {}", path.display());
                         if let Err(e) =
                             ParserUtility::generate_interface_from_file(path.to_str().unwrap())
                         {
-                            eprintln!("Error {}", e);
+                            error!("Error {}", e);
                         }
-                        println!("Interface create operation end for {}", path.display());
+                        info!("Interface create operation end for {}", path.display());
                     }
                 }
             } else {
-                eprintln!("{:?} does not exist or invalid.", dir);
+                error!("{:?} does not exist or invalid.", dir);
             }
         }
     }
+    info!("Application stopped");
     Ok(())
 }

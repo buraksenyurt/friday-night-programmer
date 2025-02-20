@@ -1,3 +1,5 @@
+use chrono::Utc;
+use log::info;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::{fs, io};
@@ -178,6 +180,8 @@ impl ParserUtility {
 
     /// Write Interface to a file from C# class
     pub fn generate_interface_from_file(file_path: &str) -> Result<(), io::Error> {
+        let start_time = Utc::now();
+
         let tree = Self::parse_file(file_path)?;
         let source_code = fs::read_to_string(file_path).expect("File read error!");
         let root_node = tree.root_node();
@@ -199,6 +203,13 @@ impl ParserUtility {
         let interface_filename = format!("./interfaces/I{}.cs", class_names[0]);
         fs::write(&interface_filename, interface_code)?;
 
+        let end_time = Utc::now();
+        let duration = end_time.signed_duration_since(start_time);
+        info!(
+            "Interface {} has been created in ({} ms)",
+            interface_filename,
+            duration.num_milliseconds()
+        );
         // dbg!("{} has been created.", interface_filename);
         Ok(())
     }
