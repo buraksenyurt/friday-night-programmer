@@ -7,7 +7,7 @@ use std::io;
 pub fn init_logger() -> Result<(), io::Error> {
     let log_file = "app.log";
 
-    if !fs::metadata(log_file).is_ok() {
+    if fs::metadata(log_file).is_err() {
         fs::File::create(log_file)?;
     }
 

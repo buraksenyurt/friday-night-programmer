@@ -18,7 +18,7 @@ fn test_find_classes() {
         }
     "#;
 
-    let tree = ParserUtility::parse(code);
+    let tree = ParserUtility::parse(code).expect("Can't parse abstract syntax tree");
     let root_node = tree.root_node();
     let class_names = ParserUtility::find_classes(root_node, code);
 
@@ -50,7 +50,7 @@ fn test_find_methods() {
         }
     "#;
 
-    let tree = ParserUtility::parse(code);
+    let tree = ParserUtility::parse(code).expect("Can't parse abstract syntax tree");
     let root_node = tree.root_node();
     let methods = ParserUtility::find_methods(root_node, code);
 
@@ -101,7 +101,7 @@ fn test_generate_interface() {
             }
     "#;
 
-    let tree = ParserUtility::parse(code);
+    let tree = ParserUtility::parse(code).expect("Can't parse abstract syntax tree");
     let root_node = tree.root_node();
     let class_names = ParserUtility::find_classes(root_node, code);
     let methods = ParserUtility::find_methods(root_node, code);

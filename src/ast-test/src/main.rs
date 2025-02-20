@@ -19,24 +19,8 @@ fn main() -> Result<(), io::Error> {
 
     match args.command {
         Commands::Directory { dir } => {
-            if dir.exists() && dir.is_dir() {
-                info!("{:?}", dir);
-
-                for entry in dir.read_dir()? {
-                    let entry = entry?;
-                    let path = entry.path();
-                    if path.extension().map_or(false, |ext| ext == "cs") {
-                        info!("Interface create operation start for {}", path.display());
-                        if let Err(e) =
-                            ParserUtility::generate_interface_from_file(path.to_str().unwrap())
-                        {
-                            error!("Error {}", e);
-                        }
-                        info!("Interface create operation end for {}", path.display());
-                    }
-                }
-            } else {
-                error!("{:?} does not exist or invalid.", dir);
+            if let Err(e) = ParserUtility::generate_from_directory(dir.to_str().unwrap()) {
+                error!("Error : {}", e);
             }
         }
     }

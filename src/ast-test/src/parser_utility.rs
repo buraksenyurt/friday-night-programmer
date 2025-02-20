@@ -1,5 +1,7 @@
 use chrono::Utc;
-use log::info;
+use log::{error, info};
+use rayon::iter::ParallelIterator;
+use rayon::prelude::ParallelBridge;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::{fs, io};
@@ -210,7 +212,32 @@ impl ParserUtility {
             interface_filename,
             duration.num_milliseconds()
         );
-        // dbg!("{} has been created.", interface_filename);
+        Ok(())
+    }
+
+    /// Process class files parallel with rayon
+    pub fn generate_from_directory(dir: &str) -> Result<(), io::Error> {
+        let dir_path = Path::new(dir);
+        if !dir_path.exists() || !dir_path.is_dir() {
+            return Err(io::Error::new(ErrorKind::NotFound, "Invalid directory"));
+        }
+
+        info!("Processing folder: {}", dir);
+
+        fs::read_dir(dir)?
+            .par_bridge()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().extension().map_or(false, |ext| ext == "cs"))
+            .for_each(|entry| {
+                let path = entry.path();
+                if let Some(file_str) = path.to_str() {
+                    if let Err(e) = Self::generate_interface_from_file(file_str) {
+                        error!("Error: {} ({})", e, file_str);
+                    }
+                }
+            });
+
+        info!("All files processed");
         Ok(())
     }
 }
