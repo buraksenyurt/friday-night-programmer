@@ -49,7 +49,7 @@ public class SystemPair
 public class Scheduler
 {
     public List<SystemPair> Systems { get; } = [];
-    public void AddSystem(SystemState state, IEnumerable<ISystem> systems)
+    public void AddSystems(SystemState state, IEnumerable<ISystem> systems)
     {
         Systems.Add(new SystemPair
         {

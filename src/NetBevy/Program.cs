@@ -1,9 +1,12 @@
-﻿namespace NetBevy
+﻿using NetBevy.Game;
+
+namespace NetBevy;
+
+internal class Program
 {
-    internal class Program
+    static void Main()
     {
-        static void Main(string[] args)
-        {
-        }
+        // Basic Sample
+        GameApp.Run();
     }
 }
