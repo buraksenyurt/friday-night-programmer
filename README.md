@@ -12,7 +12,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
   - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
   - [Chapter 05 - Dark City](#chapter-05---dark-city-14-şubat-2025-cuma-2130---2230)
-  - [Chapter 06 - Memento](#chapter-06---memento)
+  - [Chapter 06 - Memento](#chapter-06---memento-21-şubat-2025-cuma-2130---2230)
   - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic)
   - [Chapter 08 - Return of the King](#chapter-08---return-of-the-king)
 
@@ -162,7 +162,20 @@ Programda ayrıca [Örnek Senaryolar](./documents/UseCases.md) dokümanındaki *
 - Programda ayrıca Ollama üzerinden deepseek-r1 modelini kullanarak kod kalite ölçümüne değindik. Detaylar [şurada](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/OllamaWithDotNet.md)
 - Diğer yandan Rust dilinde enum türünün etkili kullanımına da baktık ki bu konuyla ilgili [şu yazıya](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/UsefulEnumInRust.md) bakabilirsiniz.
 
-## Chapter 06 - Memento
+## Chapter 06 - Memento _(21 Şubat 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki](https://www.youtube.com/live/PvWaPUIKsm4)
+
+Bu bölümde sırasıyla aşağıdaki konulara yer verdik.
+
+- Microsoft geliştirdiği yeni malzeme ve ünlü teorik fizikçi [Ettore Majarona'nın](https://en.wikipedia.org/wiki/Ettore_Majorana) fermiyonlarını bir araya getirerek milyon seviyede qubit' i avuçiçi büyüklüğünde bir işlemciye yerleştirmeyi başarmış. Detaylar [burada](https://azure.microsoft.com/en-us/blog/quantum/2025/02/19/microsoft-unveils-majorana-1-the-worlds-first-quantum-processor-powered-by-topological-qubits/) Tabii bu konuya giriş noktamız ise [Microsoft Q# oldu](https://learn.microsoft.com/en-us/azure/quantum/qsharp-overview)
+- Free Open Source Developers European Meeting (FOSDEM) organizasyonun tüm sunumlarına [bu adresten](https://fosdem.org/2025/schedule/events/) erişiliebilir.
+- Haftanın oyunu yine Unity ile geliştirilmiş olan Windows, MacOs, Linux, Steam Deck gibi tüm platformlardan çalışan Rouge-like turn based combat game olarak ifade edilen [Shogun Showdown](https://store.steampowered.com/app/2084000/Shogun_Showdown/)
+- Bu hafta radarıma takılan yazılar ise şöyle; Salih Cantekin Rust türlerine yeni davranışlar eklerken trait'lerin nasıl kullanıldığına [değinmiş](https://salihcantekin.com/extending-types-in-rust-with-traits/). Farklı seviyeden C# geliştiricileri için olası mülakat soruları ve cevaplarını da [buradaki blog yazısından](https://dev.to/iamcymentho/mastering-the-senior-c-engineer-interview-3dc2) okuyabiliriz. Rust ile oyun geliştirme tarafında en çok kullanılan motorlardan birisi Bevy Game Engine. Jetbrains tarafından Vitaly Bragilevsky' nin bu konu ile ilgili çok güzel bir [yazısına](https://blog.jetbrains.com/rust/2025/02/04/first-steps-in-game-development-with-rust-and-bevy/) denk geldim.
+- Ayrıca Unity benzeri arabirimi ile oyun geliştirmeye farklı bir boyut kazandıran [Fyrox Game Engine](https://fyrox.rs/blog/post/fyrox-game-engine-0-36/) ile ilgili bir deneme yaptık. Bu oyun geliştirme motoru ile ilgili detaylı bilgi için [resmi kitabına](https://fyrox-book.github.io/introduction.html) bakılabilir.
+- Rust ile ilgili en çok gelen sorulardan birisi de iş alanının ne kadar geniş olduğu. Bu konuda güzel bir [raporlama sitesi](https://filtra.io/rust/jobs-report/jan-25) var.
+- Bu yayın Entity Component System konusuna da değindik. Özellikle Composition over Inheritance prensibi üstünde de durduk. [Burada](./documents/AboutECS.md) kısa bir özeti yer alıyor.
+- Yayınımızda bir kuple de mono-bird oyunuma değindik. Rust ve SDL2 kullanılarak yazılmış oyun kodlarına [repodan](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/mono-bird) bakabilirsiniz.
 
 ## Chapter 07 - Johnny Mnemonic
 
