@@ -18,11 +18,15 @@ public static class GameApp
         tower.AddComponent(new Position { X = 0, Y = 0 });
         tower.AddComponent(new Range { Value = 85 });
 
-        var scheduler = new Scheduler();
+        var scheduler = new Scheduler(world);
 
-        scheduler.AddSystems(SystemState.Startup, [new SetupSystem()]);
-        scheduler.AddSystems(SystemState.Update, [new MovementSystem(), new PlayerCollisionCheckSystem()]);
+        scheduler.AddSystem(SystemState.Startup, new SetupPositionSystem());
+        scheduler.AddSystem(SystemState.Update, new MovementSystem());
 
-        world.Run(scheduler);
+        scheduler.Run(SystemState.Startup);
+        for (int i = 0; i < 3; i++)
+        {
+            scheduler.Run(SystemState.Update);
+        }
     }
 }

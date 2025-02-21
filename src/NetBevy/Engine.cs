@@ -1,11 +1,11 @@
 ﻿namespace NetBevy;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class ComponentAttribute
-    : Attribute
-{
+//[AttributeUsage(AttributeTargets.Class)]
+//public class ComponentAttribute
+//    : Attribute
+//{
 
-}
+//}
 
 public interface IComponent
 {
@@ -30,9 +30,9 @@ public class Entity
     }
 }
 
-public interface ISystem
+public interface ISystem<T> where T : IComponent
 {
-    void Apply(List<IComponent>? components, params IEntity[]? entities);
+    void Apply(IEnumerable<(Entity entity, T component)> components);
 }
 
 public enum SystemState
@@ -40,50 +40,76 @@ public enum SystemState
     Startup,
     Update
 }
-public class SystemPair
-{
-    public SystemState State { get; set; }
-    public IEnumerable<ISystem>? Systems { get; set; }
-}
 
 public class Scheduler
 {
-    public List<SystemPair> Systems { get; } = [];
-    public void AddSystems(SystemState state, IEnumerable<ISystem> systems)
+    private readonly World _world;
+
+    private Dictionary<SystemState, List<object>> _systems = new()
     {
-        Systems.Add(new SystemPair
+        { SystemState.Startup, new List<object>() },
+        { SystemState.Update, new List<object>() }
+    };
+
+    public Scheduler(World world) => _world = world;
+
+    public void AddSystem<T>(SystemState state, ISystem<T> system) where T : IComponent
+    {
+        _systems[state].Add(system);
+    }
+
+    public void Run(SystemState state)
+    {
+        if (!_systems.TryGetValue(state, out List<object>? value)) return;
+
+        foreach (var system in value)
         {
-            State = state,
-            Systems = systems
-        });
+            var systemType = system
+                .GetType()
+                .GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISystem<>));
+
+            if (systemType != null)
+            {
+                var componentType = systemType.GetGenericArguments()[0];
+                var queryType = typeof(Query<>).MakeGenericType(componentType);
+                var queryInstance = Activator.CreateInstance(queryType, _world);
+                var getEntitiesMethod = queryType.GetMethod("GetEntities");
+                var entities = getEntitiesMethod.Invoke(queryInstance, null);
+
+                var applyMethod = systemType.GetMethod("Apply");
+                _ = applyMethod.Invoke(system, [entities]);
+            }
+        }
     }
 }
 
+
 public class World
 {
-    public Entity CreateEntity() => new()
-    {
-        ID = Guid.NewGuid()
-    };
+    private List<Entity> _entities = [];
 
-    public void Run(Scheduler scheduler)
+    public Entity CreateEntity()
     {
-        var setupSystems = scheduler.Systems.Where(system => system.State == SystemState.Startup).ToList();
-        foreach (var system in setupSystems)
-        {
-            foreach (var sys in system.Systems ?? [])
-            {
-                sys.Apply(null,null);
-            }
-        }   
+        var entity = new Entity { ID = Guid.NewGuid() };
+        _entities.Add(entity);
+        return entity;
+    }
 
-        var updateSystems = scheduler.Systems.Where(system => system.State == SystemState.Update).ToList();
-        foreach (var system in updateSystems)
-        {
-            foreach (var sys in system.Systems ?? [])
-            {
-                sys.Apply(null, null);
-            }
-        }
+    public IEnumerable<Entity> GetEntities() => _entities;
+}
+
+public class Query<T> where T : IComponent
+{
+    private readonly World _world;
+
+    public Query(World world) => _world = world;
+
+    public IEnumerable<(Entity entity, T component)> GetEntities()
+    {
+        return _world.GetEntities()
+            .SelectMany(e => e.Components
+                .OfType<T>()
+                .Select(c => (e, c)));
     }
 }

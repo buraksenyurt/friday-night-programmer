@@ -1,6 +1,5 @@
 ﻿namespace NetBevy.Game;
 
-[Component]
 public class Position
     : IComponent
 {
@@ -8,7 +7,6 @@ public class Position
     public float Y { get; set; }
 }
 
-[Component]
 public class Velocity
     : IComponent
 {
@@ -16,7 +14,6 @@ public class Velocity
     public float Y { get; set; }
 }
 
-[Component]
 public class Range
     : IComponent
 {
