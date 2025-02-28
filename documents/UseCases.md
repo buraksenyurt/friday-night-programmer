@@ -85,3 +85,15 @@ chmod -R 775 /home/ftpuser/processed
 Elimizde yılların eskitemediği bir proje olduğunu düşünelim. Öyle büyük bir projeki içerisinde iş akışları içeren yüzlerce sınıf barındırıyor. Projenin modernizasyonu kapsamında da var olan fonksiyonellikler için birim testler yazılması isteniyor. Ayrıca bu iş birimlerinin bileşen olarak _(component)_ şeklinde DI Container'larda kullanılabilmesi ve böylece yapılacak servis tabanlı geçişin kolaylaştırılması arzu ediliyor. Bunun için iş sınıflarının her birinin Interface karşılıklarının üretilmesi lazım. Dolayısıyla projedeki sınıfları tarayan, AST _(Abstract Syntax Tree)_ yi de kullanarak gerekli Interface'leri üretip istenen Solution içerisine entegre eden bir araca ihtiyacımız var.
 
 Tahmin edileceği üzere burada kullanılabilecek en iyi araçlardan birisi Roslyn kod adıyla da bilinen .Net enstrümanı. Ancak bunu farklı bir dille yapmayı isteyebilirsiniz. Projedeki dosya sayısının fazlalığı düşünüldüğünde az bellek tüketen ve yüksek performanslı bir aracın geliştirilmesi de ele alınabilir. Pek tabii çoğumuz bu senaryoda Roslyn ile devam ediyor ki zamanında edilmiştir. src klasöründe yer alan [ast-test](../src/ast-test/) isimli proje bu işi Rust dilini kullanarak yapmaya çalışıyor. [InterfaceExtractor](../src/InterfaceExtractor/) ise bunu **Microsoft.CodeAnalysis.CSharp** ve **Microsoft.CodeAnalysis.CSharp.Workspaces** paketlerini kullanarak gerçekleştiriyor. Her ikisi de esasında sınıf kodlarını bir **AST** üzerine oturtup ileri yönlü iterasyonlarla tarama yapıyor _(Hoş bu tip kod yazan kodları günümüzün yetenekli AI araçları kolayca geliştirmekte ancak nasıl çalıştığını anlamak ve böyle bir kod yazdırmak istersek ne isteyeceğimizi ifade edebilmek işi etraflıca bilmekten geçiyor)_
+
+Örnekleri şu şekilde çalıştırabiliriz.
+
+```bash
+# Rust örneğini çalıştırmak için
+cargo run -- d .\samples\
+
+# Dotnet örneğini çalıştırmak için
+dotnet run ..\ast-test\samples\ ..\ast-test\interfaces\
+```
+
+Diğerlerinde olduğu gibi yarım kalan bu çözümlerde gelinen aşamada sınıflardan başarılı şekilde interface çıkarıldığı gözlemlendi ancak eksikler var. Örneğin generic türlerde interfaca tanımı hatalı veya Roslyn ile üretilen çıktılarda doküman formatlı değil. Bu bulguları düzelttikten sonra aslında çok fazla sayıda sınıfı olan büyük projelerde deneyip performans metrikleri bazında ölçümlemeler de yapabiliriz.
