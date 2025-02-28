@@ -13,7 +13,7 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
   - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
   - [Chapter 05 - Dark City](#chapter-05---dark-city-14-şubat-2025-cuma-2130---2230)
   - [Chapter 06 - Memento](#chapter-06---memento-21-şubat-2025-cuma-2130---2230)
-  - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic)
+  - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic-28-şubat-2025-cuma-2130---2230)
   - [Chapter 08 - Return of the King](#chapter-08---return-of-the-king)
 
 ## Önsöz
@@ -177,6 +177,19 @@ Bu bölümde sırasıyla aşağıdaki konulara yer verdik.
 - Bu yayın Entity Component System konusuna da değindik. Özellikle Composition over Inheritance prensibi üstünde de durduk. [Burada](./documents/AboutECS.md) kısa bir özeti yer alıyor.
 - Yayınımızda bir kuple de mono-bird oyunuma değindik. Rust ve SDL2 kullanılarak yazılmış oyun kodlarına [repodan](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/mono-bird) bakabilirsiniz.
 
-## Chapter 07 - Johnny Mnemonic
+## Chapter 07 - Johnny Mnemonic _(28 Şubat 2025 Cuma, 21:30 - 22:30)_
+
+Bu yayın sırasında üzerinde durduğumuz konular kısaca şunlar.
+
+- Microsoft' un Majorana 1 Kuantum çipi ile ilgili tartışmalar farklı boyutlar kazandı. Birçok kaynak bunun aslında bilimsel bir makale olarak yayınladığını ve sadece bir roadmap sunduğunu belirtiyor. Bu doğal olarak bilginin çok kolay bozulup yayılabileceğinin de iyi bir kanıtı. Dünya Ekonomi Formunun küresel risk raporunda bilgi bozulması ve yanlış bilginin yayılması sonraki ilk iki yılın bir numaralı riski. [Rapor'un tamamı burada](https://www.weforum.org/publications/global-risks-report-2025/digest/) AI araçlarının da yanlış bilgi yayma potansiyeli bulunuyor elbette. Her zaman sorgulayıcı yaklaşmak da yarar var.
+- AI demişken yazılımcıları endişelendirip endişelendirmediği üzerine görüşler toplamaya çalıştım. Az bir katılım olsa da üzerinde konuşmaya değer yorumlar oluştu diyebilirim. Ankete [buradan](https://www.youtube.com/channel/UCLcoIIMHtqMzGXpeJnfo6TQ/community?lb=UgkxZG5mQfWIWm_alNqnq-94GmLUfFj7B4HG) bakabilirsiniz. Ayrıca kodlama üzerine kullanılabilecek epeyce fazla araç olduğu dile getiriliyor. Bunu [özetleyen bir yazı](https://codesubmit.io/blog/ai-code-tools/) da bırakalım.
+- Haftanın oyununda bu sefer bir farklılık yaptım. Çok sevdiğim çalışma arkadaşım Cihat Yüce ve üniversiteden sınıf arkadaşı Cihan Gürtürk yaklaşık sekiz saat zaman ayırarak eğlenceli bir oyun yazmışlar yakın bir tarihte. [Şuraya adresini bırakıyorum](https://meslek.fun/). Önyüz tarafında React, backend servislerinde .Net ve veri kanyağı olarak da Postgresql kullanılmış. Şu anda meslekler üzerine ama bu fikir farklı alanlara da uygulanabilir. Örneğin sadece yazılımla ilgili kavramların olduğu bir veritabanı kullanılabilir.
+- Oyunlar demişken geçtiğimiz bölüm incelediğimiz Jetbrains'in Bevy ile oyun geliştirme yazısı üzerine bende ufak bir deneme yaptım. [fly](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/fly) Duvara tosladığım yer ise zıplama sonrası bir platformun üstünde kalabilmek. İşte buralarda hazır fizik motorları kullanmak gerekiyor gibi. Bevy için [Rapier](https://rapier.rs/docs/user_guides/rust/rigid_bodies) öneriliyor. Ancak işin temelinde her zaman matematik var. Oyun mekaniklerini anlamak için vektörler, pisagor, trigonometri, fizik kuralları vs birçok şey işin içerisin giriyor. Matematik ile ilgili şu sitelere de değindik.
+  - [Math is Fun](https://www.mathsisfun.com/)
+  - [Desomos](https://www.desmos.com/calculator?lang=tr)
+  - [GeoGebra] (https://www.geogebra.org/calculator)
+- Microsoft cephesinden yine yeni bir AI haberi. Oyunlardaki hareketleri, görselleri öğrenip taklit edebilen veya yeni kareler hazırlayabilen MUSE isimli bir yapı geliştirmişler. [Haberi burada](https://www.microsoft.com/en-us/research/blog/introducing-muse-our-first-generative-ai-model-designed-for-gameplay-ideation/)
+- Geçen program kaçırdığımız AST kullanılarak bir sınıftan interface çıkarmak konusuna da detaylıca değindik. İki örneğimiz var. Birisi [rust](./src/ast-test/) ile diğeri [c# roslyn](./src/InterfaceExtractor/) ile geliştirildi. Burada Abstract Syntax Tree mevzusunu anlamak için kullandığımız bir araç da var, [SharpLab](https://sharplab.io/).
+- Bu şubat ayında Youtube 20 yaşına girdi ve severek takip ettiğim gazetecilerden Serdar Kuzuloğlu' nun bu konuda yazdığı güzel [bir makale](https://www.mserdark.com/youtube-20-yasinda/) var. Detayları ile youtube' un nereden nereye geldiğini bilmek isteyenlere.
 
 ## Chapter 08 - Return of the King
