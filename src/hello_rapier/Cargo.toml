@@ -1,0 +1,9 @@
+[package]
+name = "hello_rapier"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.15.3"
+bevy_rapier2d = "0.29.0"
+#bevy_rapier3d = { version = "0.29.0", features = ["debug-render"] }
