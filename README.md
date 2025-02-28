@@ -179,6 +179,8 @@ Bu bölümde sırasıyla aşağıdaki konulara yer verdik.
 
 ## Chapter 07 - Johnny Mnemonic _(28 Şubat 2025 Cuma, 21:30 - 22:30)_
 
+[Yayın Linki](https://www.youtube.com/live/LAsVnhBnzX0)
+
 Bu yayın sırasında üzerinde durduğumuz konular kısaca şunlar.
 
 - Microsoft' un Majorana 1 Kuantum çipi ile ilgili tartışmalar farklı boyutlar kazandı. Birçok kaynak bunun aslında bilimsel bir makale olarak yayınladığını ve sadece bir roadmap sunduğunu belirtiyor. Bu doğal olarak bilginin çok kolay bozulup yayılabileceğinin de iyi bir kanıtı. Dünya Ekonomi Formunun küresel risk raporunda bilgi bozulması ve yanlış bilginin yayılması sonraki ilk iki yılın bir numaralı riski. [Rapor'un tamamı burada](https://www.weforum.org/publications/global-risks-report-2025/digest/) AI araçlarının da yanlış bilgi yayma potansiyeli bulunuyor elbette. Her zaman sorgulayıcı yaklaşmak da yarar var.
