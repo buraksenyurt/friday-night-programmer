@@ -11,6 +11,9 @@ Cargo.lock
 *.sln.iml
 .history/
 
+# Sonarqube
+.sonarqube/
+
 # Visual Studio specific
 *.rsuser
 *.suo
