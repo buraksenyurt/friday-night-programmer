@@ -36,7 +36,7 @@ Console.WriteLine($"Factorial of {number} (LINQ): {FactorialLinq(number)}");
 
 Ağırlıklı olarak çoğumuz recursive veya iteratif olan versiyonu yazarız sanıyorum ki _(En azından benim için böyle)_ Esasında ona şöyle bir prompt vermiştim; "Could you write 3 different factorial calculation functions in this file?" Aslında daha farklı bir implementasyon bekliyorum bakalım ona ulaşabilecek miyiz? Sonrasında soruyu değiştirdim ve şöyle dedim; "Would you change some of them with more efficient version?" Buna karşılık fonksiyonları şöyle değiştirdi.
 
-````csharp
+```csharp
 // 1. Optimized iterative factorial with overflow checking
 static long FactorialFast(int n)
 {
@@ -113,7 +113,6 @@ int number = 5;
 Console.WriteLine($"Factorial of {number} (Fast): {FactorialFast(number)}");
 Console.WriteLine($"Factorial of {number} (Span): {FactorialSpan(number)}");
 Console.WriteLine($"Factorial of {number} (Lookup): {FactorialLookup.GetFactorial(number)}");
-
 ```
 
 Evet negatif değerler veya taşma hatalarını kontrol altına alıp sonuçları bilenen çok büyük bazı sayılar için tedbirlre almıştı. En nihayetinden asıl meramımı dile getirdim ve şöyle yazdım; "Why didn't use memoization technique?" Yani aslında şu anda kadar ki örneklerden en az birisinde daha önceden hesaplanmış sayıları yeninden hesaplamaya gerek kalmadan aklından getirmesi ile ilgili Memoization pratiğini uygulayacağı bir teknik kullanmasını bekliyordum. Buna istinaden ürettiği fonksiyon da şöyle oldu.
