@@ -5,16 +5,18 @@ Bu sene boyunca yapacağımız Friday Night Programmer çalışmalarını toplay
 - [Friday Night Programmer](#friday-night-programmer)
   - [Önsöz](#önsöz)
   - [Oyun Sahası Hakkında](#oyun-sahası-hakkında)
+  - [Örnek Uygulamalar](#örnek-uygulamalar)
   - [Yardımcı Dokümanlar](#yardımcı-dokümanlar)
-  - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
-  - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
-  - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
-  - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
-  - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
-  - [Chapter 05 - Dark City](#chapter-05---dark-city-14-şubat-2025-cuma-2130---2230)
-  - [Chapter 06 - Memento](#chapter-06---memento-21-şubat-2025-cuma-2130---2230)
-  - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic-28-şubat-2025-cuma-2130---2230)
-  - [Chapter 08 - Return of the King](#chapter-08---return-of-the-king)
+  - [Bölümler](#bölümler)
+    - [Chapter 00 - Hello World](#chapter-00---hello-world-3-0cak-2025-cuma-2130---2230)
+    - [Chapter 01 - A New Hope](#chapter-01---a-new-hope-10-ocak-2025-cuma-2130---2230)
+    - [Chapter 02 - War Games](#chapter-02---war-games-17-ocak-2025-cuma-2130---2230)
+    - [Chapter 03 - Ready, Player One](#chapter-03---ready-player-one-31-ocak-2025-cuma-2130---2230)
+    - [Chapter 04 - The Usual Suspects](#chapter-04---the-usual-suspects-7-şubat-2025-cuma-2130---2230)
+    - [Chapter 05 - Dark City](#chapter-05---dark-city-14-şubat-2025-cuma-2130---2230)
+    - [Chapter 06 - Memento](#chapter-06---memento-21-şubat-2025-cuma-2130---2230)
+    - [Chapter 07 - Johnny Mnemonic](#chapter-07---johnny-mnemonic-28-şubat-2025-cuma-2130---2230)
+    - [Chapter 08 - 12 Monkeys](#chapter-08---12-monkeys-7-mart-2025-cuma-2130---2230)
 
 ## Önsöz
 
@@ -36,6 +38,34 @@ docker-compose up -d
 
 Bununla birlikte servislerin sayısı arttıkça onları nasıl çağırdığımızı da unutabiliriz. Var olan ve ilerleyen zamanlarda eklenemsi düşünülen servisler için bir Postman koleksiyonundan yararlanılması iyi olacaktır. İlgili dosyaya [buradan](Friday%20Night%20Programmer.postman_collection.json) ulaşabilirsiniz. Bu arada yer yer api adreslerini Environment değişkenleri ile de tutmak yararlı olabilir. Örneğin project_api servisi için docker adresi environment değişkeni olarak eklenmiştir. Bu anlamda [Environment](Docker%20Environment.postman_environment.json) dosyasını Postman ortamına aktarmakta yarar var.
 
+## Örnek Uygulamalar
+
+src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıdaki özet tablosundan yararlanabilirsiniz.
+
+| **Program Adı** | **Açıklama** | **Tags** |
+|---|---|---|
+| **about_ecs** | Entity Component System kavramının Rust dili ile ele alındığı basit bir uygulamadır. Composition over Inheritance kavramının yanı sıra Bevy iç çalışma dinamikleri de ele alınmıştır. | ecs, rust, composition-over-inheritance |
+| **ast-test** | Bu örnekte C# sınıflarından interface üretimi için rust dilinden ve tree-sitter-csharp küfesinden yararlanılmıştır. Amaç .net modernizasyon işlemlerinde rust ile bir şeyler yapılıp yapılamayacağının araştırmaktır. UC04 kodlu use case' de detaylar yer almaktadır. | abstract-syntax-tree, rust, tree-sitter, code-refactoring, use-case |
+| **InterfaceExtractor** | ast-test projesinden ilham alınarak geliştirilmiştir. Bu örnekte ise .Net 9.0'da roslyn paketleri kullanılarak bir sınıftan interface üretilmesi işi ele denenmiştir. UC04 kodlu use case' de detaylar yer almaktadır. | roslyn, c#, dotnet-9, abstract-syntax-tree, code-refactoring, use-case |
+| **azon-insurance-api** | İlk use case olarak tanımlanan CallMeSDK için rust ile geliştirilmiş rest tabanlı dummy api servisidir. | actix-web, rest-api, rust, dummy-service |
+| **cpu-mem-service** | Rust ile yazılmış bir sistem monitör servisidir. sysinfo küfesini kullanarak cpu, memory kullanımı değerlerini rest tarzı bir servis şeklinde sunar. | sysinfo, actix-web, rest-api, rust |
+| **mach-dash-app** | cpu-mem-service hizmetini kullanan WASM tabanlı basit bir dashboard uygulamasıdır. İlgili servisin çalıştığı makinedeki cpu, memory kullanım değerlerini blok olarak(son 50 ölçüm gibi) bir grafik şeklinde gösterir. _(RustAndWasmRoundTwo.md)_ dokümanında nasıl yapıldığı anlatılmıştır. | wasm, rust, webpack, javascript, dashboard |
+| **EcoFriendlyApi** | CallMeSDK uygulamasına hizmet etmek üzere C# ile yazılmış Controller kullanan bir Web Api hizmetidir. En çevreci yarışmacılar listesini rastgele sıralarda döndürür. | c#, rest-api, web-api, dummy-service |
+| **GoodOrBadCode** | Basit bir senaryo için C# ile yazılmış kod parçasını birkaç kademede daha ideal hale getirmeye çalıştığımız giriş seviyesi örnektir. | c#, clean-code, code-refactoring |
+| **GrpcScenario** | UC03 kodlu Use Case'e ait örnek projedir. Üç farklı iş icra eden grpc servislerinin bir arada ele alındığı bir senaryo söz konusudur. Detaylar UseCases dosyasında. | c#, grpc, use-case |
+| **hello_rapier** | Bevy ile kullanılabilen fizik motorlarından rapier küfesinin ele alındığı bir örnektir. Serbest düşen bir topun, belli bir ivme ile hareket eden topla çarpışması ele alınmıştır. | rust, game-engines, physics-engines, bevy, rapier, 2D |
+| **HelloOllama** | Microsoft AI genişletme kütüphaneleri Ollama Api'si ve sisteme indirilmiş dil modelleri kullanılarak kod analizinin nasıl yapılabileceğinin test edildiği örnektir. Konu ile ilgili detaylar OllamaWithDotNet isimli dokümanda yer almaktadır. | c#, ollama, llm, deepseek, codellama, code-analysis, code-refactoring, gen-ai |
+| **light_mail_server** | Rust ile yazılmış ve SMTP mail server taklidi yapan tüy siklet bir örnektir. | rust, mocking, mock-mail-server, smtp, tokio |
+| **LightMailClient** | light_mail_server uygulaması için C# ile yazılmış istemcidir. Gerçek bir mail sunucusu ile onu taklit eden mail sunucusu ile konuşulma senaryosunu icra eder. | c#, smtp-client, smtp, mocking |
+| **MemorySafety** | Rust'ın öne çıkan bellek yönetim mekanizmasının C++ tarafındaki hangi yaygın ve bilinen sorunları çözdüğünün ele alındığı klasördür. Konu ile ilgili detaylara [şu yazıdan](https://www.buraksenyurt.com/post/rust-ve-guvenli-bellek-yonetimi-hakkinda) ulaşılabilir. Klasörde yer alan no_dangling_pointers, no_double_frees, no_use_after_frees ve buffer_overflow isimli örnek rust projeleri de bu sorunlara rust'ın yaklaşımını gösterir.  | c++, memory-management, double-frees, use-after-frees, dangling-pointers, rust |
+| **NetBevy** | Rust bevy küfesindeki Entity Component System ilkelerini .Net tarafında uygulamak istesek nasıl yazabilirdik sorusuna cevap aradığım projedir. | c#, ecs, bevy |
+| **MinIOBucketsApi** | MinIO isimli AWS S3 uyumlu hafifsiklet bucket storage' ın örnek kullanımının ele alındığı bir C# ile yazılmış bir web apidir. | c# , web-api, rest-api, minIO, aws-s3, bucket-server, storage-services |
+| **power_of_enum** | Rust dilindeki enum veri türünün gücünü göstermek için kullanılan örnektir. UsefulEnumInRust.md dosyasında detaylı anlatım mevcuttur. | rust, enum, algebraic-data-types |
+| **projects_api** | İTÜ ders döneminde öğrencilere verdiğim projeleri takım bazında yönetmek için başlattığım deneysel servistir. Excel yerine geçebilecek alternatif bir çözüm için Rest servis desteği sunar. | rust, rest-service, actix-web, sqlite |
+| **ProjectsManager** | projects_api servisini kullanan C# ile yazılmış Razor tabanlı proje yönetim arayüzü uygulamasının başlangıç noktasıdır _(Excel'den daha iyi olamayacağı anlaşılıp yarım bırakılmıştır :D )_ | c#, razor,  |
+| **nats_center ve nats_client** | Hafifsiklet mesajlaşma araçlarından birisi olan Nats'ın rust tarafında kullanımının örneklendiği programlardır. Birisi sunucu diğer istemci görevini üstlenir ve pub/sub modelinde bir iletişim denenir. Detaylar için HowToNats.md isimli dokümana bakılabilir. | rust, nats, pub-sub, message-queue |
+|  |  |  |
+
 ## Yardımcı Dokümanlar
 
 Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
@@ -55,7 +85,11 @@ Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to d
 - [Rust ile WASM Kullanımı](./documents/RustAndWasm.md)
 - Popüler **git branch** stratejilerinden olan git flow hakkında bilgi almak için [GitFlowIntroduction](./documents/GitFlowIntroduction.md) isimli dokümana bakabilirsiniz.
 
-## Chapter 00 - Hello World _(3 0cak 2025 Cuma, 21:30 - 22:30)_
+## Bölümler
+
+İşte bölümler ve onlara ait bilgiler.
+
+### Chapter 00 - Hello World _(3 0cak 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/K8ygZKn5zGQ?si=YqwmemtXDX4JOxp_)
 
@@ -79,7 +113,7 @@ _Yayın sırasında Rust programlama dilinin bu kadar çok reklamını yapmadım
 
 İlk programımız bu şekilde sonlandı diyebilirim. Yayın sırasında her ne kadar sürçü lisan ettiysem affola diyeyim. Bir sonraki canlı yayında görüşmek ümidiyle.
 
-## Chapter 01 - A New Hope _(10 Ocak 2025 Cuma, 21:30 - 22:30)_
+### Chapter 01 - A New Hope _(10 Ocak 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://youtube.com/live/h5H11RjS298)
 
@@ -93,7 +127,7 @@ Bu programda aşağıdaki konulardan bahsettik.
 - Akışın kalan kısmında Git Flow stratejisinden bahsettik. Bu konu ile ilgili [Git Flow Introduction](GitFlowIntroduction.md) dokümanına bakabilirsiniz.
 - Son bölümde Çağrı Merkezi vakasını ele almaya başladık. Geliştirmeleri genel olarak call-me-sdk isimli feature üstünde yapacağız.
 
-## Chapter 02 - War Games _(17 Ocak 2025 Cuma, 21:30 - 22:30)_
+### Chapter 02 - War Games _(17 Ocak 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://youtube.com/live/Pe0iihvA6QE)
 
@@ -109,7 +143,7 @@ Bu programda aşağıdaki konulardan bahsettik.
 - Readme dokümanlarını hazırlarken yazı stillerini düzenlemekte kullanabileceğimiz kavramların özetine [buradan](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) ulaşabilirsiniz.
 - .Net platformu için kullanılabilecek araçların [derlenmiş bir listesi](https://github.com/quozd/awesome-dotnet?tab=readme-ov-file#tools) Arada sırada güncellense de topluca türlü bilgilere ulaşabileceğimiz bir alan.
 
-## Chapter 03 - Ready, Player One _(31 Ocak 2025 Cuma, 21:30 - 22:30)_
+### Chapter 03 - Ready, Player One _(31 Ocak 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/4jxHRzlo77E)
 
@@ -128,7 +162,7 @@ Bu programda aşağıdaki konulardan bahsettik.
 
 Sonraki yayında yazılım mimarilerine de değineceğiz.
 
-## Chapter 04 - The Usual Suspects _(7 Şubat 2025 Cuma, 21:30 - 22:30)_
+### Chapter 04 - The Usual Suspects _(7 Şubat 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/1VNXT3lckns)
 
@@ -152,7 +186,7 @@ Bu programa geçen bölümden gelen bir soru üzerine yazılım mimarisi seçimi
 
 Programda ayrıca [Örnek Senaryolar](./documents/UseCases.md) dokümanındaki **UC02 - İzole Edilmiş SMTP Server** ve **UC03 - Servisler Arası İletişim içim gRPC Kullanımı** konularına da değinildi.
 
-## Chapter 05 - Dark City _(14 Şubat 2025 Cuma, 21:30 - 22:30)_
+### Chapter 05 - Dark City _(14 Şubat 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/4VumD_odU0E)
 
@@ -163,7 +197,7 @@ Programda ayrıca [Örnek Senaryolar](./documents/UseCases.md) dokümanındaki *
 - Programda ayrıca Ollama üzerinden deepseek-r1 modelini kullanarak kod kalite ölçümüne değindik. Detaylar [şurada](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/OllamaWithDotNet.md)
 - Diğer yandan Rust dilinde enum türünün etkili kullanımına da baktık ki bu konuyla ilgili [şu yazıya](https://github.com/buraksenyurt/friday-night-programmer/blob/main/documents/UsefulEnumInRust.md) bakabilirsiniz.
 
-## Chapter 06 - Memento _(21 Şubat 2025 Cuma, 21:30 - 22:30)_
+### Chapter 06 - Memento _(21 Şubat 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/PvWaPUIKsm4)
 
@@ -178,7 +212,7 @@ Bu bölümde sırasıyla aşağıdaki konulara yer verdik.
 - Bu yayın Entity Component System konusuna da değindik. Özellikle Composition over Inheritance prensibi üstünde de durduk. [Burada](./documents/AboutECS.md) kısa bir özeti yer alıyor.
 - Yayınımızda bir kuple de mono-bird oyunuma değindik. Rust ve SDL2 kullanılarak yazılmış oyun kodlarına [repodan](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/mono-bird) bakabilirsiniz.
 
-## Chapter 07 - Johnny Mnemonic _(28 Şubat 2025 Cuma, 21:30 - 22:30)_
+### Chapter 07 - Johnny Mnemonic _(28 Şubat 2025 Cuma, 21:30 - 22:30)_
 
 [Yayın Linki](https://www.youtube.com/live/LAsVnhBnzX0)
 
@@ -195,4 +229,4 @@ Bu yayın sırasında üzerinde durduğumuz konular kısaca şunlar.
 - Geçen program kaçırdığımız AST kullanılarak bir sınıftan interface çıkarmak konusuna da detaylıca değindik. İki örneğimiz var. Birisi [rust](./src/ast-test/) ile diğeri [c# roslyn](./src/InterfaceExtractor/) ile geliştirildi. Burada Abstract Syntax Tree mevzusunu anlamak için kullandığımız bir araç da var, [SharpLab](https://sharplab.io/).
 - Bu şubat ayında Youtube 20 yaşına girdi ve severek takip ettiğim gazetecilerden Serdar Kuzuloğlu' nun bu konuda yazdığı güzel [bir makale](https://www.mserdark.com/youtube-20-yasinda/) var. Detayları ile youtube' un nereden nereye geldiğini bilmek isteyenlere.
 
-## Chapter 08 - Return of the King
+### Chapter 08 - 12 Monkeys _(7 Mart 2025 Cuma, 21:30 - 22:30)_
