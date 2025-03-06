@@ -511,6 +511,111 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "GrpcScenario",
+			"item": []
+		},
+		{
+			"name": "MinIO Bucket Storage Api",
+			"item": [
+				{
+					"name": "Create Bucket",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7115/buckets/create/documents",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7115",
+							"path": [
+								"buckets",
+								"create",
+								"documents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload an Object",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/burak/Development/friday-night-programmer/images/HldOfPlayground.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:7115/buckets/upload/documents/high-level-system-diagram",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7115",
+							"path": [
+								"buckets",
+								"upload",
+								"documents",
+								"high-level-system-diagram"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Object",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7115/buckets/download/documents/high-level-system-diagram",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7115",
+							"path": [
+								"buckets",
+								"download",
+								"documents",
+								"high-level-system-diagram"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bucket Objects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7115/buckets/list/documents",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7115",
+							"path": [
+								"buckets",
+								"list",
+								"documents"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
