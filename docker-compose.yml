@@ -80,10 +80,23 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=admin
     command: ["start-dev"]
 
+  minio:
+    container_name: fnp-minio-server
+    image: minio/minio:latest
+    ports:
+      - "9008:9000"
+      - "9009:9001"
+    volumes:
+      - minio_data:/home/storage/data
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    command: server --console-address ":9001" /data
+
 volumes:
   postgres_data:
   ftp_data:
-
+  minio_data:
 
 networks:
   fnp-network:
