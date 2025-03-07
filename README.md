@@ -64,6 +64,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | **projects_api** | İTÜ ders döneminde öğrencilere verdiğim projeleri takım bazında yönetmek için başlattığım deneysel servistir. Excel yerine geçebilecek alternatif bir çözüm için Rest servis desteği sunar. | rust, rest-service, actix-web, sqlite |
 | **ProjectsManager** | projects_api servisini kullanan C# ile yazılmış Razor tabanlı proje yönetim arayüzü uygulamasının başlangıç noktasıdır _(Excel'den daha iyi olamayacağı anlaşılıp yarım bırakılmıştır :D )_ | c#, razor,  |
 | **nats_center ve nats_client** | Hafifsiklet mesajlaşma araçlarından birisi olan Nats'ın rust tarafında kullanımının örneklendiği programlardır. Birisi sunucu diğer istemci görevini üstlenir ve pub/sub modelinde bir iletişim denenir. Detaylar için HowToNats.md isimli dokümana bakılabilir. | rust, nats, pub-sub, message-queue |
+| **bug-fix-with-ai** | Burada AI araçları için çok basit SWE-Bench testleri yer alıyor. Rust ile yazılmış örnek kodları Copilot ile belli dil modellerine soruyoruz. Hata bulup ayıklama, kod tamamlama, dokümantasyon çıkarma, birim test yazdırma, kodu yeniden düzenleme gibi bir takım işler yaptırıp becerilerini değerlendiriyoruz.  | rust, gen-ai, swe-benchmark  |
 |  |  |  |
 
 ## Yardımcı Dokümanlar
@@ -230,3 +231,22 @@ Bu yayın sırasında üzerinde durduğumuz konular kısaca şunlar.
 - Bu şubat ayında Youtube 20 yaşına girdi ve severek takip ettiğim gazetecilerden Serdar Kuzuloğlu' nun bu konuda yazdığı güzel [bir makale](https://www.mserdark.com/youtube-20-yasinda/) var. Detayları ile youtube' un nereden nereye geldiğini bilmek isteyenlere.
 
 ### Chapter 08 - 12 Monkeys _(7 Mart 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki](https://youtube.com/live/uRn4KDU1mk8?feature=share)
+
+Bu bölümde ele aldığımız konular.
+
+- **Pratikler**
+  - [bug-fix-with-ai](./src/bug-fix-with-ai/) program kodları ile ilgili olarak Copilot üzerinden Claude 3.5 Sonnet Preview sürümünü denedik.
+  - [fly](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/fly) isimli oyunda gelinen son noktaya değindik ve Rapier fizik motorunun basit kullanımlarına baktık.
+  - UseCase #00'a konu olan CallMe SDK projesin önemli mesafe kat ederek tamamen gönüllü bir şekilde ileriye taşıyan [Eser Şahin'in reposuna](https://github.com/esersahin/CallMeSdk) göz attık.
+  - AWS S3 uyumlu hafifsiklet ve açık kaynak kodlu MinIO ile geliştirilmiş bir API 'nin [kullanımını](./src/MinIOBucketsApi/) ele aldık.
+- **Ana Konu Başlıkları**
+  - Electronic Arts Command and Conquer serisindeki bazı oyunların kaynak kodlarını açmış. Ne zaman açtı bilmiyorum ama açmış. Zamanında severek oynadığım [Command and Conquer: Red Alert](https://github.com/electronicarts/CnC_Red_Alert) ve halen daha oynadığım [Command and Conquer: Generals - Zero Hour](https://github.com/electronicarts/CnC_Generals_Zero_Hour) sadece birkaçı. Repoda dikkatimi çeken ayrıntılardan birisi ise Rust ile geliştirdikleri ve Kubernetes tarafında kullanılan [helmci](https://github.com/electronicarts/helmci) isimli araç.
+  - Oyun geliştiriciler yapay zeka ile ilgili ne düşünüyor öğrenmek isterseniz [Developers still aren't warming up to generative AI](https://www.gamedeveloper.com/business/developers-still-aren-t-warming-up-to-generative-ai) isimli yazıya bakabilirsiniz.Bu yazı kaynak olarak çok daha fazla detay içeren [GDC 2025 State of the Game Industry: Devs weigh in on layoffs, AI, and more](https://www.gamedeveloper.com/business/gdc-2025-state-of-the-game-industry-devs-weigh-in-on-layoffs-ai-and-more) raporunu baz alıyor.
+  - Anthropic' in Claude 3.7 Sonnet ve Claude Code sürümü oldukça ses getirdi. Özellikle kodlama üzerine çeşitli SWE-Bench testlerinden çok yüksek başarım oranları aldığı iddia ediliyor. [Şu yazıda](https://www.anthropic.com/news/claude-3-7-sonnet) detayları bulabilirsiniz.
+  - AI motorlarının yetkinliklerinin ölçmek için kullanılan matematik soruları için [2025 AIME I - Aops Wiki](https://artofproblemsolving.com/wiki/index.php/2025_AIME_I) adresine bir uğrayın derim.
+- **Blog Yazıları/Faydalı Linkler**
+  - Uğur (Vigo) Özyılmazel'in ortam değişkenleri yönetiminde karşılaştığı zorlukları ve çözmek için kullandığı Go ile yazılmış [direnv aracını kalame almış](https://ugur.ozyilmazel.com/blog/tr/2025/02/20/direnv-nedir-ne-ise-yarar/).
+  - Erhan Kocabuğa [kişisel bloğunda](https://erhankocabuga.com/grpc-ve-protobuf-ile-hizli-ve-guvenilir-uygulamalar-gelistirme) gRPC ve Protobuf ile yüksek performanslı uygulamalar geliştirilmesi üzerine önemli noktalara değindiği bir yazı kaleme almış.
+  - Rust ile gömülü sistem geliştirmek üzerine çalışmak isteyenler için herşeyin bir arada yer aldığı iddialı bir github reposu, [Awesome Embedded Rust](https://github.com/rust-embedded/awesome-embedded-rust)

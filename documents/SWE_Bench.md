@@ -1,6 +1,6 @@
 # Programcı AI Araçları için Örnek Test Kodları
 
-Şu anda birçok AI aracına kod yazdırabiliyoruz. Claude, ChatGPT, DeepSeek, Grok ve daha nicelelerine. Hatta Cursor AI ve replit de bunlar arasında sık kullanılan ve kodlama alanında uzmanlaşmış olanlar diyebiliriz. Eğer Microsoft ailesinden gelen ürünler kullanıyorsak sanırım Github Copilot' ta en çok başvurduklarımız arasında. Birçok kaynakta bu araçların başarım oranlarının ölçümü için kendilerini örnek kodlar yazdırıldığından bahsediliyor. Bende çok basit bir deneme yapmak istedim. Github Copilot' da bu notları düştüğüm tarih itibariyle Claude 3.5 Sonnet Preview'dan bana üç farklı faktöryel hesaplama fonksiyonu yazmasını istedim. İlk üretilen kodları aşağıdaki gibi oldu.
+Şu anda birçok AI aracına kod yazdırabiliyoruz. Claude, ChatGPT, DeepSeek, Grok ve daha nicelelerine. Hatta [Cursor](https://www.cursor.com/) ve [replit](https://replit.com) de bunlar arasında sık kullanılan ve kodlama alanında uzmanlaşmış olanlar diyebiliriz. Eğer Microsoft ailesinden gelen ürünleri kullanıyorsanız sanırım [Github Copilot](https://github.com/features/copilot) en çok başvurduklarımız arasında. Birçok kaynakta bu araçların başarım oranlarının ölçümü için kendilerini örnek kodlar yazdırıldığından bahsediliyor. Bende çok basit bir deneme yapmak istedim. Github Copilot' da bu notları düştüğüm tarih itibariyle [Claude](https://claude.ai/) 3.5 Sonnet Preview'dan bana üç farklı faktöryel hesaplama fonksiyonu yazmasını istedim. İlk üretilen kodları aşağıdaki gibi oldu.
 
 ```csharp
 // 1. Recursive factorial
