@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCoderPoc", "SqlCoderPoc.csproj", "{56532517-1C6D-4E56-8712-C045C29E1B27}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56532517-1C6D-4E56-8712-C045C29E1B27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56532517-1C6D-4E56-8712-C045C29E1B27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56532517-1C6D-4E56-8712-C045C29E1B27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56532517-1C6D-4E56-8712-C045C29E1B27}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DE6FD037-FD39-4C8F-84D7-4326C98DEF64}
+	EndGlobalSection
+EndGlobal
