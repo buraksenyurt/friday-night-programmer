@@ -415,3 +415,105 @@ Bu kadar şeyden sonra artık daha ne desem bilemedim :D Biz programcılara hale
 
 Tekrardan görüşünceye dek hepinize mutlu günler dilerim.
 Örnek kodlar için [repoya](https://github.com/buraksenyurt/friday-night-programmer/tree/develop/src/HelloOllama) bakabilirsiniz.
+
+## SqlCoder Deneyimleri
+
+Hatfaiçi arkadaşlarla yaptığımız bir konuşma üzerinde SQL sorgularının hazırlanmasında bu alana özel bir dil modeli kullanılabilir mi sorusuyla karşılaştık. Hazır Ollama'nın .Net arayüzlerini kullanmayı öğrenmişken birde bunu denemek istedim. Bu amaçla Ollama' nın SqlCoder modelinin 7 milyar parametreli olan [şu versiyonunu](https://ollama.com/library/sqlcoder:7b) kullandım. Örnek uygulamamıza ait kodlar ise [burada](../src/SqlCoderPoc/). En çok zorlandığım kısım prompt'u hazırlamak oldu fakat biraz deneme yanılma yoluyla sanırım basit SQL sorgularını ürettirebileceğim bir tane oluşturdum.
+
+```prompt
+### Instructions:
+Your task is to convert a question into a SQL query, given a Postgres database schema.
+Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, always cast the numerator as float
+
+### Input:
+
+### Task
+Generate a SQL query that answers the question `{question}`
+
+### Database Schema
+This query will run on a database whose schema is represented in this string:
+
+CREATE TABLE categories (
+    category_id smallint NOT NULL,
+    category_name character varying(15) NOT NULL,
+    description text,
+    picture bytea
+);
+
+CREATE TABLE suppliers (
+    supplier_id smallint NOT NULL,
+    company_name character varying(40) NOT NULL,
+    contact_name character varying(30),
+    contact_title character varying(30),
+    address character varying(60),
+    city character varying(15),
+    region character varying(15),
+    postal_code character varying(10),
+    country character varying(15),
+    phone character varying(24),
+    fax character varying(24),
+    homepage text
+);
+
+CREATE TABLE products (
+    product_id smallint NOT NULL,
+    product_name character varying(40) NOT NULL,
+    supplier_id smallint,
+    category_id smallint,
+    quantity_per_unit character varying(20),
+    unit_price real,
+    units_in_stock smallint,
+    units_on_order smallint,
+    reorder_level smallint,
+    discontinued integer NOT NULL
+);
+
+-- products.supplier_id can be joined with suppliers.supplier_id
+-- products.category_id can be joined with categories.category_id
+
+### Response:
+Based on your instructions, here is the SQL query I have generated to answer the question `{question}`:
+```
+
+Kobay olarak yılların eskitemediği Microsoft'un meşhur Northwind veritabanını baz aldım. Prompt'ta dikkat edileceği üzere Database Schema kısmında sorulara muhatap olacak tabloların create script'leri yer alıyor. Buna göre tüm Northwind şemasını prompt'a verip çok daha karmaşık sorgular denenebilir. Kritik noktalardan birisi modele verilen talimatların kalitesi gibi duruyor. Tablolar birbirlerine hangi alanlar üzerinden join edilebilirin belirtilmesi gibi. Senaryoda örnek olarak aşağıdaki soruları kullandım.
+
+```text
+- What are the top 5 most expensive products?
+- How many products are there in each category?
+- Which suppliers provide products in the Beverages category"
+- What is the average unit price of products by category?
+- List all products that are out of stock and need to be reordered.
+- Which category has the highest average unit price?
+- Find all suppliers from Germany and how many products they supply.
+- What percentage of products are discontinued for each category?
+- Which products have a unit price higher than the average unit price across all products?
+```
+
+Local ortamın sahip olduğu donanım gereği sorgular tabii biraz uzun sürdü ve aşağıdaki sonuçlara ulaştım.
+
+![SqlCoder result](../images/SqlCoderResults.png)
+
+```sql
+SELECT products.product_name, products.supplier_id, suppliers.company_name, categories.category_name, products.unit_price FROM products JOIN suppliers ON products.supplier_id = suppliers.supplier_id JOIN categories ON products.category_id = categories.category_id ORDER BY products.unit_price DESC LIMIT 5;
+
+SELECT c.category_name, COUNT(p.product_id) AS product_count FROM categories c JOIN products p ON c.category_id = p.category_id GROUP BY c.category_name ORDER BY product_count DESC NULLS LAST;
+
+SELECT suppliers.supplier_id, suppliers.company_name FROM suppliers JOIN products ON suppliers.supplier_id = products.supplier_id JOIN categories ON products.category_id = categories.category_id WHERE categories.category_name ilike '%Beverages%' ORDER BY suppliers.company_name NULLS LAST;
+
+SELECT c.category_name, AVG(p.unit_price) AS average_unit_price FROM products p JOIN categories c ON p.category_id = c.category_id GROUP BY c.category_name;
+
+SELECT products.product_name FROM products WHERE products.units_in_stock <= 10 AND products.reorder_level > 0;
+
+SELECT c.category_name, AVG(p.unit_price) AS average_unit_price FROM products p JOIN categories c ON p.category_id = c.category_id GROUP BY c.category_name ORDER BY average_unit_price DESC NULLS LAST LIMIT 1;
+
+SELECT s.supplier_name, COUNT(p.product_id) AS product_count FROM suppliers s JOIN products p ON s.supplier_id = p.supplier_id WHERE s.country = 'Germany' GROUP BY s.supplier_name;
+
+SELECT categories.category_name, CAST(SUM(CASE WHEN products.discontinued = 1 THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(COUNT(*), 0) AS proportion_discontinued FROM products JOIN categories ON products.category_id = categories.category_id GROUP BY categories.category_name;
+
+SELECT product_name, supplier_name, category_name FROM products JOIN suppliers ON products.supplier_id = suppliers.supplier_id JOIN categories ON products.category_id = categories.category_id WHERE unit_price > (SELECT AVG(unit_price) FROM products);
+```
+
+Sorguları kontrol etmek gerekiyor elbette ve testleri genişletip modeli zorlamak gerekiyor. Birde tersten denemek lazım. Mesela karmaşık bir sorgu verip içine dahil olan tablolardan da yararlanarak bir domain yapısı oluşturması da istenebilir.
