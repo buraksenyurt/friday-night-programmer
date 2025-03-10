@@ -77,6 +77,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Bellek Yönetimi Üzerine Notlar](./documents/MemoryManagement.md)
 - [Programcı AI Araçları için Basit Bir SWE-Bench](./documents/SWE_Bench.md)
 - [Oyun Programlamada ECS Kullanımı](./documents/AboutECS.md)
 - [Rust ve Bellek Güvenliği](./documents/CvsRust.md)
