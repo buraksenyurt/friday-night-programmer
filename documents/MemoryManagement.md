@@ -63,6 +63,66 @@ Manupilasyon sadece gerektiği zamanlarda yapılmış olur. Cow kullanımı ile 
 
 ## Arena Allocators
 
+N sayıda nesne için bellekte baştan bir yer ayırıp bunları bu alanda toplamak ve sonrasında hepsini tek seferde düşürmek istediğimiz senaryolarda kullanılan bir teknik olarak ifade ediliyor. Temel çalışma prensibine göre program ayağa kalkarken bellekte belli bir bölge bu iş için tahsis edilir ve gerekli nesneler söz konusu alana ardışık olarak dizilir. Bölgenin serbest bırakılması nesnelerin de topluca ve tek seferde bellekten düşürülmesi anlamına gelir. Bir arena oluşturulduğunda pointer da başlangıç konumuna alınır ve diğer nesnelere ardışıl olarak ulaşılması da kolaylaşır ki bunun da performans açısından önemli bir artısı vardır. Hatta bu alanlarişletim sistemlerin kullandığı ön belleklere de benzetilir. Bu stratejide tüm bellek bölgesinin tek seferde düşürülmesi söz konusudur. Ancak zamanı geldiğinde tek tek düşürülmesi gereken nesneler söz konusu ise bunları arena içerisinde ele almak mümkün değildir ya da tam tersi nesneler topluca serbest kalırken yaşaması gerekenler varsa. Bir başka deyişle aynı yaşam ömrüne sahip ya da birlikte sona eren ve çok büyük boyutlu olmayan nesnelerin organizasyonu için daha idealdir. Rust'ta bu amaçla kullanabilecek birçok küfe de bulunuyor. Bunlardan birisi de [bumpalo](https://crates.io/crates/bumpalo) ve işte basit kullanım örneği.
+
+```rust
+use bumpalo::Bump;
+
+#[derive(Debug)]
+struct Position {
+    x_value: u32,
+    y_value: u32,
+    z_value: u32,
+}
+
+pub fn run() {
+    let bump = Bump::new();
+
+    let player_one = bump.alloc(Position {
+        x_value: 10,
+        y_value: 20,
+        z_value: 0,
+    });
+    let player_two = bump.alloc(Position {
+        x_value: 15,
+        y_value: 5,
+        z_value: 30,
+    });
+    let john_doe = bump.alloc(Position {
+        x_value: 3,
+        y_value: 5,
+        z_value: 8,
+    });
+
+    println!("Player One Adresi {:p}", player_one);
+    println!("Player Two Adresi {:p}", player_two);
+    println!("John Doe Adresi {:p}", john_doe);
+
+    let player_one_addr = player_one as *const _ as usize;
+    let player_two_addr = player_two as *const _ as usize;
+    let john_doe_addr = john_doe as *const _ as usize;
+
+    println!(
+        "Gerçek Player Two - Player One adres farkı: {} byte",
+        address_diff(player_two_addr, player_one_addr)
+    );
+    println!(
+        "Gerçek John Doe - Player Two adres farkı: {} byte",
+        address_diff(john_doe_addr, player_two_addr)
+    );
+    
+    // Arena burada scope'dan çıkarken içindeki tüm Player nesneleri de tek seferde düşürülecektir
+}
+
+fn address_diff(a: usize, b: usize) -> usize {
+    if a > b { a - b } else { b - a }
+}
+```
+
+Örnekte bump nesnesi oluşturulduktan sonra içerisine üç farklı Position nesne örneği ekleniyor. Sadece bu örnek özelinde bunların kodlama sırası ile olmasa da ardışıl olarak dizildiklerini ispat edebilmek için adres bilgileri arasındaki farklar hesaplanıyor. Position yapısı 4 byte'tan 3 alan içermekte ve dolayısıyla 12 byte yer kaplamakta. Dolayısıyla nesne pointer adresleri arasında da 12 byte fark olmalı. Elbette bunu çok daha büyük boyutlu bir nesne kümesi için kontrol etmek lazım, tam bir ispattır diyemeyiz.
+
+_@buraksenyurt Birde drop çağrılarını sayıp göstermek lazım. 10 nesne ekledik, bump scope dışına çıktı bakalım drop implementasyonları nasıl çağrılıyor, kaç adet çağrılıyor vs_
+
 ## Struct/Enum Türlerinde Padding ve Allignment
 
 Bir struct belleğe açıldığında alanları _(fields)_ nasıl yerleştiriliyor hiç düşündünüz mü? Ya da bir enum sabitinin alanları. Normal şartlarda alanların düzenli bir sırada hizalanması _(alignment)_ ve alanlar arasında sadece gerektiği kadar boşluk bırakılması _(padding minimizasyonu deniyor) bu veri yapısına ulaşan program parçaları için kolay ve hızlı erişilebilirlik anlamına gelir. Rust genellikle bu tip ayarlamaları bizim yerimize zaten yapar ancak bazı hallerde, örneğin FFI _(Foreign Function Interface)_ hattı üzerinde harici C kütüphaneleri ile çalışıldığında belki bu ayarlamaları elle yapmak gerekebilir.
@@ -175,6 +235,12 @@ println!(
 
 ## Memory/Object Pooling
 
+_"NOT YET IMPLEMENTED"_
+
 ## Cahce Aware Programming
 
+_"NOT YET IMPLEMENTED"_
+
 ## Zero Cost Abstraction
+
+_"NOT YET IMPLEMENTED"_
