@@ -63,7 +63,115 @@ Manupilasyon sadece gerektiği zamanlarda yapılmış olur. Cow kullanımı ile 
 
 ## Arena Allocators
 
-## Enum Padding/Alignment
+## Struct/Enum Türlerinde Padding ve Allignment
+
+Bir struct belleğe açıldığında alanları _(fields)_ nasıl yerleştiriliyor hiç düşündünüz mü? Ya da bir enum sabitinin alanları. Normal şartlarda alanların düzenli bir sırada hizalanması _(alignment)_ ve alanlar arasında sadece gerektiği kadar boşluk bırakılması _(padding minimizasyonu deniyor) bu veri yapısına ulaşan program parçaları için kolay ve hızlı erişilebilirlik anlamına gelir. Rust genellikle bu tip ayarlamaları bizim yerimize zaten yapar ancak bazı hallerde, örneğin FFI _(Foreign Function Interface)_ hattı üzerinde harici C kütüphaneleri ile çalışıldığında belki bu ayarlamaları elle yapmak gerekebilir.
+
+Bu bilgiye ek olarak rust derleyicisinin **niche optimization** _(Friedrich Nietzsche' in nişi değil :P)_ adı verilen bir tekniği kullanarak bazı **enum** türlerini bellek açısından verimli hale getirdiği de ifade ediliyor. Option<u32> türünü ele alalım. Pozitif sayılardan oluşan bu 32bitlik değişken bellekte 8 byte yer kaplar _(4 byte içerdiği değer için + 4 byte None olma hali için)_ Zira u32 için **None** durumunu ifade etmek ek bir flag gerektirmektedir. Lakin **NonZeroU32** da kullanabiliriz. NonZeroU32, 0 hariç tüm 32-bit değerleri taşıyabilir ve 0 değeri **None** durumunu ifade etmek için kullanılır. Bu durumda Option< NonZeroU32 > sadece 4 byte yer kaplar; None değeri altta yatan 0 değeriyle temsil edilir, Some(value) ise value’nun kendi değerleriyle temsil edilir​. Daha fazla etay için [buradaki blog yazısını](https://www.0xatticus.com/posts/understanding_rust_niche/) ziyaret edebilirsiniz. Ben öğrendiklerimle aşağıdaki kodu tatbik etmeye çalıştım.
+
+```rust
+use std::num::NonZero;
+use std::num::NonZeroU32;
+
+pub fn run() {
+    println!("Baştan söyleyelim...");
+    println!("u32 {} byte yer tutar", size_of::<u32>());
+    println!(
+        "Option<u32> ise {} byte yer tutar. Diğer 4 byte None içindir.",
+        size_of::<Option<u32>>()
+    );
+    println!("NonZero32 {} byte yer tutar", size_of::<NonZeroU32>());
+    println!(
+        "Option<NonZero32> ise yine {} byte yer tutar. Zira 0, None olarak ifade edilir.",
+        size_of::<Option<NonZeroU32>>()
+    );
+
+    let nan = give_me_a_none();
+    match nan {
+        None => println!("There is no spoon!"),
+        Some(v) => println!("{}", v),
+    }
+
+    let transmuted: u32 = unsafe { std::mem::transmute(nan) };
+    println!("NonZeroU32 için None : {transmuted:b}");
+
+    let nan = give_me_another_none();
+    match nan {
+        None => println!("There is no spoon!"),
+        Some(v) => println!("{}", v),
+    }
+
+    let transmuted: u64 = unsafe { std::mem::transmute(nan) };
+    println!("U32 için None : {transmuted:b}");
+
+    let number = give_me_a_number();
+    match number {
+        None => println!("There is no spoon!"),
+        Some(v) => println!("{}", v),
+    }
+
+    let transmuted: u32 = unsafe { std::mem::transmute(number) };
+    println!("NonZero için Number 23 : {transmuted:b}");
+
+    let number = give_me_another_number();
+    match number {
+        None => println!("There is no spoon!"),
+        Some(v) => println!("{}", v),
+    }
+
+    let transmuted: u64 = unsafe { std::mem::transmute(number) };
+    println!("U32 için Number 23 : {transmuted:b}");
+}
+
+fn give_me_a_none() -> Option<NonZeroU32> {
+    NonZero::new(0)
+    // None
+}
+
+fn give_me_another_none() -> Option<u32> {
+    None
+}
+
+fn give_me_a_number() -> Option<NonZeroU32> {
+    NonZero::new(23)
+}
+
+fn give_me_another_number() -> Option<u32> {
+    Some(23)
+}
+```
+
+**NonZeroU32** kullandığımız durumlarda None ve gerçek bir sayının bellekteki binary tutuluş şekilleri çok farklı dikkat edeceğiniz üzere. Örneğin None bilgisi **NonZerou32** için sadece 0 ile ifade edilirken **U32** kullanıldığında çok daha uzun bir içerik söz konusu. Çalışma zamanı çıktısını şöyle ifade edebiliriz.
+
+```text
+Baştan söyleyelim...
+u32 4 byte yer tutar
+Option<u32> ise 8 byte yer tutar. Diğer 4 byte None içindir.
+NonZero32 4 byte yer tutar
+Option<NonZero32> ise yine 4 byte yer tutar. Zira 0, None olarak ifade edilir.
+There is no spoon!
+NonZeroU32 için None : 0
+There is no spoon!
+U32 için None : 11111111111111000000000000000000000000000000000
+23
+NonZero için Number 23 : 10111
+23
+U32 için Number 23 : 1011100000000000000000000000000000001
+```
+
+Elbette hangisinin hangi durumlarda kullanabiliriz sorusu ortaya çıkıyor değil mi? Belki gözden kaçırmış olabiliriz ama şöyle bir durum var. NonZeroU32 adı üstünde 0 değerini taşıyamaz. Sıfır değerini None olarak kabul eder. Bu nedenle yaygın görüş U32'nin kullanıldığı bir senaryoda hiçbir şekilde 0 değerinin kullanılmayacağı garanti ise NonZerou32 tercih edilebilir zira her bir sayısal değer için 8 byte yerine 4 byte ayırabiliriz. 
+
+Niche _(niş)_ optimizasyonu denmesinin bir nedeni de None yerine geçebilecek ayrıcalıklı yani niş bir değeriniz bulunmasıdır. U32 senaryosunda 0'dan feragat edilmesi garanti ise 0 bir niş değer olarak ifade edilir ve None yerine kullanılır ve bu da size büyük bir bellek tasarrufu olarak dönebilir.
+
+Bir örnek daha verelim. Özellikle referans kullanılan senaryolarda niş optimizasyon da ele alınabilir. **None** durumu için **null pointer (0x0)** kullanıldığından tahsis edilen bellek miktarı aynıdır.
+
+```rust
+println!("&u32 türü için de {} byte yer ayrılır.", size_of::<&u32>());
+println!(
+    "ve Option<&u32> içinde {} byte söz konusudur.",
+    size_of::<Option<&u32>>()
+);
+```
 
 ## Memory/Object Pooling
 
