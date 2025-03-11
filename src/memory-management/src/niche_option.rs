@@ -1,7 +1,8 @@
+use std::mem::transmute;
 use std::num::NonZero;
 use std::num::NonZeroU32;
-use std::mem::transmute;
 
+#[allow(dead_code)]
 pub fn run() {
     println!("Baştan söyleyelim...");
     println!("u32 {} byte yer tutar", size_of::<u32>());

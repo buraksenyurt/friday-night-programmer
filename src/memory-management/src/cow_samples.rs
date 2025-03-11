@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+#[allow(dead_code)]
 pub fn run() {
     let user_one = "Super Mario";
     let player_two = "Ready Player One";
