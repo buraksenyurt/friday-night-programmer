@@ -2,6 +2,16 @@
 
 **Unmanaged** ortamlarda gezinmek birçok yeni veya unutulmuş bilgiyi de karşıma çıkarıyor. Geçtiğimiz günlerde devasa boyutlarda JSON tabanlı logları işlerken **Interning** stratejisi ile belleğe alınan verinin nasıl optimize edilebileceğini öğrendim. Belli senaryolarda _(her zaman da avantajlı olmayabiliyor)_ çok sık tekrar eden string içeriklere heap'de yer ayırılırken gereksiz alan ayırmak yerine, bunları refere eden tekil pointer'lardan yararlanmak ve hatta benzersiz sayısal değerlerle _(örneğin pozitif bir tam sayı ile)_ bir vektör içerisinde tutup _(Intern havuzu olarak da ifade ediliyor)_ erişimi hızlandırmak mümkün. Tam anlamıyla bellek seviyesinde optimizasyon ve performans kazanımı söz konusu. Biraz karışık bir cümle oldu ama refere edeceğim [şu yazının uzunluğu](https://gendignoux.com/blog/2025/03/03/rust-interning-2000x.html) düşünülünce elden bu kadar geldi. Yazıda Paris'in herkese açık otoyol verilerinden yararlanılıyor. Veriler çok büyük ve yazarın iddiasına göre 2bin kata kadar küçültülebiliyor. Örneğin sadece String veriler üzerine yapılan Interning tekniğinin **%47** oranında yer kazanımı sağladığı belirtiliyor. Tabii olay bellek yönetimi, bellek operasyonlarında optimizasyon ve performans işlemleri denince karşımıza daha birçok kavram da çıkıyor. Örneğin **Region-Based Management** konseptinde yer bulan **Area Allocators** ve diğer şeyler... **Copy on Write(CoW)**, **Zero Cost Abstraction**, **Memory/Object Pooling**, **Cache-Aware Programming**, **Enum'larda Padding ve Allignment** kullanımı vs
 
+- [Bellek Yönetimi Üzerine Notlar](#bellek-yönetimi-üzerine-notlar)
+    - [Cow - Copy on Write/Clone on Write](#cow-copy-on-write)
+        - [Dirty Cow Mevzusu](#dirty-cow-mevzusu-pis-i̇nek-p)
+    - [Arena Allocators](#arena-allocators)
+        - [AtomicUsize Kullanımı](#atomicusize-kullanımı)
+    - [Struct/Enum Türlerinde Padding ve Allignment](#structenum-türlerinde-padding-ve-allignment)
+    - [Memory/Object Pooling](#memoryobject-pooling)
+    - [Cache Aware Programming](#cache-aware-programming)
+    - [Zero Cost Abstraction](#zero-cost-abstraction)
+
 Rust, zaten sahip olduğu bazı özellikleri ile _(Ownership, borrow-checker- lifetimes vb)_ belleği güvenli noktada tutmak için imkanlar sağlıyor _(Bilindiği üzere Rust'ta bir Garbage Collector mekanizması yok)_ Ne var ki yine de bazı senaryolarda belleği efektif kullanmak için az önce saydığım yaklaşımlara da değinmek gerekiyor. Söz gelimi Interning konusunda yazılmış duruma göre tercih edilebilecek birçok crate mevcut. Bu yazıda amacım diğer konulara ait kısa kısa notlar tutmak.
 
 ## CoW _(Copy on Write)_
@@ -259,9 +269,20 @@ Bu sefer Velocity isimli struct'lardan birkaç nesne örnekliyoruz ancak dikkat 
 
 ![boxing_runtime](../images/boxing_runtime.png)
 
+### AtomicUsize Kullanımı
+
+Yukarıdaki son iki örnek kodda **AtomicUsize** veri türünü kullandık. Normalde statik değişkenler mutable olamazlar zira bunlar Global değişken olarak tanımlanır ve **eşzamanlı _(concurrent)_** erişilme riskleri vardır. AtomicUsize bu tip bir değişkenin çoklu thread'lerde **kilitlemeden _(lock-free)_** ve **thread-safe** olarak değiştirilmesine izin verir. Tabii bunun yerine **Mutex< Usize >** şeklinde bir kullanıma da gidilebilir. Karmaşık atomik işlemler gerektirmediğinden tercih edilebilr ama kilitleme gerektirir ve bunun bir maliyeti vardır, ayrıca **Deadlock** oluşma ihtimali de söz konusudur. Alternatif olarak **RwLock _(Read-Write Lock)_** belki kullanılabilir. Bu eşzamanlı okumları thread-safe icra edereken sadece yazma söz konusu olduğunda kilitleme yapar. Dokümanlara göre bazı durumlarda okuma ve yazma işlemlerinin çakışmasının söz konusu olabileceği belirtiliyor diğer yandan çok fazla yazma işlemi söz konusu ise kilitleme yine bir dezavantaj olarak karşımıza çıkar. Bu arada çoklu thread söz konusu değilse kilitleme mekanizmasına veya atomik işlemlere gerek kalma ve **Cell**, **RefCell** gibi türler kullanılabilir. Çok alternatif var değil mi? :D Kıyaslama için şöyle bir şeyle karalayabiliriz tabii ama güncelliğini kontrol etmekte yarar var. Bir sayaç kullanmak istediğimizi düşünelim;
+
+- Tek bir thread söz konusu ise Cell veya RefCell< Usize > iyi bir çözümdür.
+- Çoklu thread kullanımı söz konusu ve basit bir kullanım isteniyorsa Mutex< Usize > pekala iyi bir çözüm olacaktır.
+- Çoklu thread'ler tarafında çokça okuma söz konusu ama nadir yazma işlemi varsa RwLock< Usize > ideal çözümdür.
+- Çoklu thread erişimi, sıkça yazma ve performans kritik bir işleyiş gerekiyorsa AtomicUsize kullanılmalıdır.
+
+Aslında bu söylediklerimiz ışığında **AtomicUsize** çok daha iyi bir seçim gibi görünebilir ama dezavantajları da vardır. Kilit kullanmaması her zaman hız demek değildir zira işlemci tarafında bellek bariyeri oluşturması söz konusudur. Ayrıca örnekte **Sequentially Consistent** kullandık dolayısıyla işlemci tüm diğer işlemleri durdurabilir sırf sayacı artıracağım diye ki bu da beklenmedik performans kaybına neden olabilir. Tabii bu sık kullanılmayla da ilgilidir. Diğer yandan AtomicUsize basit bir veri türüdür _(ki farkı varsayonları var Atomic kelimesi ile başlayan Bool, I16, I32, I64, I8, Isize, Ptr, U16, U32, U64, U8 gibi)_ ve hatta tek bir değişken üzerinde garanti sonuçlar verebilir. Birden fazla **AtomicUsize** kullanımı **Race Condition** problemini doğurabilir. Örnekte birde Ordering kullandık ki bunu belirtmemiz gerekiyordu. Hatta Drop trait içindeki ile aynı değeri de vermiştik. **Relaxed**, **Acquire**, **AccRel** gibi farklı değerler de verilebilir ve bunların kombinasyonu da çok önemli. Detaylar için [şurada bir tablo var](https://doc.rust-lang.org/std/sync/atomic/struct.AtomicUsize.html#method.compare_and_swap)
+
 ## Struct/Enum Türlerinde Padding ve Allignment
 
-Bir struct belleğe açıldığında alanları _(fields)_ nasıl yerleştiriliyor hiç düşündünüz mü? Ya da bir enum sabitinin alanları. Normal şartlarda alanların düzenli bir sırada hizalanması _(alignment)_ ve alanlar arasında sadece gerektiği kadar boşluk bırakılması _(padding minimizasyonu deniyor) bu veri yapısına ulaşan program parçaları için kolay ve hızlı erişilebilirlik anlamına gelir. Rust genellikle bu tip ayarlamaları bizim yerimize zaten yapar ancak bazı hallerde, örneğin FFI _(Foreign Function Interface)_ hattı üzerinde harici C kütüphaneleri ile çalışıldığında belki bu ayarlamaları elle yapmak gerekebilir.
+Bir struct belleğe açıldığında alanları _(fields)_ nasıl yerleştiriliyor hiç düşündünüz mü? Ya da bir enum sabitinin alanları. Normal şartlarda alanların düzenli bir sırada hizalanması _(alignment)_ ve alanlar arasında sadece gerektiği kadar boşluk bırakılması _(padding minimizasyonu deniyor)_ bu veri yapısına ulaşan program parçaları için kolay ve hızlı erişilebilirlik anlamına gelir. Rust genellikle bu tip ayarlamaları bizim yerimize zaten yapar ancak bazı hallerde, örneğin FFI _(Foreign Function Interface)_ hattı üzerinde harici C kütüphaneleri ile çalışıldığında belki bu ayarlamaları elle yapmak gerekebilir.
 
 Bu bilgiye ek olarak rust derleyicisinin **niche optimization** _(Friedrich Nietzsche' in nişi değil :P)_ adı verilen bir tekniği kullanarak bazı **enum** türlerini bellek açısından verimli hale getirdiği de ifade ediliyor. Option<u32> türünü ele alalım. Pozitif sayılardan oluşan bu 32bitlik değişken bellekte 8 byte yer kaplar _(4 byte içerdiği değer için + 4 byte None olma hali için)_ Zira u32 için **None** durumunu ifade etmek ek bir flag gerektirmektedir. Lakin **NonZeroU32** da kullanabiliriz. NonZeroU32, 0 hariç tüm 32-bit değerleri taşıyabilir ve 0 değeri **None** durumunu ifade etmek için kullanılır. Bu durumda Option< NonZeroU32 > sadece 4 byte yer kaplar; None değeri altta yatan 0 değeriyle temsil edilir, Some(value) ise value’nun kendi değerleriyle temsil edilir​. Daha fazla etay için [buradaki blog yazısını](https://www.0xatticus.com/posts/understanding_rust_niche/) ziyaret edebilirsiniz. Ben öğrendiklerimle aşağıdaki kodu tatbik etmeye çalıştım.
 
@@ -361,7 +382,7 @@ println!(
 
 _"NOT YET IMPLEMENTED"_
 
-## Cahce Aware Programming
+## Cache Aware Programming
 
 _"NOT YET IMPLEMENTED"_
 
