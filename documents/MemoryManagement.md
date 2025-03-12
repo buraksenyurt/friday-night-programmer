@@ -388,4 +388,60 @@ _"NOT YET IMPLEMENTED"_
 
 ## Zero Cost Abstraction
 
-_"NOT YET IMPLEMENTED"_
+Sıfır maliyetli soyutlamalar olarak çevirebileceğimiz bu kavram Rust'ın güçlü olan özelliklerinden birisidir. Bunu kısaca ifade etmek gerekirse, **iterator** metotları, **generic** tür kullanımları, **trait** implementasyonları gibi yaklaşımların çalışma zamanı maliyetlerinin sıfır olmasıdır/sıfıra yakın olmasıdır diye açabiliriz _(çok kesinlik katamadım ama iddialar bu yönde)_ Hatta idiomatic yazılmış bir rust kodunun sanki **C/C++** dilleri ile yazılmış kadar efektif olduğu belirtilir. Özellikle koleksiyonlar arkasından gelen iterator fonksiyonları için derleme zamanında üretilen kodun çalışma zamanında ek bir maliyet gerektirmeden yüksek performanslı çalıştığını belirten bir kavram olarak da tanıtılır. Generic türler açısından düşündüğümüzde Rust'ın **monomorfizasyon** tekniğiyle somut tiplere özel kodlar ürettiğini söyleyebiliriz. Bu yaklaşım **C++** dilinde **template** enstrümanına benzer biçimde her tip kullanımı için ayrı ve optimize edilmiş kod üretilmesi ile aynıdır. Bu durumda generic bir metot çağrımı ile normal metot çağrımı arasında pek bir performans farkı kalmaz. Iterator fonksiyonlar demişken aşağıdaki basit kod örneği ile bu durumu tarifleyebiliriz.
+
+```rust
+pub fn run() {
+    let numbers: Vec<u32> = (0..=10).collect();
+
+    let total_sum_1: u32 = numbers.iter().map(|x| x + 1).sum();
+
+    let mut total_sum_2: u32 = 0;
+    for x in &numbers {
+        total_sum_2 += x + 1;
+    }
+
+    println!("Iterator fonksiyonları üzerinden toplam : {}", total_sum_1);
+    println!("Klasik for döngüsü ile toplam : {}", total_sum_2);
+}
+```
+
+Birden ona kadarki sayıların toplanması iki farklı şekilde yapılmaktadır. Birisinde iter() metodu üzerinden ulaşılıp map ve sum fonksiyonları ile hesaplama yapılmaktadır. Diğeri ise bildiğimiz klasik bir for döngüsü yardımıyla yapılandır. Kod okunurluğu açısından iterator kullanımı çok daha ideal duruyor ve aslında birçok fonksiyonel dilde bu tip yüksek seviyeli metotlara rastlıyoruz ancak bu tip bir soyutlamanın çalışma zamanı maliyetleri dile göre tartışılır. **Zero-Cost Abstraction**, klasik for döngüsü ile yazılan ve optimize edilmiş kod çıktısının iterator fonksiyonlar için de söz konusu olduğunu söyler. 
+
+Peki bu nasıl ispat edilebilir? Sanıyorum doğru optimizasyon seviyesinde üretilen kodun **assembly** çıktılarına bakarak bir kıyaslama yapmak lazım. Bu henüz tam olarak gerçekeştiremediğim bir şey ancak yol boyunca öğrendiğim bazı şeyler de oldu. Örneğin **src** klasöründe **zca.rs** isimli yalnız bir rust dosyası var. Bunu **rustc** ile deledikten sonra assembly koduna bakabiliriz.
+
+```bash
+# Bu komut zca.s isimli Assembly kodlarından oluşan zca.s dosyasını üretecektir
+rustc --emit=asm -C llvm-args="--x86-asm-syntax=intel" zca.rs
+
+# Sadece main fonksiyonunun karşılığını görmek içinse aşağıdaki komutu kullanabiliriz
+grep -A 20 "main:" zca.s
+```
+
+Aşağıdakine benzer bir çıktı üretmesi muhtemeldir. En azından bende böyle üretti.
+
+```assmebly
+main:
+        .cfi_startproc
+        push    rax
+        .cfi_def_cfa_offset 16
+        mov     rdx, rsi
+        movsxd  rsi, edi
+        lea     rdi, [rip + _ZN3zca4main17h95f2e46fab2a6266E]
+        xor     ecx, ecx
+        call    _ZN3std2rt10lang_start17h9d55bcc39d9e49f1E
+        pop     rcx
+        .cfi_def_cfa_offset 8
+        ret
+.Lfunc_end63:
+        .size   main, .Lfunc_end63-main
+        .cfi_endproc
+
+        .type   .L__unnamed_20,@object
+        .section        .rodata..L__unnamed_20,"a",@progbits
+.L__unnamed_20:
+        .ascii  "capacity overflow"
+        .size   .L__unnamed_20, 17
+```
+
+Ancak sahip olduğum kıt assembly bilgim ile bir sonuca varamadım diyebilirim _(Henüz)_ Diğer yandan cargo ile üretilmiş projelerde [şöyle bir crate](https://crates.io/crates/cargo-show-asm) kullanabileceğimiz de belirtiliyor. Bu aracı kullanarak kodun assembly çıktılarına bakmak ve okumak daha kolay diyebilirim.
