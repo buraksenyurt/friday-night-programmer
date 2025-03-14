@@ -66,7 +66,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | **nats_center ve nats_client** | Hafifsiklet mesajlaşma araçlarından birisi olan Nats'ın rust tarafında kullanımının örneklendiği programlardır. Birisi sunucu diğer istemci görevini üstlenir ve pub/sub modelinde bir iletişim denenir. Detaylar için HowToNats.md isimli dokümana bakılabilir. | rust, nats, pub-sub, message-queue |
 | **bug-fix-with-ai** | Burada AI araçları için çok basit SWE-Bench testleri yer alıyor. Rust ile yazılmış örnek kodları Copilot ile belli dil modellerine soruyoruz. Hata bulup ayıklama, kod tamamlama, dokümantasyon çıkarma, birim test yazdırma, kodu yeniden düzenleme gibi bir takım işler yaptırıp becerilerini değerlendiriyoruz.  | rust, gen-ai, swe-benchmark  |
 | **memory-management** | Bellek yönetimi konusunda Cow, String Interning, Area Allocator, Memory/Object pooling gibi konulara ait basit kod kırıntılarının yer aldığı programdır.   | rust, memory-management  |
-|  |  |  |
+| **metrics** | [Ratutui](https://ratatui.rs/) 'nin önemli Maintainer' larından Rustacean [Orhun Parmaksız'ın](https://github.com/orhun) [Code Maven](https://youtu.be/OkmYsa25pIw?si=1JiMfHys5-Z51iXZ) ile gerçekleştirdiği yayındaki örnekten yararlanılarak geliştirilmiş terminal bazlı uygulamadır  | rust, ratutui, tui, terminal-app  |
 
 ## Yardımcı Dokümanlar
 
