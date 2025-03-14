@@ -1,21 +1,15 @@
-use color_eyre::owo_colors::OwoColorize;
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::layout::Constraint;
-use ratatui::prelude::Layout;
-use ratatui::style::Style;
+use ratatui::prelude::{Layout, Line};
+use ratatui::style::{Color, Style};
 use ratatui::symbols::Marker;
-use ratatui::widgets::{Axis, Borders, Chart, Dataset, GraphType};
-use ratatui::{
-    style::Stylize,
-    text::Line,
-    widgets::{Block, Paragraph},
-    DefaultTerminal, Frame,
-};
+use ratatui::widgets::{Axis, Bar, BarChart, BarGroup, Chart, Dataset, GraphType};
+use ratatui::{style::Stylize, widgets::Block, DefaultTerminal, Frame};
 use std::time::Duration;
 use sysinfo::System;
 
-fn main() -> color_eyre::Result<()> {
+fn main() -> Result<()> {
     color_eyre::install()?;
     let terminal = ratatui::init();
     let result = App::new().run(terminal);
@@ -30,6 +24,7 @@ pub struct App {
     running: bool,
     system: System,
     cpu: Vec<(f64, f64)>,
+    used_memory: Vec<u64>,
 }
 
 impl App {
@@ -39,6 +34,7 @@ impl App {
             running: true,
             system: System::new_all(),
             cpu: Vec::new(),
+            used_memory: Vec::new(),
         }
     }
 
@@ -46,11 +42,13 @@ impl App {
     pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
         self.running = true;
         while self.running {
-            self.system.refresh_cpu_usage();
+            self.system.refresh_all();
 
             terminal.draw(|frame| {
                 self.cpu
                     .push((frame.count() as f64, self.system.global_cpu_usage() as f64));
+                self.used_memory.push(self.system.used_memory());
+
                 self.render(frame)
             })?;
             self.handle_crossterm_events()?;
@@ -59,26 +57,52 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
-        let data_set = vec![Dataset::default()
-            .name("CPU Usages")
+        let cpu_data_set = vec![Dataset::default()
+            .name("Cpu Usage")
             .marker(Marker::Braille)
             .graph_type(GraphType::Line)
             .style(Style::default().blue())
             .data(&self.cpu)];
 
-        let chart = Chart::new(data_set)
+        let cpu_chart = Chart::new(cpu_data_set)
             .block(Block::bordered().title("CPU Usages"))
             .x_axis(Axis::default().bounds([0.0, self.cpu.len() as f64]))
             .y_axis(Axis::default().bounds([0.0, 100.0]));
+
+        let memory_bars: Vec<Bar> = self
+            .used_memory
+            .iter()
+            .enumerate()
+            .map(|(idx, used_memory)| {
+                Bar::default()
+                    .value(*used_memory)
+                    .label(Line::from(format!("{idx:>02}")))
+                    .text_value(format!(
+                        "{}",
+                        (*used_memory as f64 / (1024 * 1024) as f64).round()
+                    ))
+                    //.style(Style::new().fg(Color::Rgb(255, 255, 0)))
+                    .value_style(Style::new().fg(Color::Rgb(255, 255, 255)))
+            })
+            .collect();
+
+        let total_memory =
+            (self.system.total_memory() as f64 / (1024 * 1024 * 1024) as f64).round() as usize;
+        let memory_chart = BarChart::default()
+            .data(BarGroup::default().bars(&memory_bars))
+            .block(Block::new().title(format!("Total Memory {} Gb", total_memory)))
+            .bar_width(8)
+            .bar_gap(2)
+            .max(total_memory as u64);
 
         let [top, bottom] =
             Layout::vertical([Constraint::Percentage(50), Constraint::Fill(1)]).areas(frame.area());
         let [left, right] =
             Layout::horizontal([Constraint::Percentage(30), Constraint::Fill(1)]).areas(bottom);
 
-        frame.render_widget(chart, top);
+        frame.render_widget(cpu_chart, top);
         frame.render_widget(Block::bordered(), bottom);
-        frame.render_widget(Block::bordered(), left);
+        frame.render_widget(memory_chart, left);
         frame.render_widget(Block::bordered(), right);
     }
 
@@ -89,22 +113,7 @@ impl App {
     /// - <https://docs.rs/ratatui/latest/ratatui/widgets/index.html>
     /// - <https://github.com/ratatui/ratatui/tree/main/ratatui-widgets/examples>
     fn render(&mut self, frame: &mut Frame) {
-        let title = Line::from("Ratatui Simple Template")
-            .bold()
-            .blue()
-            .centered();
-
         self.draw(frame);
-
-        // let text = "Hello, Ratatui!\n\n\
-        //     Created using https://github.com/ratatui/templates\n\
-        //     Press `Esc`, `Ctrl-C` or `q` to stop running.";
-        // frame.render_widget(
-        //     Paragraph::new(text)
-        //         .block(Block::bordered().title(title))
-        //         .centered(),
-        //     frame.area(),
-        // )
     }
 
     /// Reads the crossterm events and updates the state of [`App`].
@@ -112,7 +121,7 @@ impl App {
     /// If your application needs to perform work in between handling events, you can use the
     /// [`event::poll`] function to check if there are any events available with a timeout.
     fn handle_crossterm_events(&mut self) -> Result<()> {
-        if event::poll(Duration::from_millis(30))? {
+        if event::poll(Duration::from_millis(1000))? {
             match event::read()? {
                 // it's important to check KeyEventKind::Press to avoid handling key release events
                 Event::Key(key) if key.kind == KeyEventKind::Press => self.on_key_event(key),
