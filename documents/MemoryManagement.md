@@ -380,7 +380,187 @@ println!(
 
 ## Memory/Object Pooling
 
-_"NOT YET IMPLEMENTED"_
+Geliştirmekte olduğumuz uygulamaların heap üzerindeki yerleşimleri hem performans hem de verimlilik açısından önemlidir. Geniş arazilere sahip heap üstünde rastgele nesne yerleşimleri zamanla fragmantasyonu bozabilir, uygulamanın bellekte kapladığı alan şişebilir, reaksiyon süreleri yavaşlayabilir. Esasında Rust, RAII _(Resource Acquisition is Initialization)_ ilkesine bağlı kalarak nesne ömürlerini optimal seviyede yönetmeye. _(Her ne kadar lifetimes mevzusu zaman zaman zorlayıcı olsa da)_ Ancak yine de tekrar tekrar üretilen pahalı nesneler söz konusu olduğunda pekala bunların heap organizasyonu endüstriyel diyebileceğimiz kimi standart metodolojilerle ele alınabilir. Object Pooling' de bunlardan birisidir. Örneğin veri tabanı bağlantıları, oyun motorlarındaki asset yöneticileri sürekli ve tekrar tekrar kullanılan nesneler olarak karşımıza çıkarlar. Bunları belli limitlere sahip bir havuzdan yönetmek pekala ideal olabilir.
+
+Aşağıdaki örnek kod parçasında çok basit bir implemantasyonuna yer verilmektedir.
+
+```rust
+use std::sync::Arc;
+use std::sync::Mutex;
+
+trait Identifiable {
+    fn get_id(&self) -> i16;
+}
+
+struct AssetServer {
+    id: i16,
+}
+
+impl AssetServer {
+    fn new(value: i16) -> Self {
+        AssetServer { id: value }
+    }
+}
+
+impl Identifiable for AssetServer {
+    fn get_id(&self) -> i16 {
+        self.id
+    }
+}
+
+// Havuzdaki nesneleri tutan veri yapısı
+// Generic T türü ile çalışır (T'yi Identifiable olma koşulan zorlayacak generic constraint eklenebilir)
+struct ObjectPool<T> {
+    objects: Arc<Mutex<Vec<T>>>, // T anında sadece bir thread'in erişimini garanti etmek için Atomic Reference Counted ve Mutex kullanılmıştır.
+}
+
+impl<T> ObjectPool<T> {
+    pub fn new() -> Self {
+        ObjectPool {
+            objects: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    // Ekleme, çekme ve serbest bırakma operasyonlarının tamamında Mutex lock kullanılır
+    pub fn add(&mut self, value: T) {
+        self.objects.lock().unwrap().push(value);
+    }
+
+    pub fn get(&mut self) -> Option<T> {
+        let mut objects = self.objects.lock().unwrap(); // Havuzdaki nesneler kilit konularak çekilir
+        if objects.len() > 0 {
+            // Eğer havuzda nesne varsa
+            return objects.pop(); // sonraki nesne verilir
+        }
+        None
+    }
+
+    // Bir nesne ile işimiz bittiğinde onu havuza tekrardan yerleştirmek için kullanılan fonksiyondur
+    // Bu arada releae metodu yerine drop trait implementasyonu da tercih edilebilir
+    pub fn release(&mut self, value: T) {
+        self.objects.lock().unwrap().push(value);
+    }
+}
+
+pub fn run() {
+    let mut asset_pool: ObjectPool<Box<dyn Identifiable>> =
+        ObjectPool::<Box<dyn Identifiable>>::new();
+
+    for i in 0..5 {
+        asset_pool.add(Box::new(AssetServer::new(i)));
+    }
+
+    let server_1 = asset_pool.get().unwrap();
+    println!("Server 1 id {}", server_1.get_id());
+    let server_2 = asset_pool.get().unwrap();
+    println!("Server 2 id {}", server_2.get_id());
+    asset_pool.release(server_2);
+
+    for object in asset_pool.objects.lock().unwrap().iter() {
+        println!("Asset server id: {}", object.get_id());
+    }
+}
+```
+
+Yukarıdaki kodda çok basit ve ilkel bir object pool mekanizması uygulanmaya çalışılıyor. Teorik olarak heap maliyeti yüksek nesnelerin bir havuzdan karşılanması değerlendirilmekte. **AssetServer** yapısını yüksek maliyetli bir nesne gibi düşünebiliriz. **ObjectPool** isimli veri yapısı **Arc _(Atomic reference counted)_** isimli **smart pointer**'ı ve **Mutex** mekanizmasını kullanarak bu havuzu yönetiyor. Havuza nesneler ekleyebiliyoruz ve release metodunu çağırdığımızda tekrardan havuza dönmelerini sağlayabiliyoruz. Ancak bu çok basit ve ilkel bir implementasyon. release yerine drop trait implementasyonu kullanılabilir ve nesne scope dışında kaldığında tekrardan havuza iade edilebilir. Havuzda hiç nesne yoksa ilk initialize aşamasında bir tane eklenebilir. Bir üst yapı ile havuz yönetimi ele alınabilir. Örneğin nesnelerin belli sayıda ve belli süre boyunca scope' da kalmaları sağlanabilir belki de.
+
+Çok doğal olarak kendi implementasyonumuz dışında kullanabileceğimiz hazır küfeler de _(crate)_ bulunuyor. En bilinenleri [lockfree-object-pool](https://crates.io/crates/lockfree-object-pool) ve [typed_arena](https://crates.io/crates/typed-arena). Aşağıdaki örnekte typed_arena kullanımına ait bir örnek yer almakta.
+
+```rust
+use typed_arena::Arena;
+
+#[derive(Debug)]
+struct AssetServer {
+    assets: Vec<String>,
+    id: u32,
+}
+
+pub fn run() {
+    let arena = Arena::new();
+
+    let server_1 = arena.alloc(AssetServer {
+        assets: vec![
+            "player.png".to_string(),
+            "tileSet.png".to_string(),
+            "colors.png".to_string(),
+        ],
+        id: 1234,
+    });
+
+    let server_2 = arena.alloc(AssetServer {
+        assets: vec![
+            "human.png".to_string(),
+            "brick.png".to_string(),
+            "block.png".to_string(),
+            "juice.jpg".to_string(),
+            "intro.wav".to_string(),
+        ],
+        id: 1255,
+    });
+
+    println!(
+        "Server {} has {} assets",
+        server_1.id,
+        server_1.assets.len()
+    );
+    println!(
+        "Server {} has {} assets",
+        server_2.id,
+        server_2.assets.len(),
+    );
+}
+```
+
+Pek tabii bu soyutlama çok daha basit bir kullanıma sahip. Bu arada object pooling, arena allocator başlığı altında incelediğimiz tek bir tampon yaklaşımını da kullanabilir. Örneğin **typed_arena** küfesi tekil **deallocation** işlevleri yerine kapsam dışına çıkıldığında tüm bloğu düşüren ve stack based yerine heap based çalışan bir kütüphanedir. Tipik bir Arena Allocator taktiği uyguluyor diyebiliriz. 
+
+**Object Pooling** mevzusunda dikkat çeken noktalardan birisi de havuza nesneler eklendikçe heap' in şişmesidir. Bunu yönetmek de bir tasarım gerektirir. typed_arena gibi Arena Allocator stratejisi güden kütüphaneler genellikle tek bir bellek bölgesi ayırmayı tercih eder, tek seferde bellekten düşürür, kapasite dolara bundan bağımsız yeni bir bellek bölgesi daha tahsis eder. Dolayısıyla kendi yazdığımız senaryolarda bu kapasiteyi yönetmemiz de gerekebilir. İlk yazdığımız kodu bu anlamda değerlendirip aşağıdaki gibi yeniden düzenleyebiliriz.
+
+```rust
+struct ObjectPool<T> {
+    objects: Arc<Mutex<Vec<T>>>,
+    capacity: usize,
+}
+
+impl<T> ObjectPool<T> {
+    pub fn new(capacity: usize) -> Self {
+        ObjectPool {
+            objects: Arc::new(Mutex::new(Vec::new())),
+            capacity,
+        }
+    }
+
+    pub fn add(&mut self, value: T) {
+        if self.objects.lock().unwrap().len() < self.capacity {
+            self.objects.lock().unwrap().push(value);
+        }
+    }
+
+    pub fn get(&mut self) -> Option<T> {
+        let mut objects = self.objects.lock().unwrap();
+        if objects.len() > 0 {
+            return objects.pop();
+        }
+        None
+    }
+
+    pub fn release(&mut self, value: T) {
+        if self.objects.lock().unwrap().len() < self.capacity {
+            self.objects.lock().unwrap().push(value);
+        } else {
+            println!("Pool is full");
+        }
+    }
+}
+```
+
+ObjectPool yapısına usize türünden capacity alanı eklenmiştir. add ve release fonksiyonlarında kapasite kontrolü yapılır. Bu yöntem havuzdaki nesne sayısını sabitler ve heap'in gereksiz yere şişmesini de engeller ancak dezavantajları da vardır. Örneğin havuzda boş yer yokken bir nesne istersek yeni nesne üretemeyebiliriz. Bu da bizi **Eviction** stratejilerine götürür. **Least Recently Used _(LRU)_**, **Time-Aware Least Recently Used _(TLRU)_**, **Least Frequently Used _(LFU)_**, **Most Recently Used _(MRU)_** gibi. Bunlar sadece object pooling değil cache mekanizmaları içinde ele alınan stratejilerdir. 
+
+- **LRU**' da amaç kullanılmayan nesneleri belli bir sıraya göre havuzdan çıkarmaktır ve genellikle web cache, session cahce, oyunlarda asset yönetimi gibi senaryolarda ele alınır. Burada en az kullanılan nesneye erişmek Big O ölçümlemesine göre nispeten yavaş olabilir ve O(1) durumuna getirilmesi gerekebilir. 
+- **TLRU**' da bir zaman damgası kullanılır ve buna göre belli süre kullanılmayan nesnelerin havuzdan çıkartılması sağlanır. Tahmin edileceği üzere amaç belli süre kullanılmayan nesneleri temizlemek bunu da bir zamanlayıcıya göre ayarlamaktır. Örneğin ömrü 60 saniyeden eski olanları temizle demek gibi. Geçici dosya yönetiminde, IoT sistemlerde ele alınabilir. 
+- **LFU**' da amaç en az kullanılan ya da daha iyi bir tarifle en az başvurulan nesneyi havuzdan çıkarmaktır. Böylece sık kullanılan nesneler havuzda kalırken az kullanılanlar çıkarılır. Makine öğrenmesi'nde cache kullanılacağı zaman ve DB indeklemede ele alınır. Sık kullanılan nesnelerin havuzda kalması önemli bir avantajdır ancak bu nesnelerin aranması bulunması tam bir O(N) maliyetine eş olabilir.
+- **MRU** ise en son kullanılan nesnenin bellekten çıkartılmasını hedefler. Veri sıkıştırma algoritmaları ve büyük dosya sistemlerinde kullanılan bir yöntem olduğu belirtilmektedir. LRU'nun tam tersi olarak da değerlendirilebilir. 
+
+Tabii Object Pooling dedik, sonra havuz kapasitesini nasıl yöneteceğiz dedik ve kendimizi cache stratejilerinin uygulanmasında bulduk. Bu nedenle eğer sıfırdan bir object pool mekanizması tasarlamayacaksak bunu soyutlayan crate'lerden yararlanmak daha iyi olabilir.
 
 ## Cache Aware Programming
 
