@@ -4,6 +4,7 @@ mod cow_samples;
 mod niche_option;
 mod object_pooling;
 mod object_pooling_2;
+mod object_pooling_refactored;
 mod zero_cost_abstraction;
 
 fn main() {
@@ -20,4 +21,6 @@ fn main() {
     object_pooling::run();
 
     object_pooling_2::run();
+
+    object_pooling_refactored::run();
 }

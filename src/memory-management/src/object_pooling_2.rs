@@ -7,6 +7,8 @@ struct AssetServer {
 }
 
 pub fn run() {
+    println!("\nObject Pooling With typed_arena\n");
+
     let arena = Arena::new();
 
     let server_1 = arena.alloc(AssetServer {

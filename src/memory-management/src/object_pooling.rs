@@ -38,8 +38,11 @@ impl<T> ObjectPool<T> {
 
     // Ekleme, çekme ve serbest bırakma operasyonlarının tamamında Mutex lock kullanılır
     pub fn add(&mut self, value: T) {
-        if self.objects.lock().unwrap().len() < self.capacity {
-            self.objects.lock().unwrap().push(value);
+        let mut objects = self.objects.lock().unwrap();
+        if objects.len() < self.capacity {
+            objects.push(value);
+        } else {
+            println!("Pool is full");
         }
     }
 
@@ -63,6 +66,8 @@ impl<T> ObjectPool<T> {
 }
 
 pub fn run() {
+    println!("\nFirst Object Pooling Sample\n");
+
     let mut asset_pool: ObjectPool<Box<dyn Identifiable>> =
         ObjectPool::<Box<dyn Identifiable>>::new(10);
 
