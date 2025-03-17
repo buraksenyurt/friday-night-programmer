@@ -2,8 +2,9 @@ mod arena_alloc;
 mod boxing;
 mod cow_samples;
 mod niche_option;
-mod zero_cost_abstraction;
 mod object_pooling;
+mod object_pooling_2;
+mod zero_cost_abstraction;
 
 fn main() {
     cow_samples::run();
@@ -17,4 +18,6 @@ fn main() {
     zero_cost_abstraction::run();
 
     object_pooling::run();
+
+    object_pooling_2::run();
 }
