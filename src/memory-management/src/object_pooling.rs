@@ -25,18 +25,22 @@ impl Identifiable for AssetServer {
 // Generic T türü ile çalışır
 struct ObjectPool<T> {
     objects: Arc<Mutex<Vec<T>>>, // T anında sadece bir thread'in erişimini garanti etmek için Atomic Reference Counted ve Mutex kullanılmıştır.
+    capacity: usize,
 }
 
 impl<T> ObjectPool<T> {
-    pub fn new() -> Self {
+    pub fn new(capacity: usize) -> Self {
         ObjectPool {
             objects: Arc::new(Mutex::new(Vec::new())),
+            capacity,
         }
     }
 
     // Ekleme, çekme ve serbest bırakma operasyonlarının tamamında Mutex lock kullanılır
     pub fn add(&mut self, value: T) {
-        self.objects.lock().unwrap().push(value);
+        if self.objects.lock().unwrap().len() < self.capacity {
+            self.objects.lock().unwrap().push(value);
+        }
     }
 
     pub fn get(&mut self) -> Option<T> {
@@ -50,13 +54,17 @@ impl<T> ObjectPool<T> {
 
     // Bir nesne ile işimiz bittiğinde onu havuza tekrardan yerleştirmek için kullanılan fonksiyon
     pub fn release(&mut self, value: T) {
-        self.objects.lock().unwrap().push(value);
+        if self.objects.lock().unwrap().len() < self.capacity {
+            self.objects.lock().unwrap().push(value);
+        } else {
+            println!("Pool is full");
+        }
     }
 }
 
 pub fn run() {
     let mut asset_pool: ObjectPool<Box<dyn Identifiable>> =
-        ObjectPool::<Box<dyn Identifiable>>::new();
+        ObjectPool::<Box<dyn Identifiable>>::new(10);
 
     for i in 0..5 {
         asset_pool.add(Box::new(AssetServer::new(i)));
