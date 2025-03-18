@@ -1,48 +1,32 @@
+// src/routes/index.tsx
 import type { JSX } from 'react'
 import type { TuonoProps } from 'tuono'
 
 interface IndexProps {
-  subtitle: string
+  data: Array<String>
 }
 
 export default function IndexPage({
   data,
-  isLoading,
-}: TuonoProps<IndexProps>): JSX.Element {
-  if (isLoading) {
-    return <h1>Loading...</h1>
-  }
+}: TuonoProps<IndexProps>): JSX.Element | null {
+  console.log(data);
+
+  if (!data) return null
 
   return (
     <>
       <header className="header">
-        <a href="https://crates.io/crates/tuono" target="_blank">
-          Crates
-        </a>
-        <a href="https://www.npmjs.com/package/tuono" target="_blank">
-          Npm
-        </a>
+        <h1>Chuck Norris Facts</h1>
       </header>
-      <div className="title-wrap">
-        <h1 className="title">
-          TU<span>O</span>NO
-        </h1>
-        <div className="logo">
-          <img src="rust.svg" className="rust" />
-          <img src="react.svg" className="react" />
-        </div>
-      </div>
-      <div className="subtitle-wrap">
-        <p className="subtitle">{data?.subtitle}</p>
-        <a
-          href="https://github.com/tuono-labs/tuono"
-          target="_blank"
-          className="button"
-          type="button"
-        >
-          Github
-        </a>
-      </div>
+      <ul style={{ flexWrap: "wrap", display: "flex", gap: 10, listStyle: "none", padding: 0 }}>
+        {data.map((category, index) => (
+          <li key={index} style={{ marginLeft: "16px" }}>
+            <a href={`/category/${category}`}>
+              {category}
+            </a>
+          </li>
+        ))}
+      </ul>
     </>
-  )
+  );
 }

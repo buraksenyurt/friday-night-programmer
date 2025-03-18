@@ -10,4 +10,7 @@ path = ".tuono/main.rs"
 [dependencies]
 tuono_lib = "0.18.0"
 serde = { version = "1.0.202", features = ["derive"] }
+reqwest = "0.12.14"
+log = "0.4.26"
+env_logger = "0.11.7"
 
