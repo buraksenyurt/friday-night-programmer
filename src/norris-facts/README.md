@@ -33,3 +33,5 @@ tuono dev
 
 # bu adımdan sonra localhost:3000 ile index sayfasına erişebildim
 ```
+
+![Norris fact runtime 03](../../images/norris_runtime_03.png)
