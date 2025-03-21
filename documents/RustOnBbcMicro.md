@@ -172,6 +172,8 @@ cargo embed --features v2 --target thumbv7em-none-eabihf
 
 Şimdi bu komut üzerine birşeyler söylemek lazım. Öncelikle bir gömülü sistem söz konusu ise bir ELF dosyasının üretilmesi ve mikro denetleyiciye yüklenmesi _(Flashing olarak geçiyor)_ gerekiyor. Bu hatta cihazın kalıcı belleğine yüklemek olarak da düşünülebilir. Tabii bazı durumlarda bu ELF dosyasının resetlenmesi veya debug için duraklatılarak kullanılması da gerekiyor. Bunlar tabii bir dizi işlem demek. cargo embed komutu bunun için probe-rs altyapısını kullanmakta ki yazımızın başında referans ettiğimiz dokümanı tüm bu araçları yüklemeyi anlatıyor. Kısaca cargo embed, gerekli derleme işlemini yapar, oluşan elf dosyasını bulup Embed.toml daki talimatlara göre yükler _(flash)_ diyebiliriz. Bizim komutumuzada --features v2 kullandığımız için cargo.toml' da belirtilen microbit-v2 sürümü ele alınıyor. --target'a göre de az önce yüklediğimiz enstrüman için bir çıktı üretiliyor. thumbv7em, ARM Cortex-M4 işlemcisini, none işletim sistemi olmadığını, eabihf ise Hard Float özelliği olduğunu _(Floating point'ler ile çalışıyorsak daha hızlı olurmuş)_ belirtiyor.
 
+<video width="320" height="200" controls src="../images/MicroRuntime.mp4" title="Runtime"></video>
+
 ## Debug Modda Çalıştırmak
 
 ## Kaynaklar
