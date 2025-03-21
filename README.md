@@ -68,6 +68,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | **memory-management** | Bellek yönetimi konusunda Cow, String Interning, Area Allocator, Memory/Object pooling gibi konulara ait basit kod kırıntılarının yer aldığı programdır.   | rust, memory-management  |
 | **metrics** | [Ratutui](https://ratatui.rs/) 'nin önemli Maintainer' larından Rustacean [Orhun Parmaksız'ın](https://github.com/orhun) [Code Maven](https://youtu.be/OkmYsa25pIw?si=1JiMfHys5-Z51iXZ) ile gerçekleştirdiği yayındaki örnekten yararlanılarak geliştirilmiş terminal bazlı uygulamadır  | rust, ratutui, tui, terminal-app  |
 | **norris-facts** | Bu örnekte **tuono** isimli web framework'ü deniyorum. [Tuono](https://tuono.dev/) _(İtalyan'cadan çevrilinde gök gürültüsü anlamına geliyormuş)_ React kullanan ama bunu yaparken server-side rendering işlerinde hiçbir javascript runtime kullanmayan bir ürün olarak lanse edildi. Hatta iddiasına göre sunucu tarafı rust ile yazılmış olan ilk full-stack React framework. | rust, web-framework, react |
+| **micro-lights** | BBC Micro:bit V2.2 üzerinde hello world mahiyetinde yazmaya çalıştığım örnek kodları içerir| #rust #embedded-rust #bbc-micro-bit #bare-metal-programming |
 | | | |
 
 ## Yardımcı Dokümanlar
