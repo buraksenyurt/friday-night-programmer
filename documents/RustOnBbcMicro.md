@@ -2,6 +2,19 @@
 
 Daha önceden Raspberry PI üzerinde Python dilini kullanarak tekerlek döndürmüştüm ancak Python ve kütüphanelerin sunduğu soyutlamalar ve RasPi' nin yetenekleri işi epeyce kolaylaştırmıştı. Bir süredir de gömülü sistemlerde Rust ile nasıl programlama yapılıyor merak etmekteydim. Rust dilinin çalışma sahası düşünüldüğünde C++ ile hareket edebileceğimiz her yerde geliştirme yapabileceğimizi söylesem yanılmam sanıyorum ki. Ancak burada bare metal programming konsepti sınırlarına giriliyor. Standart kütüphaneyi dışarıda bırakıp core kütüphane üzerinden ilerlemek ve sınırlı kapasiteye sahip ve hatta işletim sistemi dahi olmayan mikro denetleyicilerin farklılıklarını da göze alarak hareket etmek gerekiyor. Bana epey uzak bir konu olduğunu ifade edebilirim ancak en azından bir Hello World yazmak zorundayım ve hatta buna Hello Light desek daha iyi olabilir.
 
+- [Giriş](#bbc-microbit---rust-ile-hello-light)
+    - [Kurulumlar ve Kodlama Safhası](#kurulumlar-ve-kodlama-safhası)
+    - [Lakin, ama, ancak](#lakin-ama-ancak)
+        - [config.toml İçeriği](#configtoml-i̇çeriği)
+        - [Embed.toml İçeriği](#embedtoml-i̇çeriği)
+        - [memory.x İçeriği](#memoryx-dosyası)
+    - [Target Kurulumu](#target-kurulumu)
+    - [Çalışma Zamanı](#çalışma-zamanı)
+    - [Çalışma Zamanından Notlar](#çalışma-zamanından-notlar)
+    - [Farklı Kod Örnekleri](#farklı-kod-örnekleri)
+    - [Debug Modda Çalışmak](#debug-modda-çalıştırmak)
+    - [Kaynaklar](#kaynaklar)
+
 Internette gömülü sistemlerde Rust ile kodlama için sınırsız kaynak var ve hatta birincil kaynak olarak [The Embedded Rustacean](https://www.theembeddedrustacean.com/) sitesini tavsiye ederim. Haftalık bir bültenleri var ve oldukça sıkı makalelere yer veriyorlar. Lakin derli toplu ve kısa yoldan bir giriş yapmak isteyenler için bana göre birincil kaynak Rust Embedded organizasyonun [şu adresteki ücretsiz keşif kitabı](https://docs.rust-embedded.org/discovery/microbit/index.html). Bende bu kitabı baz alarak ilermek istedim diyebilirim. Saf zihnim ilk etapta bir emulator üzerinden hareket edebilirim yönündeydi. Hatta bu konuda oldukça güzel bir [çevrimiçi simülator sitesi](https://wokwi.com/rust) var. Takip etmekde olduğum Discovery kitabı konuyu [BBC micro:bit](https://microbit.org/) üzerinden ele alıyor. Bende heyecanla bu karttan bir tane aldım. ARM tabanlı bu mikro denetleyici için iki fotoğrafı da şöyle bırakayım.
 
 ![Micro:bit 00](../images/MicroBit_00.jpg)
@@ -170,10 +183,42 @@ rustup target list
 cargo embed --features v2 --target thumbv7em-none-eabihf
 ```
 
+![Embed result](../images/MicroBit_02.png)
+
 Şimdi bu komut üzerine birşeyler söylemek lazım. Öncelikle bir gömülü sistem söz konusu ise bir ELF dosyasının üretilmesi ve mikro denetleyiciye yüklenmesi _(Flashing olarak geçiyor)_ gerekiyor. Bu hatta cihazın kalıcı belleğine yüklemek olarak da düşünülebilir. Tabii bazı durumlarda bu ELF dosyasının resetlenmesi veya debug için duraklatılarak kullanılması da gerekiyor. Bunlar tabii bir dizi işlem demek. cargo embed komutu bunun için probe-rs altyapısını kullanmakta ki yazımızın başında referans ettiğimiz dokümanı tüm bu araçları yüklemeyi anlatıyor. Kısaca cargo embed, gerekli derleme işlemini yapar, oluşan elf dosyasını bulup Embed.toml daki talimatlara göre yükler _(flash)_ diyebiliriz. Bizim komutumuzada --features v2 kullandığımız için cargo.toml' da belirtilen microbit-v2 sürümü ele alınıyor. --target'a göre de az önce yüklediğimiz enstrüman için bir çıktı üretiliyor. thumbv7em, ARM Cortex-M4 işlemcisini, none işletim sistemi olmadığını, eabihf ise Hard Float özelliği olduğunu _(Floating point'ler ile çalışıyorsak daha hızlı olurmuş)_ belirtiyor.
 
-<video width="320" height="200" controls src="../images/MicroRuntime.mp4" title="Runtime"></video>
+[Runtime](../images/MicroRuntime.mp4)
+
+## Çalışma Zamanından Notlar
+
+Örneği çalıştırdığımda beklediğim gibi _(ve de sürpriz bir şekilde)_ tam ortadaki led yanıp sönmeye başladı. Zira şöyle bir soru var. Nasıl duracak? :D Üstelik cihazın gücünü kessem bile tekrar bağladığımda ışık yanıp sönmeye devam etti. Aslında bu son derece doğal zira cargo embed operasyonu bu programı cihazın Flash belleğine yazar. Klasik bir işletim sisteminde bunun yerine program hard disk gibi bir fiziki depolama alanında durur ve işletim sistemi kontrol altındadır. Çalıştırıldığında program işletim sistemi tarafında RAM'e alınır. Kapandığında da...Kapanır ha ha :D Buradaki senaryo ise farklı. Flash belleğe yazdığımız program kalıcı olarak orada duruyor. Öğrendiğim kadarı ile mikrodenetleyicilerde kod genellikle Flash' te saklanıyor _(Bazen Read Only Memory-ROM diye bahsedildiğini de gördüm)_ Cihazı reset etsek bile cihazın reset vektörü [entry] bildirimi ile işaret edilen start fonksiyonu buluyor ve hemen çalıştırıyor. Burada aslında birkaç taktik var. Mesela birisi program kodunu aşağıdaki gibi değişitirip yüklemek. Tam bir hile :D
+
+```rust
+#[entry]
+fn start() -> ! { 
+    loop {
+
+    }
+}
+```
+
+Bunun dışında cihaz üzerinde gelen buton kontrolleri ile farklı bir yola da gidilebilir. Işığın yanıp söndürülmesi buton basılmasına bağlanabilir. Tabii burada mikrokontrolcülerde genelde tek bir program çalıştığını ifade etmekte yarar var. O nedenle Flash edilen program kısıtlı bellek bölgesinde her daim çalışmak üzere tasarlanan bir iş modeline sahip oluyor.
+
+## Farklı Kod Örnekleri
+
+// Eklenecek
 
 ## Debug Modda Çalıştırmak
 
+// Eklenecek
+
 ## Kaynaklar
+
+- [Embedded Rust Docs - Discovery](https://docs.rust-embedded.org/discovery/microbit/index.html)
+- [The Embedded Rust Book](https://docs.rust-embedded.org/book/intro/index.html)
+- [A Freestanding Rust Binary](https://os.phil-opp.com/freestanding-rust-binary/#panic-implementation)
+- [Ferrous System Embedding Training](https://github.com/ferrous-systems/embedded-trainings-2020)
+- [Microbit Examples](https://github.com/nrf-rs/microbit/tree/03e97a2977d22f768794dd8b0a4b6677a70f119a/examples)
+- [Microbit.org](https://microbit.org/)
+- [The Embedded Rustacean](https://www.theembeddedrustacean.com/)
+- [Embedded programming in Rust with Microbit V2](https://www.youtube.com/watch?v=b7zWIKZp4ls)
