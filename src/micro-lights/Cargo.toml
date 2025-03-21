@@ -1,0 +1,24 @@
+[package]
+name = "micro-lights"
+description = "A simple hello world app for micro:bit v2.2."
+authors = ["Burak Selim Şenyurt"]
+version = "0.1.0"
+edition = "2024"
+
+[dependencies.microbit-v2]
+version = "0.15.1"
+optional = true
+
+[dependencies.microbit]
+version = "0.15.1"
+optional = true
+
+[dependencies]
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.5"
+embedded-hal = "1.0.0"
+panic-halt = "1.0.0"
+
+[features]
+v2 = ["microbit-v2"]
+v1 = ["microbit"]
