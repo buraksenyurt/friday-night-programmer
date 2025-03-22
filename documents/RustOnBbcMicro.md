@@ -278,6 +278,58 @@ Ancak dikkat edileceği üzere burada unsafe zone içerisinde işlemler yapılma
 
 ### RUST Yazdırmak
 
+Aslında amacım bu ama öncelikle LED paneldeki ışıkları kullanarak bir yanıp sönen bir harf görsem kafi. Mesela aşağıdaki gibi :)
+
+![Letter H](../images/MicroBit_05.jpg)
+
+Bunun için aşağıdaki kod parçasını kullanabiliriz.
+
+```rust
+#![deny(unsafe_code)]
+#![no_main]
+#![no_std]
+
+use cortex_m_rt::entry;
+use microbit::display::blocking::Display;
+use microbit::{board::Board, hal::timer::Timer};
+use panic_halt as _;
+
+#[entry]
+fn start() -> ! {
+    let mut board = Board::take().unwrap();
+    // Tüm Led'ler kapalı
+    let clear = [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+    ];
+
+    // Belli ledler açık ve H harfi şeklinde yanıyor.
+    let H = [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+    ];
+    // Matrisleri kullanabilecek bir Display nesnesi
+    let mut display = Display::new(board.display_pins);
+    let mut timer = Timer::new(board.TIMER0);
+
+    loop {
+        // 1 saniye boyunca clear matrisine göre led'ler konumlanacak (Hepsi Kapalı)
+        display.show(&mut timer, clear, 1000);
+        // 1 saniye boyunca H matrisindeki Led'ler yanacak
+        display.show(&mut timer, H, 1000);
+        // ve bu böyle sürüp gidecek (Blinky effect)
+    }
+}
+```
+
+Micro:bit üzerinde 5X5 lik bir led matrisi var. microbit crate ile sunulan Display yapısını kullanarak iki boyutlu bir dizi elemanlarını 0 veya 1 olarak değiştirerek istediğimiz ışıkları yaktırabiliriz. Bu örneği daha da geliştirebiliriz. Hatta RUST yazdırmayı deneyebiliriz.
+
 // Eklenecek
 
 ### Ses Efektleri
@@ -290,17 +342,61 @@ Ancak dikkat edileceği üzere burada unsafe zone içerisinde işlemler yapılma
 
 ## Debug Modda Çalıştırmak
 
-// Eklenecek
+Micro:bit üzeine alınan kodun nasıl debug edileceğine de bir bakalım. Bunun için öncellikle GDB modunu etkinleştirmek gerekiyor. Yani Embed.toml dosyasındaki default.gdb aşağıdaki gibi değiştirilmeli.
+
+```toml
+[default.gdb]
+enabled = true
+```
+
+Uygulama kodunu aşağıdaki komut satırı ile derliyoruz.
+
+```bash
+cargo embed --features v2 --target thumbv7em-none-eabihf
+```
+
+gdb modunu etkinleştirdiğimiz için localhost 1337 portundan erişilebilen bir GDB server ayağa kalkıyor. Bu debug server'a microdenetleyici üzerinde çalışmakta olan programı attach ederek debug işlemi yapabiliyoruz. Bunun için ayrı bir terminal penceresi açıp debugger aracını başlatmamız ve debug sunucusuna bağlanmamız gerekiyor.
+
+```bash
+# İstemci programı debug modda açmak için aşağıdaki komut
+arm-none-eabi-gdb .\target\thumbv7em-none-eabihf\debug\micro-lights
+
+# Sonrasında debug sunucusuna bağlanmak için de şu komut işletilmeli
+target remote :1337
+
+# Eğer işlem başarılı olursa örneğin aşağıdaki komut ile main fonksiyonu başına breakpoint koyup durabiliriz
+# Hatta ilk örnekte bunu denersek bulunduğumuz yere göre ışık yanmayabilir veya sürekli yanar pozisyonda kalabilir
+# Zira kod breakpoint noktasında durmaktadır
+break main
+
+# Aşağıdaki kod ile işleyişe devam edebiliriz
+continue
+
+# Belli bir satıra breakpoint eklemek için
+break 14
+
+# Step into için
+stepi
+
+# Debugger'dan çıkmak içinse 
+quit
+```
+
+Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Ancak debugger'ı esasında Vs Code gibi bir arabirime bağlamak daha iyi bir çözüm olabilir.
+
+![Debug Mod](../images/MicroBit_04.png)
 
 ## Mini Sözlük
 
-- BSP (Board Support Package)
-- HAL (Hardware Abstraction Layer)
-- PAC (Peripheral Access Crate)
-- MCU ()
-- GPIO (General Purpose Input/Output)
-- Flashing
-- ELF
+// DÜZENLENECEK
+
+- BSP _(Board Support Package)_ :
+- HAL _(Hardware Abstraction Layer)_ :
+- PAC _(Peripheral Access Crate)_ :
+- MCU _(Microcontroller Unit)_ :
+- GPIO _(General Purpose Input/Output)_ :
+- Flashing :
+- ELF _(Executable and Linkable Format)_ :
 
 ## Kaynaklar
 
