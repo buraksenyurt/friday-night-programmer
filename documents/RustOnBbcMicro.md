@@ -4,6 +4,7 @@ Daha önceden Raspberry PI üzerinde Python dilini kullanarak tekerlek döndürm
 
 - [Giriş](#bbc-microbit---rust-ile-hello-light)
     - [Kurulumlar ve Kodlama Safhası](#kurulumlar-ve-kodlama-safhası)
+        - [LED Matrix Hakkında](#led-matrix-hakkında)
     - [Lakin, ama, ancak](#lakin-ama-ancak)
         - [config.toml İçeriği](#configtoml-i̇çeriği)
         - [Embed.toml İçeriği](#embedtoml-i̇çeriği)
@@ -13,6 +14,7 @@ Daha önceden Raspberry PI üzerinde Python dilini kullanarak tekerlek döndürm
     - [Çalışma Zamanından Notlar](#çalışma-zamanından-notlar)
     - [Farklı Kod Örnekleri](#farklı-kod-örnekleri)
     - [Debug Modda Çalışmak](#debug-modda-çalıştırmak)
+    - [Mini Sözlük](#mini-sözlük)
     - [Kaynaklar](#kaynaklar)
 
 Internette gömülü sistemlerde Rust ile kodlama için sınırsız kaynak var ve hatta birincil kaynak olarak [The Embedded Rustacean](https://www.theembeddedrustacean.com/) sitesini tavsiye ederim. Haftalık bir bültenleri var ve oldukça sıkı makalelere yer veriyorlar. Lakin derli toplu ve kısa yoldan bir giriş yapmak isteyenler için bana göre birincil kaynak Rust Embedded organizasyonun [şu adresteki ücretsiz keşif kitabı](https://docs.rust-embedded.org/discovery/microbit/index.html). Bende bu kitabı baz alarak ilermek istedim diyebilirim. Saf zihnim ilk etapta bir emulator üzerinden hareket edebilirim yönündeydi. Hatta bu konuda oldukça güzel bir [çevrimiçi simülator sitesi](https://wokwi.com/rust) var. Takip etmekde olduğum Discovery kitabı konuyu [BBC micro:bit](https://microbit.org/) üzerinden ele alıyor. Bende heyecanla bu karttan bir tane aldım. ARM tabanlı bu mikro denetleyici için iki fotoğrafı da şöyle bırakayım.
@@ -107,6 +109,14 @@ fn start() -> ! { // ! dönüyor. Bu fonksiyonun hiç sonlanmayacağını belirt
 ```
 
 Genel rust programlama pratiklerine göre biraz farklı bir kurgu olduğunu ifade edebilirim. start fonksiyonu programın çalışmaya başladığı nokta. Mikrodenetleyici üzerinde bir işletim sistemi bulunmadığından ve doğal olarak rust'ın klasik main fonksiyonunu yürütecek çalışma zamanı bulunmayacağından farklı bir yöntemle gidiliyor diye düşünebiliriz belki de _(Bunu biraz daha derinlemesine araştırmam lazım)_ Bana göre no_main ve no_std direktifleriyle rust derleyicisinin beklediği main metodunun olmadığını ve standart kütüphaneye bağlamadan _(linkleme)_ derlemenin yapılması gerektiğini belirtiyoruz. Tabii programın biryerden çalışmaya başlayacağının da belirtilmesi lazım. Bu, [entry] direktifinin görevi. start fonksiyonu geriye ! dönüyor gibi duruyor ancak bunun anlamı fonksiyonunu hiç sonlanmayacak olması _(Şu anda tam ortadaki led yanıp sönmeye devam ediyor. Aradan dakikalar geçti. Kastettiğim bu)_ Sonuçta elimizde bir devre kartı var ve üzerinde sunulan led'lere erişmek istiyoruz hatta tam ortadakini yakıp söndüreceğiz ve bunu devamlı yapacağız. Bununla ilgili soyutlamaları kullanıyoruz. Board'un sahipliğini alıp onun üzerinden satır ve sütun yönlendirmeleri ile led'lere ulaşıp set_low ve set_hihg çağrıları ile gerekli yakıp söndürme işlemlerini icra ediyoruz.
+
+### Led Matrix Hakkında
+
+Micro:bit kartının [şu adreste](file:///C:/Users/burak/Downloads/MicroBit_V2.0.0_S_schematic.PDF) oldukça detaylı bir devre şeması yer alıyor. Örnek kodda 3ncü satır ve sütundaki LED yakılıyor. Nasıl bir LED matrisi ile karşı karşıya olduğumuzu aşağıdaki grafikten görebilirsiniz.
+
+![Microbit_03](../images/Microbit_03.png)
+
+Dolayısıyla microbit küfesi üzerinden erişebildiğimiz birçok soyutlama bu şemada belirtilen adreslere erişmemizi kolaylaştırmakta.
 
 ## Lakin, ama, ancak
 
@@ -208,11 +218,89 @@ Bunun dışında cihaz üzerinde gelen buton kontrolleri ile farklı bir yola da
 
 ## Farklı Kod Örnekleri
 
+Şimdilik ışık yakmaya devam edelim derim :D
+
+### Farklı Bir Hello World _(Unsafe Side)_
+
+Bu seferki yaklaşımda doğrudan donanım seviyesine inip GPIO _(General Purpose Input Output)_ register adreslerini kullanarak ortadaki LED ışığını yanıp söndürmeye çalışacağız. Çalışmakta olduğumuz Micro:bit kartındaki LED matrix 5x5 boyutlarında. Elektronik ile çok aram yoktur ancak öğrendiğim kadarı ile bir LED'i yakmak için bu LED'e giden ROW pinini LOW, yine bu LED'e giden COLUMN Pinini HIGH yapmak gerekiyormuş. Tabii burada ilgili pin register adreslerine nasıl gideceğimiz de bir soru işareti. Kaynaklarda dolanıp durdum ama anladığım kadarı ile örneğin 21nci pinin adresi aşağıdaki formmülle ifade edilebiliyor.
+
+```text
+0x5000_0700 + 21 * 4 = 0x5000_0700 + 0x54 = 0x5000_0754
+```
+
+PIN adreslerini bulmakta yeterli değil. Işıkların yanması için PIN yönünün output yapılması ve OUTCLR / OUTSET gibi registerlarından yararlanarak çıkış seviyelerinin ayarlanması da gerekiyormuş. Neyse ki [The Rusty Bits kanalında yayınlanan şu video](https://www.youtube.com/watch?v=A9wvA_S6m7Y&t=185s) bu konularda önemli ayrıntılar veriyor. En nihayetinde aşağıdaki gibi bir kodlama ile ışık yanıp söndürülebilir.
+
+```rust
+#![no_std]
+#![no_main]
+
+use core::ptr::write_volatile;
+use cortex_m::asm::nop;
+use cortex_m_rt::entry;
+use panic_halt as _;
+
+#[entry]
+fn start() -> ! {
+    const GPIO0_BASE: u32 = 0x5000_0000;
+    const PIN_CNF_OFFSET: u32 = 0x700;
+    const P0_21: usize = 21;
+    const P0_28: usize = 28;
+    const GPIO0_PIN_CNF_21_ROW_1_ADDR: *mut u32 =
+        (GPIO0_BASE + PIN_CNF_OFFSET + (P0_21 * 4) as u32) as *mut u32;
+    const GPIO0_PIN_CNF_28_COL_1_ADDR: *mut u32 =
+        (GPIO0_BASE + PIN_CNF_OFFSET + (P0_28 * 4) as u32) as *mut u32;
+    const DIRECTION_OUTPUT_POS: u32 = 0;
+    const PIN_CNF_DRIVE_LED: u32 = 1 << DIRECTION_OUTPUT_POS;
+
+    unsafe {
+        write_volatile(GPIO0_PIN_CNF_21_ROW_1_ADDR, PIN_CNF_DRIVE_LED);
+        write_volatile(GPIO0_PIN_CNF_28_COL_1_ADDR, PIN_CNF_DRIVE_LED);
+    }
+    const GPIO0_OUTPUT_ADDRESS: *mut u32 = (GPIO0_BASE + 4) as *mut u32;
+    const GPIO0_OUTPUT_ROW_1_POS: u32 = 21;
+    let mut light_is_on: bool = false;
+    loop {
+        unsafe {
+            write_volatile(
+                GPIO0_OUTPUT_ADDRESS,
+                (light_is_on as u32) << GPIO0_OUTPUT_ROW_1_POS,
+            );
+            for _ in 0..400_000 {
+                nop();
+            }
+            light_is_on = !light_is_on;
+        }
+    }
+}
+```
+
+Ancak dikkat edileceği üzere burada unsafe zone içerisinde işlemler yapılmakta. Rust'ın borrow cheker mekanizması devre dışı kalacağından tabii bazı riskleri almış oluyoruz. Kodlaması da epey zahmetli. Zaten bu sebeple Hardware Abstraction Layer _(HAL)_ kütüphanelerini kullanmak daha anlamlı duruyor.
+
+### RUST Yazdırmak
+
+// Eklenecek
+
+### Ses Efektleri
+
+// Eklenecek
+
+### Düğmeler ile Etkileşim
+
 // Eklenecek
 
 ## Debug Modda Çalıştırmak
 
 // Eklenecek
+
+## Mini Sözlük
+
+- BSP (Board Support Package)
+- HAL (Hardware Abstraction Layer)
+- PAC (Peripheral Access Crate)
+- MCU ()
+- GPIO (General Purpose Input/Output)
+- Flashing
+- ELF
 
 ## Kaynaklar
 
@@ -224,3 +312,5 @@ Bunun dışında cihaz üzerinde gelen buton kontrolleri ile farklı bir yola da
 - [Microbit.org](https://microbit.org/)
 - [The Embedded Rustacean](https://www.theembeddedrustacean.com/)
 - [Embedded programming in Rust with Microbit V2](https://www.youtube.com/watch?v=b7zWIKZp4ls)
+- [Micro:bit V2 için donanım şeması](https://github.com/microbit-foundation/microbit-v2-hardware/blob/main/V2.00/MicroBit_V2.0.0_S_schematic.PDF)
+- [nRF52833 Product Specification](https://docs-be.nordicsemi.com/bundle/ps_nrf52833/attach/nRF52833_PS_v1.7.pdf?_LANG=enus)
