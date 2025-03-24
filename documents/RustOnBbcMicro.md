@@ -462,15 +462,25 @@ Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Debugger'ı esasın
 
 ## Mini Sözlük
 
-// DÜZENLENECEK
+Benim gibi gömülü sistem programcılığına uzak olanlar için gerekli belli başlı terimleri aşağıdaki gibi sıralayabiliriz.
 
-- BSP _(Board Support Package)_ :
-- HAL _(Hardware Abstraction Layer)_ :
-- PAC _(Peripheral Access Crate)_ :
-- MCU _(Microcontroller Unit)_ :
-- GPIO _(General Purpose Input/Output)_ :
-- Flashing :
-- ELF _(Executable and Linkable Format)_ :
+-- **GPIO _(General Purpose Input/Output)_ :** Genel amaçlı giriş/çıkış pinleridir. LED yakmak, buton okumak, sensörlerden veri almak vb işlemlerde kullanılır. Hem giriş _(Input)_ hem de çıkış _(output)_ olarak yapılandırılabilir.
+- **UART _(Universal Asynchronous Receiver-Transmitter)_:** Mikrodenetleyicilerde sensör verilerinin aktarım işlemlerini tanımlayan bir seri iletişim protokoldür. Sadece mikrodenetleyiciler değil bilgisayarlar içinde geçerlidir.
+- **SPI _(Serial Peripheral Interface)_:** Ağırlıklı olarak yine mikrodenetleyicilerde ele alınan bir senkron ve seri haberleşme standardıdır. 
+- **I2C _(Inter-Integrated Circuit)_:**
+- **ADC _(Analog-to-Digital Converter)_:**  Analog sinyali dijitale çeviren dönüştürücüdür. Örneğin mikrofon sensörüne gelen veriyi dijital hale çevirmekte kullanılır.
+- **BSP _(Board Support Package)_ :** Donanım kartına özel olarak geliştirilmiş başlangıç için gerekli tüm unsurları içeren paketlerin genel adıdır. Karta özel pin tanımlarını, saat ayarlarını, buton buzzer pin ayarlarını vb içerir. Örneğin Micro:bit için kullandığımız [microbit-v2](https://crates.io/crates/microbit-v2) BSP örneklerindendir. Bu tip paketler kullanılarak HAL katmanları da geliştirilebilir.
+- **HAL _(Hardware Abstraction Layer)_ :** Donanım seviyesindeki enstrümanlarla konuşmayı kolaylaştıran bir arayüz olarak düşünülebilir. Örneğin GPIO pinlerine doğrudan erişmek yerine detaylardan uzak ve kolay kullanılabilir bir soyutlama sağlar. Örneğin pin registerlarına doğrudan yazmak yerine pin.set_high gibi anlamlı fonksiyonlar sağlar. Bazen BSP ile karıştırılabilir.[nrf52833-hal](https://crates.io/crates/nrf52833-hal) örnek olarak verilebilir. Bu HAL örneğin belli mikrodenetleyicileri hedefler. Birde daha genel soyutlama sağlayan [embedded-hal](https://crates.io/crates/embedded-hal) gibi küfeler vardır. Bunu şöyle de düşünebiliriz; embedded-hal genel arayüz tanımlamalarını içerir _(traits)_, nrf52833-hal ise nRF52833'e özel olarak ilgil trait'leri gerçekten implemente eder. Dolayısıyla cihaza özgü komutlar da içerebilir.
+- **Peripheral :** Mikrodenetleyicinin içinde bulunan **GPIO**, **UART**, **SPI**, **I2C**, **Timer**, **ADC** gibi birimlerdir. Her biri ayrı bir periferik modül olarak kabul edilir.
+- **PAC _(Peripheral Access Crate)_ :** Mikrodenetleyici üreticisinin sağladığı register haritalarını, API'leri otomatik olarak Rust koduna çeviren paketlerdir. HAL kütüphaneleri genelde PAC modülleri üzerine kurulur.
+- **MCU _(Microcontroller Unit)_ :** İşlemci çekirdeği, flash bellek, RAM ve .eşitli çevresel birimleri tekbir çipte barındıran elektronik birim.
+- **Flashing :** Yazılan programın mikrodenetleyici üzerinde çalıştırılması genellikle Flask bellek bölgesine taşınması ile gerçekleştirilir. Bu işlem flashing olarak adlandırılır. probe-rs veya openocd gibi araçlarla yapılır.
+- **ELF _(Executable and Linkable Format)_ :** Derlenen programın hedef sistemde çalıştırılabilir hale getirildiği dosya formatıdır.
+- **GDB _(GNU Debugger)_ :** GNU ekosisteminde yaygın olarak kullanılan debugger.
+- **Bare Metal Programming:** İşletim sistemi olmadan doğrudan donanım üzerinde yazılım geliştirme yaklaşımının adıdır. Yazıda ele aldığımız **BBC micro:bit** gibi cihazlarda **no_std** ile yazılan kodlar bare-metal seviyede olur.
+- **SVD _(System View Description)_:** Mikrodenetleyici üzerindeki register ve ilişkili bitleri tarifleyen bir harita dosyası olarak düşünülebilir. [svd2rust](https://crates.io/crates/svd2rust) gibi crate'ler bu dosyaları parse edebilir ve buda **Peripherals Access Create**'lerin oluşturulmasını kolaylaştırır. Genellikle XML tabanlı bir dosyadır.
+- **Reset Vector:** Mikrodenetleyici yeniden başlatıldığında _(reset)_ çalışmaya başladığı ilk bellek adresidir. Başlangıç kodu da buradan çalıştırılır. Örneklerde attığımız kodlar bu adresten başlatılır.
+- **Debug Probe:** Bilgisayar ile mikrodenetleyici arasındaki fiziksel debug bağlantısını sağlayan araçtır.
 
 ## Kaynaklar
 
