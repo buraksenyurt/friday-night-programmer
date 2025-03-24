@@ -161,11 +161,11 @@ enabled = false
 enabled = false
 ```
 
-Ben v2 sürümünü kullandığım için ilk satırı etkinleştirdim. Buna göre probe-rs aracı belirtilen çipi hedefleyecek ki memory haritasının doğru ayarlanması için bu önemli. Reset, Rtt ve Gdb ise birer flag. Reset flag'i kod yüklendikten sonra cihazın sıfırlanıp sıfırlanmayacağını _(reset)_ belirtir. true verdiğimiz için Flash işlemi bitince cihaz resetlenir ama hemen çalışmaya başlamaz. Program start metodumuzda durur. Bu genellikle debug işlemi yapmak istiyorsak o anda bir breakpoint eklememiz için idealdir. False olarak belirlendiğindeyse program hemen çalışmaya başlar ki bu durumda debug yapamayabiliriz. RTT _(Real-Time Transfer)_ flag'i true olduğunda seri port yerine debug kanalı üzerinden loglama gibi işlemler yapılabilir. Bazı loglama create'leri bu bağlantıyı kullanıyor. rtt-target bunlardan birisidir örneğin. Kodun ilerleyen kısımlarında bu ayarı deneriz. GDB flag true olduğunda cargo embed ile örnek çalıştırıldığında bir debug sunucusu da başlatılır. Bu durumda başka bir terminalden bir istemci açıp buraya bağlanabiliriz. Bu VS Code gibi araçlarda debug yapacaksak kıymetli bir özellik olabilir. _(Bunu denemem lazım)_
+Ben v2 sürümünü kullandığım için ilk satırı etkinleştirdim. Buna göre **probe-rs** aracı belirtilen çipi hedefleyecek ki memory haritasının doğru ayarlanması için bu önemli. **Reset**, **Rtt** ve **Gdb** ise birer flag. Reset flag'i kod yüklendikten sonra cihazın sıfırlanıp sıfırlanmayacağını _(reset)_ belirtir. **true** verdiğimiz için **Flash** işlemi bitince cihaz resetlenir ve doğal olarak program hemen çalışmaya başlamaz. Program start metodumuzda durur. Bu genellikle debug işlemi yapmak istiyorsak o anda bir breakpoint eklememiz için idealdir. False olarak belirlendiğindeyse program hemen çalışmaya başlar ki bu durumda debug yapamayabiliriz. **RTT _(Real-Time Transfer)_** flag'i true olduğunda seri port yerine debug kanalı üzerinden loglama gibi işlemler yapılabilir. **rtt-target** gibi bazı küfeler bu kanalı kullanarak loglama yapabilir örneğin. Kodun ilerleyen kısımlarında bu ayarı deneriz. GDB flag true olduğunda program bir debug sunucusu ile birlikte başlar. Bu durumda başka bir terminalden bir istemci açıp debug sunucusuna bağlanılabilir. Dahası çalışan uygulama buraya attach edilerek kod debug edilebilir. Bu, VS Code gibi araçlarda debug yapacaksak kıymetli bir özellik olabilir.
 
 ### memory.x Dosyası
 
-Bu dosyasının içeriğ yine internetteki örneklerde şuna benzer şekilde oluşturulmuş. Bendeki versiyon 512K FLASH ve 128K RAM kullandığından değerleri buna göre ayarladım. Bu dosya linker'a mikro denetleyicinin bellek yapısı ile ilgili bilgi vermekte. FLASH başlangıç adresi neresi ne kadar yer kaplıyor vb. Mikro denetleyici üzerinde bir işletim sistemi olmadığından bellek haritası linker için önemlidir. cargo build ile bir derleme başlatıldığında programın hangi bölümünün nereye yerleştirileceğine karar verilmesinde önemli bir dosyadır.
+Bu dosyasının içeriği yine internetteki örneklerde aşağıdakine benzer şekilde oluşturulmuş. En yalın halini kullandığımızı belirteyim. Bendeki versiyon **512K FLASH** ve **128K RAM** kullandığından değerleri buna göre ayarladım. Bu dosya linker'a mikrodenetleyicinin bellek yapısı ile ilgili bilgi vermek için kullanımakta. FLASH başlangıç adresi neresi ne kadar yer kaplıyor hangi adresten başlıyor vb. Mikrodenetleyici üzerinde bir işletim sistemi olmadığından bellek haritası linker için önemlidir. **cargo embed** ile bir derleme başlatıldığında programın hangi bölümünün nereye yerleştirileceğine karar verilmesinde rol oynayan önemli bir dosyadır.
 
 ```text
 MEMORY
@@ -178,13 +178,13 @@ MEMORY
 
 ## Target Kurulumu
 
-Yukarıdaki ayarlamalar yeterli değil. Ayrıca rust derleyicisinin bu mikro denetleyici için çıktı üretmesini sağlayacak enstrümanın yüklenmesi gerekiyor. Sonuçta farklı bir mikro denetleyici mimarisi söz konusu. Kullandığım BBC micro:bit V2.2 denetleyicisi üzerinde Cortex-M4F işlemcisi yer alıyor ki bu rust dünyasında thumbv7em-none-eabihf olarak belirtilmiş. Bunu target parametresi ile kullanılabilecek şekilde yüklemek için aşağıdaki terminal komutunu çalıştırmak yeterli.
+Yukarıdaki ayarlamalar yeterli değil. Ayrıca rust derleyicisinin bu mikrodenetleyici için çıktı üretmesini sağlayacak enstrümanın yüklenmesi de gerekiyor. Sonuçta farklı bir mikrodenetleyici mimarisi söz konusu. Kullandığım **BBC micro:bit V2.2** denetleyicisi üzerinde **Cortex-M4F** işlemcisi yer alıyor ki bu, rust dünyasında **thumbv7em-none-eabihf** olarak belirtilmiş. Bunu target parametresi ile kullanılabilecek şekilde yüklemek için aşağıdaki terminal komutunu çalıştırmak yeterli.
 
 ```bash
 rustup target add thumbv7em-none-eabihf
 
-# Bu arada sistem yüklü target enstrümanlarını görmek için şu komut çalıştırılabilir
-# Sistemde yüklü olanlar yanında installed yazılı olanlardır
+# Bu arada sistemde yüklü target enstrümanlarını görmek için aşağıdaki komut kullanılabilir
+# Sistemde yüklü olanlar, yanında installed yazılı olanlardır
 rustup target list
 ```
 
@@ -192,7 +192,7 @@ rustup target list
 
 ## Çalışma Zamanı
 
-Örneği çalıştırmak için aşağıdaki komutu vermemiz yeterli. Dikkat edileceği üzere cargo run yerine cargo embed şeklinde bir kullanım söz konusu zira cargo run gömülü sistemlerde çalışmaz. Unutmayalım kodu bilgisayarımızda yazıp, işletim sistemi olmayan  bir mikro denetleyicinin sabit belleğine gönderip, çalışmaya başlamasını söyleyecek bir düzenek gerekiyor.
+Örneği çalıştırmak için aşağıdaki komutu vermemiz yeterli. Dikkat edileceği üzere **cargo run** yerine **cargo embed** şeklinde bir kullanım söz konusu zira **cargo run** gömülü sistemlerde çalışmaz. Unutmayalım ki bilgisayarımızda yazdığımız kodu, işletim sistemi olmayan bir mikro denetleyicinin sabit belleğine gönderen ve başlatan bir düzenek gerekiyor.
 
 ```bash
 cargo embed --features v2 --target thumbv7em-none-eabihf
@@ -200,13 +200,13 @@ cargo embed --features v2 --target thumbv7em-none-eabihf
 
 ![Embed result](../images/MicroBit_02.png)
 
-Şimdi bu komut üzerine birşeyler söylemek lazım. Öncelikle bir gömülü sistem söz konusu ise bir ELF dosyasının üretilmesi ve mikro denetleyiciye yüklenmesi _(Flashing olarak geçiyor)_ gerekiyor. Bu hatta cihazın kalıcı belleğine yüklemek olarak da düşünülebilir. Tabii bazı durumlarda bu ELF dosyasının resetlenmesi veya debug için duraklatılarak kullanılması da gerekiyor. Bunlar tabii bir dizi işlem demek. cargo embed komutu bunun için probe-rs altyapısını kullanmakta ki yazımızın başında referans ettiğimiz dokümanı tüm bu araçları yüklemeyi anlatıyor. Kısaca cargo embed, gerekli derleme işlemini yapar, oluşan elf dosyasını bulup Embed.toml daki talimatlara göre yükler _(flash)_ diyebiliriz. Bizim komutumuzada --features v2 kullandığımız için cargo.toml' da belirtilen microbit-v2 sürümü ele alınıyor. --target'a göre de az önce yüklediğimiz enstrüman için bir çıktı üretiliyor. thumbv7em, ARM Cortex-M4 işlemcisini, none işletim sistemi olmadığını, eabihf ise Hard Float özelliği olduğunu _(Floating point'ler ile çalışıyorsak daha hızlı olurmuş)_ belirtiyor.
+Şimdi bu komut üzerine birşeyler söylemek lazım. Öncelikle bir gömülü sistem söz konusu ise bir **ELF _(Executable and Linkable Format)_** dosyasının üretilmesi ve mikrodenetleyiciye yüklenmesi _(Flashing olarak geçiyor)_ gerekiyor. Hatta bu işlem, programı cihazın kalıcı belleğine yüklemek olarak da düşünülebilir. Tabii bazı durumlarda bu ELF dosyasının resetlenmesi veya debug için duraklatılarak kullanılması da gerekiyor. Bunlar tabii bir dizi işlem demek. **cargo embed** komutu bunun için **probe-rs** altyapısını kullanmakta ki yazımızın başında referans ettiğimiz doküman tüm bu araçları yüklemeyi anlatıyor. Kısacası **cargo embed**, gerekli derleme işlemini yapar ve oluşan elf dosyasını bulup Embed.toml daki talimatlara göre yükler _(flash)_ diyebiliriz. Komutta **--features v2** kullandığımız için cargo.toml' da belirtilen **microbit-v2** sürümü baz alınır. **--target** 'a göre de az önce yüklediğimiz enstrüman için bir çıktı üretilir. **thumbv7em** ifadesi **ARM Cortex-M4** işlemcisini, **none** kelimesi işletim sistemi olmadığını, **eabihf** ise **Hard Float** özelliği olduğunu _(Floating point'ler ile çalışıyorsak daha hızlı çalışma anlamına geliyor)_ belirtir.
 
 [Runtime](../images/MicroRuntime.mp4)
 
 ## Çalışma Zamanından Notlar
 
-Örneği çalıştırdığımda beklediğim gibi _(ve de sürpriz bir şekilde)_ tam ortadaki led yanıp sönmeye başladı. Zira şöyle bir soru var. Nasıl duracak? :D Üstelik cihazın gücünü kessem bile tekrar bağladığımda ışık yanıp sönmeye devam etti. Aslında bu son derece doğal zira cargo embed operasyonu bu programı cihazın Flash belleğine yazar. Klasik bir işletim sisteminde bunun yerine program hard disk gibi bir fiziki depolama alanında durur ve işletim sistemi kontrol altındadır. Çalıştırıldığında program işletim sistemi tarafında RAM'e alınır. Kapandığında da...Kapanır ha ha :D Buradaki senaryo ise farklı. Flash belleğe yazdığımız program kalıcı olarak orada duruyor. Öğrendiğim kadarı ile mikrodenetleyicilerde kod genellikle Flash' te saklanıyor _(Bazen Read Only Memory-ROM diye bahsedildiğini de gördüm)_ Cihazı reset etsek bile cihazın reset vektörü [entry] bildirimi ile işaret edilen start fonksiyonu buluyor ve hemen çalıştırıyor. Burada aslında birkaç taktik var. Mesela birisi program kodunu aşağıdaki gibi değişitirip yüklemek. Tam bir hile :D
+Örneği çalıştırdığımda beklediğim gibi _(ve de sürpriz bir şekilde)_ tam ortadaki LED ışığı yanıp sönmeye başladı. Zira akıllarda harika bir soru var; Nasıl duracak? :D Üstelik cihazın gücünü kessem bile tekrar bağladığımda ışık yanıp sönmeye devam etti. Aslında bu son derece doğal zira **cargo embed** operasyonu bu programı cihazın **Flash** belleğine yazar. Klasik bir işletim sisteminde bunun yerine program hard disk gibi bir fiziki depolama alanında durur ve işletim sistemi tarafından kontrol edilir. Program başlatıldığında işletim sistemi tarafında RAM'e alınır. Kapandığındaysa...Kapanır ha ha :D Şu anki senaryomuz ise farklı. **Flash** belleğe yazdığımız program kalıcı olarak orada duruyor. Öğrendiğim kadarı ile mikrodenetleyicilerde kod genellikle Flash bellekte saklanıyor _(Bazen Read Only Memory-ROM diye bahsedildiğini de gördüm)_ Cihazı reset etsek bile cihazın reset vektörü **[entry]** bildirimi ile işaret edilen giriş fonksiyonu _(Bizim örnekt start)_ bulur ve hemen çalıştırır. Programı resetlemek için uygulanabilecek birkaç taktik var. Örneğin bunlardan birisi program kodunu aşağıdaki gibi değişitirip yüklemek. Tam bir hile :D
 
 ```rust
 #[entry]
@@ -217,7 +217,7 @@ fn start() -> ! {
 }
 ```
 
-Bunun dışında cihaz üzerinde gelen buton kontrolleri ile farklı bir yola da gidilebilir. Işığın yanıp söndürülmesi buton basılmasına bağlanabilir. Tabii burada mikrokontrolcülerde genelde tek bir program çalıştığını ifade etmekte yarar var. O nedenle Flash edilen program kısıtlı bellek bölgesinde her daim çalışmak üzere tasarlanan bir iş modeline sahip oluyor.
+Bunun dışında cihaz üzerinde gelen düğme kontrolleri ile farklı bir yola da gidilebilir. LED ışığın yanıp söndürülmesi düğmeye basılmasına bağlanabilir. Mikdodenetleyicilerde genelde tek bir program çalıştırıldığını ifade etmekte yarar var. O nedenle Flash edilen program kısıtlı bellek bölgesinde her daim çalışmak üzere tasarlanan bir iş modeline sahip olmakta. Söz gelimi sensörlerinden gelen veriyi değerlendirip uyarı ikazı vermek veya anlık durumu panellerde göstermek gibi. Bunlar sürekli çalışır halde olmayı gerektirir.
 
 ## Farklı Kod Örnekleri
 
@@ -225,13 +225,13 @@ Bunun dışında cihaz üzerinde gelen buton kontrolleri ile farklı bir yola da
 
 ### Farklı Bir Hello World _(Unsafe Side)_
 
-Bu seferki yaklaşımda doğrudan donanım seviyesine inip GPIO _(General Purpose Input Output)_ register adreslerini kullanarak ortadaki LED ışığını yanıp söndürmeye çalışacağız. Çalışmakta olduğumuz Micro:bit kartındaki LED matrix 5x5 boyutlarında. Elektronik ile çok aram yoktur ancak öğrendiğim kadarı ile bir LED'i yakmak için bu LED'e giden ROW pinini LOW, yine bu LED'e giden COLUMN Pinini HIGH yapmak gerekiyormuş. Tabii burada ilgili pin register adreslerine nasıl gideceğimiz de bir soru işareti. Kaynaklarda dolanıp durdum ama anladığım kadarı ile örneğin 21nci pinin adresi aşağıdaki formmülle ifade edilebiliyor.
+Bu seferki yaklaşımda doğrudan donanım seviyesine inip **GPIO _(General Purpose Input Output)_ register** adreslerini kullanarak ortadaki **LED** ışığını yanıp söndürmeye çalışacağız. Çalışmakta olduğumuz **BBC Micro:bit** kartındaki LED matrisi 5x5 boyutlarında. Elektronik ile çok aram yoktur ancak öğrendiğim kadarı ile bir LED'i yakmak için bu LED'e giden **ROW** pinini **LOW**, yine bu LED'e giden **COLUMN** pinini **HIGH** yapmak gerekiyor _(Ya da tam tersi de geçerli olabilir)_ Tabii burada ilgili pinlerin register adreslerine nasıl gideceğimiz de bir soru işareti. Kaynaklarda dolanıp durdum ama anladığım kadarı ile örneğin 21nci pinin adresi aşağıdaki formmülle ifade edilebiliyor _(Aslında kartların üretici kitapçıklarında bu adres bilgilerine detaylıca yer verilmekte)_
 
 ```text
 0x5000_0700 + 21 * 4 = 0x5000_0700 + 0x54 = 0x5000_0754
 ```
 
-PIN adreslerini bulmakta yeterli değil. Işıkların yanması için PIN yönünün output yapılması ve OUTCLR / OUTSET gibi registerlarından yararlanarak çıkış seviyelerinin ayarlanması da gerekiyormuş. Neyse ki [The Rusty Bits kanalında yayınlanan şu video](https://www.youtube.com/watch?v=A9wvA_S6m7Y&t=185s) bu konularda önemli ayrıntılar veriyor. En nihayetinde aşağıdaki gibi bir kodlama ile ışık yanıp söndürülebilir.
+**PIN register** adreslerini bulmakta yeterli değil. Işıkların yanması için PIN yönünün output yapılması ve OUTCLR/OUTSET gibi registerlarından yararlanarak çıkış seviyelerinin ayarlanması da gerekiyor. Neyse ki [The Rusty Bits kanalında yayınlanan şu video](https://www.youtube.com/watch?v=A9wvA_S6m7Y&t=185s) bu konularda önemli ayrıntılar veriyor. En nihayetinde aşağıdaki gibi bir kodlama ile ışık yanıp söndürülebilir.
 
 ```rust
 #![no_std]
@@ -277,11 +277,11 @@ fn start() -> ! {
 }
 ```
 
-Ancak dikkat edileceği üzere burada unsafe zone içerisinde işlemler yapılmakta. Rust'ın borrow cheker mekanizması devre dışı kalacağından tabii bazı riskleri almış oluyoruz. Kodlaması da epey zahmetli. Zaten bu sebeple Hardware Abstraction Layer _(HAL)_ kütüphanelerini kullanmak daha anlamlı duruyor.
+İlk önce row ve column PIN adresleri hesaplanıp birer Constant olarak tutulmakta. GPIO başlangıç adresine offset değerini ekledikten sonra kaçıncı PIN'e ulaşmak istiyorsak 4 ile çarpıyoruz. Ancak bu formül cihazdan cihaza değişiklik gösterebilir. OUTPUP pin için bir yön belirlenmesi de söz konusu. Registerlar üzerindeki değerlerde değişiklik yapmak içinse write_volatile fonksiyonundan yararlanılıyor. Her ne zaman bir register değerini değiştirmek istersek bu fonksiyonu kullanabiliyoruz. Elimizde bir timer bulunmadığından duraksatma işlemi için bir döngü kullanılıyor ve içerisinde **nop _(No Operations anlamında)_** fonksiyonu çağırılıyor. Ancak dikkat edileceği üzere bu örnek kodlarda **unsafe** kod blokları içerisinde de işlemler yapılmakta. Rust'ın **borrow cheker** mekanizması devre dışı kalacağından bazı riskleri de almış oluyoruz. Ayrıca bu küçük örnek için olmasa bile farklı örneklerde kodlaması epey zahmetli olabilir. Örneğin pusulayı kullanmak istesek sırf pusulanın önden kalibrasyonu için nasıl bir kod yazmamız gerekir pek düşünemiyorum. Zaten bu sebeple **Hardware Abstraction Layer _(HAL)_** kütüphanelerini kullanmak daha anlamlı duruyor gibi.
 
 ### RUST Yazdırmak
 
-Aslında amacım bu ama öncelikle LED paneldeki ışıkları kullanarak bir yanıp sönen bir harf görsem kafi. Mesela aşağıdaki gibi :)
+Sıradaki örnekte amacım LED panelde RUST kelimesini yazdırmak. Ancak öncelikle LED paneldeki ışıkları kullanarak yanıp sönen bir harf görsek de yeterli olur. Mesela aşağıdaki gibi :)
 
 ![Letter H](../images/MicroBit_05.jpg)
 
@@ -331,7 +331,7 @@ fn start() -> ! {
 }
 ```
 
-Micro:bit üzerinde 5X5 lik bir led matrisi var. microbit crate ile sunulan Display yapısını kullanarak iki boyutlu bir dizi elemanlarını 0 veya 1 olarak değiştirerek istediğimiz ışıkları yaktırabiliriz. Bu örneği daha da geliştirebiliriz. Hatta RUST yazdırmayı deneyebiliriz.
+Önceden de belirttiğimiz üzere **Micro:bit** üzerinde **5x5** lik bir LED matrisi var. microbit crate ile sunulan **Display** yapısını kullanarak ve iki boyutlu bir dizinin elemanlarını 0 veya 1 olarak değiştirerek istenilen ışıkların yanmasını sağlayabiliriz. İşte kısa aralıklarla ve R, U, S ve T harflerini nasıl gösterebileceğimizin kodu.
 
 ```rust
 #![deny(unsafe_code)]
@@ -416,37 +416,37 @@ fn start() -> ! {
 
 ## Debug Modda Çalıştırmak
 
-Micro:bit üzeine alınan kodun nasıl debug edileceğine de bir bakalım. Bunun için öncellikle GDB modunu etkinleştirmek gerekiyor. Yani Embed.toml dosyasındaki default.gdb aşağıdaki gibi değiştirilmeli.
+Çok doğal olarak yazılan proje kodunun bazı hallerde debug edilmesi de gerekebilir. Esasında iyi bir loglama alt yapısı ve mantıklı log çıktıları işi kolaylaştırabilir ancak bir mikrodenetleyici ile çalışıyoruz. **Log** çıkarmak bile zor. Nereye çıkaracağız, nasıl çıkaracağız, kaç KB atabileceğiz, ne kadar sıklıkla gönderebileceğiz vs. Hiç terminal arabirimi olmayan bir denetleyici söz konusu ise bunu bir iletişim protokolü ile biryere çıkmak düşünülebilir. Aklıma **MQTT** gibi protokoller geliyor ama bunu başka bir araştırmaya bırakalım derim. Bu nedenle debug yapabilme yetisine de sahip olmamız lazım. Öncelikle **GDB** modunu etkinleştirmek gerekiyor. Yani Embed.toml dosyasındaki **default.gdb** değeri aşağıdaki gibi değiştirilmeli.
 
 ```toml
 [default.gdb]
 enabled = true
 ```
 
-Uygulama kodunu aşağıdaki komut satırı ile derliyoruz.
+Uygulama kodunu yine aşağıdaki komut satırı ile derleyebiliriz.
 
 ```bash
 cargo embed --features v2 --target thumbv7em-none-eabihf
 ```
 
-gdb modunu etkinleştirdiğimiz için localhost 1337 portundan erişilebilen bir GDB server ayağa kalkıyor. Bu debug server'a microdenetleyici üzerinde çalışmakta olan programı attach ederek debug işlemi yapabiliyoruz. Bunun için ayrı bir terminal penceresi açıp debugger aracını başlatmamız ve debug sunucusuna bağlanmamız gerekiyor.
+**gdb** modunu etkinleştirdiğimiz için **localhost 1337** portundan erişilebilen bir **GDB** server ayağa kalkacaktır. Bu debug server'a mikrodenetleyici üzerinde çalışmakta olan programı attach ederek debug işlemleri yapılabilir. Kodda breakpoint konulabilir, step-in gibi aksiyonlar icra edilebilir vb Sunucu tarafı başarılı şekilde çalıştırıldıktan sonra ise **ayrı bir terminal** penceresi açıp debugger aracını başlatmamız ve debug sunucusuna bağlanmamız gerekiyor.
 
 ```bash
-# İstemci programı debug modda açmak için aşağıdaki komut
+# İstemci programı debug modda açmak için aşağıdaki komut kullanılır
 arm-none-eabi-gdb .\target\thumbv7em-none-eabihf\debug\micro-lights
 
-# Sonrasında debug sunucusuna bağlanmak için de şu komut işletilmeli
+# Sonrasında debug sunucusuna bağlanmak için de şu komut işletilmelidir
 target remote :1337
 
-# Eğer işlem başarılı olursa örneğin aşağıdaki komut ile main fonksiyonu başına breakpoint koyup durabiliriz
-# Hatta ilk örnekte bunu denersek bulunduğumuz yere göre ışık yanmayabilir veya sürekli yanar pozisyonda kalabilir
-# Zira kod breakpoint noktasında durmaktadır
+# Eğer işlem başarılı olursa örneğin aşağıdaki komut ile main dosyası başına breakpoint koyup durabiliriz
+# Hatta ilk örnekte bunu denersek bulunduğumuz yere göre ışık yanmayabilir veya sürekli yanar pozisyonda da kalabilir
+# Zira kod breakpoint noktasında durmaktadır.
 break main
 
-# Aşağıdaki kod ile işleyişe devam edebiliriz
+# Aşağıdaki komutu vererek kod akışını devam ettirebiliriz
 continue
 
-# Belli bir satıra breakpoint eklemek için
+# Belli bir satıra breakpoint eklemek için (Örneğin 14ncü satıra)
 break 14
 
 # Step into için
@@ -456,7 +456,7 @@ stepi
 quit
 ```
 
-Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Ancak debugger'ı esasında Vs Code gibi bir arabirime bağlamak daha iyi bir çözüm olabilir.
+Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Debugger'ı esasında **VS Code** gibi bir arabirime bağlamak daha iyi bir çözüm olabilir. Zira kalabalık kod kümelerinde bu adımlar işi zorlaştırabilir _(Bu arada Linux tabanlı sistemlerde User Interface Terminal açılabiliyor ve debug işlemleri çok daha kolay icra ediliyor)_ Esasında bu tip mikrodenetleyici çözümlerinde çok karmaşık kodlama yapmak da ne kadar doğru bilemiyorum. Sanki tam anlamıyla **Single Responsibility** ilkesinin Software ve Hardware ekseninde vücut bulmuş haliyle geliştirme yapmak çok daha mantıklı. 
 
 ![Debug Mod](../images/MicroBit_04.png)
 
