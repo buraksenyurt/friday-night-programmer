@@ -1,6 +1,6 @@
 # BBC Micro:bit - Rust ile Hello Light
 
-Daha önceden Raspberry PI üzerinde Python dilini kullanarak tekerlek döndürmüştüm ancak Python ve kütüphanelerin sunduğu soyutlamalar ve RasPi' nin yetenekleri işi epeyce kolaylaştırmıştı. Bir süredir de gömülü sistemlerde Rust ile nasıl programlama yapılıyor merak etmekteydim. Rust dilinin çalışma sahası düşünüldüğünde C++ ile hareket edebileceğimiz her yerde geliştirme yapabileceğimizi söylesem yanılmam sanıyorum ki. Ancak burada bare metal programming konsepti sınırlarına giriliyor. Standart kütüphaneyi dışarıda bırakıp core kütüphane üzerinden ilerlemek ve sınırlı kapasiteye sahip ve hatta işletim sistemi dahi olmayan mikro denetleyicilerin farklılıklarını da göze alarak hareket etmek gerekiyor. Bana epey uzak bir konu olduğunu ifade edebilirim ancak en azından bir Hello World yazmak zorundayım ve hatta buna Hello Light desek daha iyi olabilir.
+Daha önceden **Raspberry PI** üzerinde Python programlama dilini kullanarak tekerlek döndürmüş birkaç Led yakmıştım ancak Python ve kütüphanelerinin sunduğu soyutlamalar ve RasPi'nin yetenekleri işi epeyce kolaylaştırmıştı _(Üzerinde Linux tabanlı işletim sistemi koşabiliyordu, elimdeki Raspi'de 4Gb Ram vardı, kitap vs kaynak da oldukça fazlaydı)_ Diğer yandan çok uzun zamandır Rust ile kodlama yapıyorum ve onu asıl sahasında deneyimlemeye çalışıyorum. Şu anda eksik kaldığımı hissettiğimi önemli bir kısım var; **Bare Metal Programming**. Kabaca, işletim sistemi olmayan ortamlarda sadece core kütüphaneyi kullanarak geliştirme yapmak olarak özetleyebilirim. Bu felsefe ile bir işletim sistemi yazabilir ya da buna uygun çeşitli mikrodenetleyiciler _(Microcontroller)_ üzerinde geliştirmeler yapılabilir. Bu cihazları hedefleyen strateji daha çok Embedded Programming olarak da geçiyor. Bu özet yazıda kısa süre önce tedarik ettiğim **BBC Micro:bit** kartı üzerindeki tecrübelerimi paylaşmaya çalışacağım.
 
 - [Giriş](#bbc-microbit---rust-ile-hello-light)
     - [Kurulumlar ve Kodlama Safhası](#kurulumlar-ve-kodlama-safhası)
@@ -17,7 +17,7 @@ Daha önceden Raspberry PI üzerinde Python dilini kullanarak tekerlek döndürm
     - [Mini Sözlük](#mini-sözlük)
     - [Kaynaklar](#kaynaklar)
 
-Internette gömülü sistemlerde Rust ile kodlama için sınırsız kaynak var ve hatta birincil kaynak olarak [The Embedded Rustacean](https://www.theembeddedrustacean.com/) sitesini tavsiye ederim. Haftalık bir bültenleri var ve oldukça sıkı makalelere yer veriyorlar. Lakin derli toplu ve kısa yoldan bir giriş yapmak isteyenler için bana göre birincil kaynak Rust Embedded organizasyonun [şu adresteki ücretsiz keşif kitabı](https://docs.rust-embedded.org/discovery/microbit/index.html). Bende bu kitabı baz alarak ilermek istedim diyebilirim. Saf zihnim ilk etapta bir emulator üzerinden hareket edebilirim yönündeydi. Hatta bu konuda oldukça güzel bir [çevrimiçi simülator sitesi](https://wokwi.com/rust) var. Takip etmekde olduğum Discovery kitabı konuyu [BBC micro:bit](https://microbit.org/) üzerinden ele alıyor. Bende heyecanla bu karttan bir tane aldım. ARM tabanlı bu mikro denetleyici için iki fotoğrafı da şöyle bırakayım.
+Internet dünyasında gömülü sistemlerde Rust ile kodlama için sınırsız kaynak var ve hatta birincil kaynak olarak [The Embedded Rustacean](https://www.theembeddedrustacean.com/) sitesini tavsiye etmek isterim. Haftalık bir bültenleri var ve oldukça sıkı makalelere yer veriyorlar. Lakin derli toplu ve kısa yoldan bir giriş yapmak isteyenler için bana göre birincil kaynak **Rust Embedded** organizasyonun [şu adresteki ücretsiz keşif kitabı](https://docs.rust-embedded.org/discovery/microbit/index.html). Bende bu kitabı baz alarak ilermeye çalıştım. Saf zihnim ilk etapta bir emulator üzerinden hareket edebilirim yönündeydi. Hatta bu konuda oldukça güzel bir [çevrimiçi simülator siteside](https://wokwi.com/rust) bulunuyor. En azından neler yapılabiliyoru görmek açısından faydalı olabileceğini düşünüyorum. Takip etmekde olduğum **Discovery** kitabı konuyu [BBC micro:bit](https://microbit.org/) üzerinden ele almakta. Bende yakın zamanda heyecanla bu karttan bir tane aldım. **ARM** tabanlı bu mikrodenetleyici için iki fotoğrafı da şöyle bırakayım.
 
 ![Micro:bit 00](../images/MicroBit_00.jpg)
 
@@ -25,19 +25,19 @@ ve
 
 ![Micro:bit 01](../images/MicroBit_01.jpg)
 
-Bu ufacık kart öğrendiğim kadarıyla STEM müfredatında 7-14 yaş arası çocuklarımızın eğitimlerinde de kullanılıyor. Pyhton, scratch ve Microsoft MakeCode ile üzerinde geliştirme yapılabiliyor. Ben hiçbir ekstra sensör veya genişletme yuvası almadım. Buna rağmen kartın üstünde programlanabilir led'ler _(ki ilk açıldğında kırmızı bir kalp şekline aldılar)_, yerleşik bir hoparlör, iki yön tuşu, bluetooth, hareket sensörü vs yer alıyor. Benim tedarik ettim v2.2 modelinde 512 Kb Flash ve 128 Kb RAM var. nRF52833 kodlu işlemci ise Nordic Semiconductor üretimi. Bilgisayara kolayca USB kablosu ile bağlanabiliyor.
+Bu ufacık kart öğrendiğim kadarıyla **STEM** müfredatında 7-14 yaş arası çocukların eğitimlerinde de kullanılıyor. Kart üzerinde Pyhton, Scratch ve Microsoft MakeCode ile geliştirme yapılabiliyor. Ben hiçbir ekstra sensör veya genişletme yuvası almadım. Buna rağmen kartın üstünde programlanabilir led'ler _(ki ilk açıldğında kırmızı bir kalp şeklini aldılar)_, yerleşik bir hoparlör _(ki açıldığında sevimli bir ikaz sesi çıkarıp selam veriyor)_, iki düğme, bluetooth, hareket sensörü vs yer alıyor. Benim tedarik ettim **v2.2** modelinde **512 Kb Flash** ve **128 Kb RAM** var. **nRF52833** kodlu işlemci ise **Nordic Semiconductor** üretimi. Bilgisayara kolayca USB kablosu ile bağlanabiliyor ve hatta harici güç üniteleri ile seyyar hale de gelebiliyor. Normalde üzerinde bir işletim sistemi bulunmuyor dolayısıyla yazılan kodu Flash belleğe aldığımız andan itibaren cihaz üzerinde çalışmaya başlıyor _(Karşılaştığınızda niye sonsuz bir loop var şaşırmayın)_
 
 ## Kurulumlar ve Kodlama Safhası
 
-En çok zorlandığım kısım cihaz üzrerinde gerekli geliştirmeleri yapabilmek için gerekli ortam araçlarını kurmak oldu. Öncelikle rust ile yazılan çıktının ARM tabanlı bu işlemci modeli için build edilmesi, cihaz üzerine bir şekilde aktarılması söz konusu. Ayrıca yer yer debug etmek de gerekebilir ki bunun için de bazı araçlara ve kurulumlara ihtiyaç var. Burada tavsiyem [kitaptaki ilgili bölümü](https://docs.rust-embedded.org/discovery/microbit/03-setup/index.html) harfiyen takip edip kendi ortamınız için gerekli kurulumları yapmanız olacak. Neler neler çektim bi bilseniz :D
+En çok zorlandığım kısım cihaza uygun kod geliştirmek, yazılım taşımak ve hata ayıklamak için gerekli ortam araçlarını kurmak oldu. Öncelikle rust ile yazılan çıktının **ARM** tabanlı bu işlemci modeli için build edilmesi, cihaz üzerine bir şekilde aktarılması gerekiyor. Ayrıca yer yer debug etmek de gerekebilir ki bunun için de bazı araçlara ve kurulumlara ihtiyaç var. Burada tavsiyem [kitaptaki ilgili bölümü](https://docs.rust-embedded.org/discovery/microbit/03-setup/index.html) harfiyen takip edip kendi ortamınız için gerekli kurulumları yapmanız olacak. Neler neler çektim bi bilseniz :D
 
-Ben Windows 11 işletim sistemi üzerinden ilerlediğimi belirteyim. İlk uygulamada amaç kartın arkasında yer alan led ışıklardan herhangi birisinin alark ikazı gibi yanım sönmesini sağlamak. Her şeyden önce normal bir rust projesi oluşturarak işe başlayabiliriz.
+İlk uygulamada amacım kartın arkasında yer alan led ışıklardan herhangi birisinin alarm ikazı gibi yanım sönmesini sağlamak. Her şeyden önce normal bir rust projesi oluşturarak işe başlayabiliriz.
 
 ```bash
 cargo new micro-lights
 ```
 
-Her ne kadar standart kütüphane olmadan geliştirme yapsak da bize yardımcı olacak bazı crate' ler var. Bu amaçla Cargo.toml dosyasını aşağıdaki gibi düzenleyebiliriz. Genelde yararlandığım kaynaklardaki örnekler rust 2018 sürümü ve eski crate'lere bağlı olduklarından 2024 sürümü için biraz araştırma yapmam gerekti diyebilirim.
+Her ne kadar standart kütüphane olmadan geliştirme yapsak da bize yardımcı olacak bazı crate' ler de mevcut. Bu amaçla Cargo.toml dosyasını aşağıdaki gibi düzenleyebiliriz. Genelde yararlandığım kaynaklardaki örnekler **rust 2018** sürümü ve eski crate'lere bağlı olduklarından **2024** sürümü için biraz araştırma yapmam gerekti diyebilirim.
 
 ```toml
 [package]
@@ -66,7 +66,9 @@ v2 = ["microbit-v2"]
 v1 = ["microbit"]
 ```
 
-cortex-m küfesini mikrokontrolcü işlemcisi ile low-level iletişim kurmak için, cortex-m-rt'yi gerekli runtime hazırlığı için, embedded-hal'ı donanım unsurlarına _(led'ler, gpio'lar gibi)_ ulaşmayı sağlamak için, panic-halt'ı ise panic implementasyonunu kolaylaştırmak için kullanıyoruz. Bu arada HAL _(Hardware Abstraction Layer)_ olarak geçen genel bir kavram ve gömülü sistemlerde donanımla haberleşmeyi kolaylaştıran soyutlamaları ifade ediyor diyebiliriz. NoStd kodlama yaptığımızda karşımıza çıkan sorunlardan birisi de panic makro implementasyonu. Normalde bunu aşağıdaki gibi bir fonksiyon ile koda eklemek gerekiyor.
+**cortex-m** küfesini mikrodenetleyicinin işlemcisi ile **low-level** iletişim kurmak için, **cortex-m-rt**'yi runtime ortamı için, **embedded-hal**'ı donanım unsurlarına _(led'ler, GPIO'lar gibi)_ ulaşmayı sağlamak için, **panic-halt**'ı ise panic implementasyonunu kolaylaştırmak için kullanıyoruz. Bu arada HAL _(Hardware Abstraction Layer)_ olarak geçen genel bir kavram var ve gömülü sistemlerde donanımla haberleşmeyi kolaylaştıran soyutlamaları ifade ediyor diyebiliriz. Burada kullanılan embedded-hal işimizi önemli ölçüde kolaylaştırmakta. Normalde donanım ile doğrudan konuşmamız da mümkün. **Microcontroller Unit** ile ya da **peripherals**'e ulaşıp iletişim kurmamızı sağlayan paketler de bulunuyor. Bu benim için biraz daha zorlayıcı zira cihaz üzerindeki örneğin **GPIO**'ların register adreslerini bilmeyi bazen bit kaydırma işlemi yapmayı ve hatta **unsafe** kod blokları ile çalışmayı gerektiriyor. İlerleyen kısımlarda bununla ilgili bir örnekte bulabilirsiniz. 
+
+İşletim sistemi olmayan ortamlarda kodlama yaparken **NoStd** ve **NoMain** direktiflerine sıkça rastlıyoruz. Özellikle NoStd ile standart kütüphaneyi terk etmiş oluyoruz. Burada karşımıza çıkan sorunlardan birisi **panic macro** implementasyonu. Normalde bunu aşağıdaki gibi bir fonksiyon ile koda eklemek gerekiyor.
 
 ```rust
 use core::panic::PanicInfo;
@@ -77,9 +79,9 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 ```
 
-Kaynaklara göre bunun yerine panic-halt crate'i de ele alınabilir. No Standard kullanımı rust'ın std kütüphanesini devre dışı bırakmak demektir. Buna göre I/O, heap, panic, thread, fs gibi işletim sistemi bazlı çalışan birçok kütüphane devre dışı kalır. Elimizde core ve alloc gibi daha sınırlı kütüphanler bulunur. panic enstrümanı konsola hata mesajı basılması, stack trace gösterilmesi, programın anında durdurulması gibi işleri üstlenen ve standard kütüphanede yer alan bir enstrümandır. Artık elimizde böyle bir imkan olmayacağından derleyici bu gibi hata durumlarında ele alacağı bir [panic_handler] tanımlaması arar. Yukarıda bunu ele alan kod parçası esasında hata oluştuğunda sadece sonsuz bir döngü işletiyor _(Şşşştt kimseye söyleme der gibi)_ Hataları ele alma şekli değişkenlik gösterebilir. Bir mikrokontrolcümüz var sonuçta ve demem o ki hata oluştuğunda kırmızı led bile yaktırılabilir. Ancak her farklı durum için böyle handler'lar tariflemek de zahmetli olabilir. Bunu daha sade şekilde ele almanın yolu da panic-halt küfesini kullanmaktır.
+Kaynaklara göre bunun yerine **panic-halt** kütüphanesi de kullanılabilir. No Standard kullanımı az önce de belirttiğim gibi rust std kütüphanesini devre dışı bırakmak demektir. Buna göre **I/O, heap, panic, thread, fs** gibi işletim sistemi bazlı çalışan birçok modül ve fonksiyonellik devre dışı kalır. Bunlar yerine elimizde **core** ve **alloc** gibi daha sınırlı kütüphaneler kalır. **panic** enstrümanı konsola hata mesajı basılması, **stack trace** gösterilmesi ve programın anında durdurulması gibi işleri üstlenen bir enstrümandır. Artık elimizde böyle bir imkan olmayacağından derleyici bu gibi hata durumlarında ele alacağı bir **[panic_handler]** tanımlaması arar. Yukarıda bunu ele alan kod parçası esasında hata oluştuğunda sadece sonsuz bir döngü işletmekte ki bu en basit çözüm _(Şşşştt kimseye söyleme der gibi)_ Hataları ele alma şekli değişkenlik gösterebilir. Bir mikrodenetleyici var sonuçta ve demem o ki hata oluştuğunda kırmızı led bile yaktırılabilir. Ancak her farklı durum için böyle handler kodları tariflemek zahmetli olur. Bunu daha sade şekilde ele almanın yolu da panic-halt küfesini kullanmaktır _(Tam bir reklam oldu ama bazı soyutlamalar olmadan olmuyor işte)_
 
-Toml dosyasında dikkat çekici noktalardan birisi de iki versiyon için microbit tanımlanmasıdır. Bu mikrodenetleyicinin iki versiyonu bulunuyor. Yazdığımız kodu hangisine göre derlemek istiyorsak seçim yapmamızı kolaylaştırması için feature bildirimleri ile toml dosyasında tutmaktayız. Şimdi biraz da kod tarafına geçelim. İlk örnek kodlar için çok uzağa gitmedim ve github' da genel olarak verilen şu örneği ele aldım.
+**Toml** dosyasında dikkat çekici noktalardan bir diğeri de iki versiyon için **microbit** tanımlanması içermesidir. Kullanmakta olduğum BBC Micro:bit' in yazıyı hazırladığım tarih itibariyle iki ana versiyonu bulunuyor. Yazdığımız kodu hangisine göre derlemek istiyorsak seçim yapmamızı kolaylaştırması için **feature** bildirimleri kullanmaktayız. Şimdi biraz da kod tarafına geçelim. İlk örnek kodlar için çok uzağa gitmedim ve github kaynaklarında genel olarak verilen örneği ele almaya çalıştım.
 
 ```rust
 #![deny(unsafe_code)]
@@ -108,29 +110,30 @@ fn start() -> ! { // ! dönüyor. Bu fonksiyonun hiç sonlanmayacağını belirt
 }
 ```
 
-Genel rust programlama pratiklerine göre biraz farklı bir kurgu olduğunu ifade edebilirim. start fonksiyonu programın çalışmaya başladığı nokta. Mikrodenetleyici üzerinde bir işletim sistemi bulunmadığından ve doğal olarak rust'ın klasik main fonksiyonunu yürütecek çalışma zamanı bulunmayacağından farklı bir yöntemle gidiliyor diye düşünebiliriz belki de _(Bunu biraz daha derinlemesine araştırmam lazım)_ Bana göre no_main ve no_std direktifleriyle rust derleyicisinin beklediği main metodunun olmadığını ve standart kütüphaneye bağlamadan _(linkleme)_ derlemenin yapılması gerektiğini belirtiyoruz. Tabii programın biryerden çalışmaya başlayacağının da belirtilmesi lazım. Bu, [entry] direktifinin görevi. start fonksiyonu geriye ! dönüyor gibi duruyor ancak bunun anlamı fonksiyonunu hiç sonlanmayacak olması _(Şu anda tam ortadaki led yanıp sönmeye devam ediyor. Aradan dakikalar geçti. Kastettiğim bu)_ Sonuçta elimizde bir devre kartı var ve üzerinde sunulan led'lere erişmek istiyoruz hatta tam ortadakini yakıp söndüreceğiz ve bunu devamlı yapacağız. Bununla ilgili soyutlamaları kullanıyoruz. Board'un sahipliğini alıp onun üzerinden satır ve sütun yönlendirmeleri ile led'lere ulaşıp set_low ve set_hihg çağrıları ile gerekli yakıp söndürme işlemlerini icra ediyoruz.
+Genel rust programlama pratiklerine göre biraz farklı bir kurgu olduğunu ifade edebilirim. **start** fonksiyonu programın çalışmaya başladığı yer. Mikrodenetleyici üzerinde bir işletim sistemi bulunmadığından ve doğal olarak rust'ın klasik main fonksiyonunu yürütecek çalışma zamanı olmayacağından farklı bir yöntemle gidiliyor diye düşünebiliriz _(Bunu biraz daha derinlemesine araştırmam lazım)_ Bana göre **no_main** ve **no_std** direktifleriyle rust derleyicisinin beklediği main fonksiyonunun olmadığını ve standart kütüphaneye bağlamadan _(linkleme)_ derlemenin yapılması gerektiğini belirtiyoruz. Tabii programın bir yerden çalışmaya başlayacağının da belirtilmesi lazım. Bu, **[entry]** direktifinin görevi. start fonksiyonu geriye **!** dönüyor gibi duruyor ancak bunun anlamı fonksiyonun hiç sonlanmayacak olması. Diğer yandan kodumuzda gördüğünüz üzere bir koşulsuz çalışan sonsuz bir **loop** var. Bu döngüde **5x5** matris şeklindeki dizilime göre tam ortadaki **LED** ışığı ile ilgili bir işlem yapıyoruz. Bir **LED** ışığı kapatıp açmak demek o bölgedeki **GPIO pin**'leri iki noktadan ayarlamakla mümkün oluyor. Dikkat ederseniz döngüden önce **col3** isimli pin'i **low** konumuna çeiyoruz. Aynı konuma gelen **row pin** değerini ise döngü sırasında önce **low** pozisyonuna sonra da **high** pozisyonuna çekiyoruz ve aralarda 1.5 saniyelik bekletmeler yapıyoruz. Bunun sonucu ışığın yanıp sönmesi oluyor. _(Şu anda tam ortadaki LED yanıp sönmeye devam ediyor. Aradan dakikalar geçti. Kastettiğim bu)_ Sonuçta elimizde bir devre kartı var ve üzerinde sunulan led'lere erişmek istiyoruz hatta tam ortadakini yakıp söndüreceğiz ve bunu devamlı yapacağız. Bununla ilgili soyutlamaları kullanıyoruz. Board'un sahipliğini alıp onun üzerinden satır ve sütun yönlendirmeleri ile led'lere ulaşıp set_low ve set_hihg çağrıları ile gerekli yakıp söndürme işlemlerini icra ediyoruz.
 
 ### Led Matrix Hakkında
 
-Micro:bit kartının [şu adreste](file:///C:/Users/burak/Downloads/MicroBit_V2.0.0_S_schematic.PDF) oldukça detaylı bir devre şeması yer alıyor. Örnek kodda 3ncü satır ve sütundaki LED yakılıyor. Nasıl bir LED matrisi ile karşı karşıya olduğumuzu aşağıdaki grafikten görebilirsiniz.
+**Micro:bit** kartının [şu adreste](https://github.com/microbit-foundation/microbit-v2-hardware/blob/main/V2.00/MicroBit_V2.0.0_S_schematic.PDF) oldukça detaylı bir devre şeması yer alıyor. Örnek kodda 3ncü satır ve sütundaki LED yakılıyor. Nasıl bir LED matrisi ile karşı karşıya olduğumuzu aşağıdaki grafikten de görebilirsiniz.
 
 ![Microbit_03](../images/Microbit_03.png)
+_Kaynak: Microbit Foundation_
 
 Dolayısıyla microbit küfesi üzerinden erişebildiğimiz birçok soyutlama bu şemada belirtilen adreslere erişmemizi kolaylaştırmakta.
 
-## Lakin, ama, ancak
+## Lakin, Ama, Ancak
 
-Kodları bu şekilde yazmak onu çalıştırmak için yeterli değil ne yazık ki. Her şeyden önce normal bir cargo build operasyonu işimizi görmeyecek. Bu kodun ARM tabanlı bu mikro denetliyici için üretilmesi gerekiyor. Araştırdığım örnekler bunun için şöyle bir yol izlemekte.
+Kodları bu şekilde yazmak onu çalıştırmak için yeterli değil ne yazık ki. Her şeyden önce normal bir cargo build operasyonu işimizi görmeyecek. Bu koddan **ARM** tabanlı mikro denetliyici için bir çıktı üretilmesi gerekiyor. Araştırdığım örnekler bunun için genel olrak şöyle bir yol izlemekte.
 
-- src klasörü altında .cargo/config.toml dosyası
-- root klasörde Embed.toml dosyası
-- yine root klasörde memory.x dosyası
+- **src** klasörü altında **.cargo/config.toml** dosyası
+- **root** klasörde **Embed.toml** dosyası
+- yine **root** klasörde **memory.x** dosyası _(Bazen de link.x dosyası gerekiyor)_
 
 ### config.toml İçeriği
 
-Bu dosya içeriği genelde aşağıdaki şekilde oluşturuluyor. .cargo klasöründe yer alan bu konfigurasyon dosyası aslında cargo aracının build, run ve check komutlarına çalıştırıldıklarında özel ayarlar vermek için kullanılmakta. Örneğin aşağıdaki içeriğe göre eğer derleme işlemi ARM tabanlı ve işletim sistemi olmayan _(bare metal)_ bir hedef için yapılıyorsa derleyiciye -C link-arg=-TLink.x şeklinde bir parametre daha ekleniyor. TLink.x genelde içinde memory.x'i tarifleyen bir dosya olarak belirtilmekte ancak bizim projemizde yer almıyor zira kullandığımız cortex-m-rt crate'i bunu kendi içerisinde ele almakta.
+**.cargo** klasöründe yer alan bu konfigurasyon dosyası aslında **cargo** aracının **build**, **run** ve **check** komutları çalıştırıldığında sürece özel ayarlar eklemel için kullanılmakta. Örneğin aşağıdaki içeriğe göre eğer derleme işlemi **ARM** tabanlı ve işletim sistemi olmayan _(bare metal)_ bir hedef için yapılıyorsa derleyiciye **-C link-arg=-TLink.x** şeklinde bir parametre daha ekleniyor. **TLink.x** genelde içinde **memory.x**'i tarifleyen bir dosya olarak belirtilmekte ancak bizim projemizde yer almıyor zira kullandığımız **cortex-m-rt** crate'i bunu kendi içerisinde belirtmekte.
 
-İlerleyen kısımlarda belirteceğiz ama şimdiden bahsetmekte yarar var. cargo build işleminde özel bir target kullanacağız _(thumbv7em-none-eabihf)_ ve bu aşağıdaki dosyada belirtilen parametrelerin devreye girmesine ve memory.x içerisinde bellek talimatlarına göre hareket edilmesine neden olacak.
+İlerleyen kısımlarda belirteceğiz ama şimdiden bahsetmekte yarar var. **cargo embed** işleminde özel bir target kullanacağız _(thumbv7em-none-eabihf)_ ve bu aşağıdaki dosyada belirtilen parametrelerin devreye girmesine ve memory.x içerisindeki bellek talimatlarına göre hareket edilmesine neden olacak.
 
 ```toml
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
@@ -141,7 +144,7 @@ rustflags = [
 
 ### Embed.toml İçeriği
 
-Gömülü sistemlerde geliştirme yapılırken probe-rs tarafından kullanılan birde proje dosyası oluyor. Bu dosya içeriği genelde aşağıdaki gibi ve debug, reset, flash işlemleri için ortama bilgi sağlıyor.
+Gömülü sistemlerde geliştirme yapılırken özellikle debug işlemleri için **probe-rs** isimli bir toolkit kullanılıyor. Bu araç setindeki unsurlar genellikle **Embed.toml** içeriğini baz alıyor. Söz konusu dosya içeriği genelde aşağıdaki gibi ve **debug**, **reset**, **flash** işlemleri için ortama bilgi sağlıyor.
 
 ```toml
 [default.general]
