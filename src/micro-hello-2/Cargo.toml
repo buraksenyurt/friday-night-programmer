@@ -1,0 +1,10 @@
+[package]
+name = "micro-hello-2"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
+panic-halt = "1.0.0"
+rtt-target = "0.6.1"
