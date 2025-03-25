@@ -3,20 +3,20 @@
 Daha önceden **Raspberry PI** üzerinde Python programlama dilini kullanarak tekerlek döndürmüş birkaç Led yakmıştım ancak Python ve kütüphanelerinin sunduğu soyutlamalar ve RasPi'nin yetenekleri işi epeyce kolaylaştırmıştı _(Üzerinde Linux tabanlı işletim sistemi koşabiliyordu, elimdeki Raspi'de 4Gb Ram vardı, kitap vs kaynak da oldukça fazlaydı)_ Diğer yandan çok uzun zamandır Rust ile kodlama yapıyorum ve onu asıl sahasında deneyimlemeye çalışıyorum. Şu anda eksik kaldığımı hissettiğimi önemli bir kısım var; **Bare Metal Programming**. Kabaca, işletim sistemi olmayan ortamlarda sadece core kütüphaneyi kullanarak geliştirme yapmak olarak özetleyebilirim. Bu felsefe ile bir işletim sistemi yazabilir ya da buna uygun çeşitli mikrodenetleyiciler _(Microcontroller)_ üzerinde geliştirmeler yapılabilir. Bu cihazları hedefleyen strateji daha çok Embedded Programming olarak da geçiyor. Bu özet yazıda kısa süre önce tedarik ettiğim **BBC Micro:bit** kartı üzerindeki tecrübelerimi paylaşmaya çalışacağım.
 
 - [Giriş](#bbc-microbit---rust-ile-hello-light)
-    - [Kurulumlar ve Kodlama Safhası](#kurulumlar-ve-kodlama-safhası)
-        - [LED Matrix Hakkında](#led-matrix-hakkında)
-    - [Lakin, ama, ancak](#lakin-ama-ancak)
-        - [config.toml İçeriği](#configtoml-i̇çeriği)
-        - [Embed.toml İçeriği](#embedtoml-i̇çeriği)
-        - [memory.x İçeriği](#memoryx-dosyası)
-    - [Target Kurulumu](#target-kurulumu)
-    - [Çalışma Zamanı](#çalışma-zamanı)
-    - [Çalışma Zamanından Notlar](#çalışma-zamanından-notlar)
-    - [Farklı Kod Örnekleri](#farklı-kod-örnekleri)
-    - [En Basit Hello World](#en-basit-hello-world)
-    - [Debug Modda Çalışmak](#debug-modda-çalıştırmak)
-    - [Mini Sözlük](#mini-sözlük)
-    - [Kaynaklar](#kaynaklar)
+  - [Kurulumlar ve Kodlama Safhası](#kurulumlar-ve-kodlama-safhası)
+    - [LED Matrix Hakkında](#led-matrix-hakkında)
+  - [Lakin, ama, ancak](#lakin-ama-ancak)
+    - [config.toml İçeriği](#configtoml-i̇çeriği)
+    - [Embed.toml İçeriği](#embedtoml-i̇çeriği)
+    - [memory.x İçeriği](#memoryx-dosyası)
+  - [Target Kurulumu](#target-kurulumu)
+  - [Çalışma Zamanı](#çalışma-zamanı)
+  - [Çalışma Zamanından Notlar](#çalışma-zamanından-notlar)
+  - [Farklı Kod Örnekleri](#farklı-kod-örnekleri)
+  - [En Basit Hello World](#en-basit-hello-world)
+  - [Debug Modda Çalışmak](#debug-modda-çalıştırmak)
+  - [Mini Sözlük](#mini-sözlük)
+  - [Kaynaklar](#kaynaklar)
 
 Internet dünyasında gömülü sistemlerde Rust ile kodlama için sınırsız kaynak var ve hatta birincil kaynak olarak [The Embedded Rustacean](https://www.theembeddedrustacean.com/) sitesini tavsiye etmek isterim. Haftalık bir bültenleri var ve oldukça sıkı makalelere yer veriyorlar. Lakin derli toplu ve kısa yoldan bir giriş yapmak isteyenler için bana göre birincil kaynak **Rust Embedded** organizasyonun [şu adresteki ücretsiz keşif kitabı](https://docs.rust-embedded.org/discovery/microbit/index.html). Bende bu kitabı baz alarak ilermeye çalıştım. Saf zihnim ilk etapta bir emulator üzerinden hareket edebilirim yönündeydi. Hatta bu konuda oldukça güzel bir [çevrimiçi simülator siteside](https://wokwi.com/rust) bulunuyor. En azından neler yapılabiliyoru görmek açısından faydalı olabileceğini düşünüyorum. Takip etmekde olduğum **Discovery** kitabı konuyu [BBC micro:bit](https://microbit.org/) üzerinden ele almakta. Bende yakın zamanda heyecanla bu karttan bir tane aldım. **ARM** tabanlı bu mikrodenetleyici için iki fotoğrafı da şöyle bırakayım.
 
@@ -30,9 +30,21 @@ Bu ufacık kart öğrendiğim kadarıyla **STEM** müfredatında 7-14 yaş aras�
 
 ## Kurulumlar ve Kodlama Safhası
 
-En çok zorlandığım kısım cihaza uygun kod geliştirmek, yazılım taşımak ve hata ayıklamak için gerekli ortam araçlarını kurmak oldu. Öncelikle rust ile yazılan çıktının **ARM** tabanlı bu işlemci modeli için build edilmesi, cihaz üzerine bir şekilde aktarılması gerekiyor. Ayrıca yer yer debug etmek de gerekebilir ki bunun için de bazı araçlara ve kurulumlara ihtiyaç var. Burada tavsiyem [kitaptaki ilgili bölümü](https://docs.rust-embedded.org/discovery/microbit/03-setup/index.html) harfiyen takip edip kendi ortamınız için gerekli kurulumları yapmanız olacak. Neler neler çektim bi bilseniz :D
+En çok zorlandığım kısım cihaza uygun kod geliştirmek, yazılımı taşımak ve hata ayıklamak için gerekli ortam araçlarını kurmak oldu. Öncelikle rust ile yazılan çıktının **ARM** tabanlı bu işlemci modeli için build edilmesi, cihaz üzerine bir şekilde aktarılması gerekiyor. Ayrıca yer yer **debug** etmek de gerekebilir ki bunun için de bazı araçlara ve kurulumlara ihtiyaç var. Burada tavsiyem [kitaptaki ilgili bölümü](https://docs.rust-embedded.org/discovery/microbit/03-setup/index.html) harfiyen takip edip kendi ortamınız için gerekli kurulumları yapmanız olacak. Neler neler çektim bi bilseniz :D Ancak buraya kısa birkaç not bırakabiliriz de.
 
-İlk uygulamada amacım kartın arkasında yer alan led ışıklardan herhangi birisinin alarm ikazı gibi yanım sönmesini sağlamak. Her şeyden önce normal bir rust projesi oluşturarak işe başlayabiliriz.
+```bash
+# Sistemde rust'ın yüklü olduğunu düşünüyorum tabii
+
+# Tooling
+rustup component add llvm-tools
+cargo install cargo-binutils
+cargo install cargo-embed
+
+# Micro:bit v2.2 sürümü için gerekli target enstrümanlarını ekleyelim
+rustup target add thumbv7em-none-eabihf
+```
+
+İlk uygulamada amacım kartın arkasında yer alan led ışıklardan herhangi birisinin alarm ikazı gibi yanım sönmesini sağlamaktı. Her şeyden önce normal bir rust projesi oluşturarak işe başlanabilir.
 
 ```bash
 cargo new micro-lights
@@ -67,7 +79,7 @@ v2 = ["microbit-v2"]
 v1 = ["microbit"]
 ```
 
-**cortex-m** küfesini mikrodenetleyicinin işlemcisi ile **low-level** iletişim kurmak için, **cortex-m-rt**'yi runtime ortamı için, **embedded-hal**'ı donanım unsurlarına _(led'ler, GPIO'lar gibi)_ ulaşmayı sağlamak için, **panic-halt**'ı ise panic implementasyonunu kolaylaştırmak için kullanıyoruz. Bu arada HAL _(Hardware Abstraction Layer)_ olarak geçen genel bir kavram var ve gömülü sistemlerde donanımla haberleşmeyi kolaylaştıran soyutlamaları ifade ediyor diyebiliriz. Burada kullanılan embedded-hal işimizi önemli ölçüde kolaylaştırmakta. Normalde donanım ile doğrudan konuşmamız da mümkün. **Microcontroller Unit** ile ya da **peripherals**'e ulaşıp iletişim kurmamızı sağlayan paketler de bulunuyor. Bu benim için biraz daha zorlayıcı zira cihaz üzerindeki örneğin **GPIO**'ların register adreslerini bilmeyi bazen bit kaydırma işlemi yapmayı ve hatta **unsafe** kod blokları ile çalışmayı gerektiriyor. İlerleyen kısımlarda bununla ilgili bir örnekte bulabilirsiniz. 
+**cortex-m** küfesini mikrodenetleyicinin işlemcisi ile **low-level** iletişim kurmak için, **cortex-m-rt**'yi runtime ortamı için, **embedded-hal**'ı donanım unsurlarına _(led'ler, GPIO'lar gibi)_ ulaşmayı sağlamak için, **panic-halt**'ı ise panic implementasyonunu kolaylaştırmak için kullanıyoruz. Bu arada HAL _(Hardware Abstraction Layer)_ olarak geçen genel bir kavram var ve gömülü sistemlerde donanımla haberleşmeyi kolaylaştıran soyutlamaları ifade ediyor diyebiliriz. Burada kullanılan embedded-hal işimizi önemli ölçüde kolaylaştırmakta. Normalde donanım ile doğrudan konuşmamız da mümkün. **Microcontroller Unit** ile ya da **peripherals**'e ulaşıp iletişim kurmamızı sağlayan paketler de bulunuyor. Bu benim için biraz daha zorlayıcı zira cihaz üzerindeki örneğin **GPIO**'ların register adreslerini bilmeyi bazen bit kaydırma işlemi yapmayı ve hatta **unsafe** kod blokları ile çalışmayı gerektiriyor. İlerleyen kısımlarda bununla ilgili bir örnekte bulabilirsiniz.
 
 İşletim sistemi olmayan ortamlarda kodlama yaparken **NoStd** ve **NoMain** direktiflerine sıkça rastlıyoruz. Özellikle NoStd ile standart kütüphaneyi terk etmiş oluyoruz. Burada karşımıza çıkan sorunlardan birisi **panic macro** implementasyonu. Normalde bunu aşağıdaki gibi bir fonksiyon ile koda eklemek gerekiyor.
 
@@ -136,7 +148,7 @@ Kodları bu şekilde yazmak onu çalıştırmak için yeterli değil ne yazık k
 
 **.cargo** klasöründe yer alan bu konfigurasyon dosyası aslında **cargo** aracının **build**, **run** ve **check** komutları çalıştırıldığında sürece özel ayarlar eklemel için kullanılmakta. Örneğin aşağıdaki içeriğe göre eğer derleme işlemi **ARM** tabanlı ve işletim sistemi olmayan _(bare metal)_ bir hedef için yapılıyorsa derleyiciye **-C link-arg=-TLink.x** şeklinde bir parametre daha ekleniyor. **TLink.x** genelde içinde **memory.x**'i tarifleyen bir dosya olarak belirtilmekte ancak bizim projemizde yer almıyor zira kullandığımız **cortex-m-rt** crate'i bunu kendi içerisinde belirtmekte.
 
-İlerleyen kısımlarda belirteceğiz ama şimdiden bahsetmekte yarar var. **cargo embed** işleminde özel bir target kullanacağız _(thumbv7em-none-eabihf)_ ve bu aşağıdaki dosyada belirtilen parametrelerin devreye girmesine ve memory.x içerisindeki bellek talimatlarına göre hareket edilmesine neden olacak.
+İlerleyen kısımlarda belirteceğiz ama şimdiden bahsetmekte yarar var. **cargo embed** işleminde özel bir target kullanacağız _(thumbv7em-none-eabihf)_ ve bu aşağıdaki dosyada belirtilen parametrelerin devreye girmesine ve memory.x içerisindeki bellek talimatlarına göre hareket edilmesine neden olacak. _(Aslında sadece bizimki gibi tek bir mikrodenetleyici ile çalışacaksak bu bilgiyi Embed.toml dosyasında belirtip terminaldeki komut parametrelerini azaltabiliriz. Terminal Hi! yazdırdığımız örnek projeyi bu açıdan inceleyebilirsiniz)_
 
 ```toml
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
@@ -208,7 +220,11 @@ Peki onca target içerisinden hangisini kullanacağımızı nasıl bileceğiz? B
 - thumbv7em-none-eabi  Bare Armv7E-M
 - thumbv7em-none-eabihf  Bare Armv7E-M, hardfloat
 
-Dikkat edileceği üzer **thumb** ve **v7em** ifadeleri var. İşletim sistemi olmayan bir cihaza çıktı alacağımızdan **none** bilgisi de yer alıyor.
+Dikkat edileceği üzer **thumb** ve **v7em** ifadeleri var. İşletim sistemi olmayan bir cihaza çıktı alacağımızdan **none** bilgisi de yer alıyor. Kaynaklardan öğrendiğim kadarı ile burada aşağıdaki gibi bir söz dizimi ele alınmakta.
+
+```text
+<arc><sub>-<vendor>-<sys>-<env>
+```
 
 ## Çalışma Zamanı
 
@@ -489,15 +505,91 @@ display.show(&mut timer, get_letter(Letter::R), WAIT);
 
 ### En Basit Hello World
 
-Aslında doğrudan LED'lere ulaşmaya çalışmadan önce basit bir örnekle cihazla iletişim kurup kuramadığımızı da anlayabiliriz. Öncelikle program için gerekli crate'leri ekleyerek başlayalım.
+Aslında doğrudan LED'lere ulaşmaya çalışmadan önce basit bir örnekle cihazla iletişim kurup kuramadığımızı da anlayabiliriz. Bu sefer bilgisayarımızdaki terminale Real-Time Transfer protokolünden de faydalanarak mesaj bastıracağız. Öncelikle program için gerekli crate'leri ekleyerek başlayalım.
 
 ```toml
+[package]
+name = "micro-hello-2"
+version = "0.1.0"
+edition = "2024"
 
+[dependencies]
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
+panic-halt = "1.0.0"
+rtt-target = "0.6.1"
 ```
 
-Embed parametresi ile çalışacak komutlar için aşağıdaki içeriğe sahip Embed.toml dosyası işimizi görür.
+Burada dikkat edilmesi gereken hususlardan birisi rtt-target ile gelen ve terminale mesaj yazdırmak için kullanacağımız fonksiyonların sorunsuz çalışması için cortex-m küfesindeki critical-section-single-core özelliğinin etkinleştirilmiş olması gerekir. Özellikle kodun işleyişi ile ilgili bilgi almak için debug maliyetine girmek istemediğimiz durumlarda bu tip terminal logları çok işe yaramaktadır.
 
-main.rs dosyasını da şu şekilde ayarlayabiliriz.
+Embed parametresi ile çalışacak komutlar için kullandığımız **Embed.toml** içeriğini de aşağıdaki gibi geliştirebiliriz.
+
+```toml
+[default.general]
+chip = "nrf52833_xxAA"
+
+[default.rtt]
+enabled = true
+```
+
+Pek tabii yine bir **memory.x** dosyası gerekmekte. Diğer örneklerde kullandığımız içeriğin aynısını bu örnekte de kullanabiliriz. Buna bağlı olarak **.cargo/config.toml** içeriğini de aşağıdaki gibi ayarlayabiliriz.
+
+```toml
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.thumbv7em-none-eabihf]
+rustflags = [
+    "-C", "link-arg=-Tlink.x",
+]
+```
+
+**main.rs** dosyasındaki kodlarımız ise şöyle.
+
+```rust
+#![no_std]
+#![no_main]
+
+use cortex_m::asm::nop;
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rprintln, rtt_init_print};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!("Starting up...");
+    loop {
+        rprintln!("Hi!");
+        for _ in 0..400_000 { // Kastılı bir gecikme yaptırıyoruz. Yaklaşık bir saniye gibi.
+            nop();
+        }
+    }
+}
+```
+
+Kod düzenli aralıklarla terminal ekranına Hi! mesajını bırakır. Bu ayarlara göre programı çalıştırmak için **cargo** aracına sadece **embed** parametresini göndermek yeterlidir. Bu komutla mikrodenetleyici program kodu gönderilir, bir terminal açılır ve mesajlar bu pencereye doğru akmaya başlar.
+
+```bash
+cargo embed
+```
+
+Rtt özelliğini etkinleştirdiğimizden terminal açılacak ve aşağıdaki gibi düzenli olarak mesaj basılacaktır.
+
+![Micro Bit 07](../images/MicroBit_07.png)
+
+Bu örnekle birlikte terminal üzerinden deneyebileceğimiz birkaç komutu daha paylaşalım.
+
+```bash
+# Yapılanların kontrolü için
+cargo check
+
+# Standart build işlemi
+cargo build
+
+# Build sonrası program için kullanılacak segment bilgilerini görmek için
+cargo size -- -Ax
+```
 
 ## Debug Modda Çalıştırmak
 
