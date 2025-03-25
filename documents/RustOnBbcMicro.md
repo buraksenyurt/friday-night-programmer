@@ -13,6 +13,7 @@ Daha önceden **Raspberry PI** üzerinde Python programlama dilini kullanarak te
     - [Çalışma Zamanı](#çalışma-zamanı)
     - [Çalışma Zamanından Notlar](#çalışma-zamanından-notlar)
     - [Farklı Kod Örnekleri](#farklı-kod-örnekleri)
+    - [En Basit Hello World](#en-basit-hello-world)
     - [Debug Modda Çalışmak](#debug-modda-çalıştırmak)
     - [Mini Sözlük](#mini-sözlük)
     - [Kaynaklar](#kaynaklar)
@@ -110,7 +111,9 @@ fn start() -> ! { // ! dönüyor. Bu fonksiyonun hiç sonlanmayacağını belirt
 }
 ```
 
-Genel rust programlama pratiklerine göre biraz farklı bir kurgu olduğunu ifade edebilirim. **start** fonksiyonu programın çalışmaya başladığı yer. Mikrodenetleyici üzerinde bir işletim sistemi bulunmadığından ve doğal olarak rust'ın klasik main fonksiyonunu yürütecek çalışma zamanı olmayacağından farklı bir yöntemle gidiliyor diye düşünebiliriz _(Bunu biraz daha derinlemesine araştırmam lazım)_ Bana göre **no_main** ve **no_std** direktifleriyle rust derleyicisinin beklediği main fonksiyonunun olmadığını ve standart kütüphaneye bağlamadan _(linkleme)_ derlemenin yapılması gerektiğini belirtiyoruz. Tabii programın bir yerden çalışmaya başlayacağının da belirtilmesi lazım. Bu, **[entry]** direktifinin görevi. start fonksiyonu geriye **!** dönüyor gibi duruyor ancak bunun anlamı fonksiyonun hiç sonlanmayacak olması. Diğer yandan kodumuzda gördüğünüz üzere bir koşulsuz çalışan sonsuz bir **loop** var. Bu döngüde **5x5** matris şeklindeki dizilime göre tam ortadaki **LED** ışığı ile ilgili bir işlem yapıyoruz. Bir **LED** ışığı kapatıp açmak demek o bölgedeki **GPIO pin**'leri iki noktadan ayarlamakla mümkün oluyor. Dikkat ederseniz döngüden önce **col3** isimli pin'i **low** konumuna çeiyoruz. Aynı konuma gelen **row pin** değerini ise döngü sırasında önce **low** pozisyonuna sonra da **high** pozisyonuna çekiyoruz ve aralarda 1.5 saniyelik bekletmeler yapıyoruz. Bunun sonucu ışığın yanıp sönmesi oluyor. _(Şu anda tam ortadaki LED yanıp sönmeye devam ediyor. Aradan dakikalar geçti. Kastettiğim bu)_ Sonuçta elimizde bir devre kartı var ve üzerinde sunulan led'lere erişmek istiyoruz hatta tam ortadakini yakıp söndüreceğiz ve bunu devamlı yapacağız. Bununla ilgili soyutlamaları kullanıyoruz. Board'un sahipliğini alıp onun üzerinden satır ve sütun yönlendirmeleri ile led'lere ulaşıp set_low ve set_hihg çağrıları ile gerekli yakıp söndürme işlemlerini icra ediyoruz.
+Genel rust programlama pratiklerine göre biraz farklı bir kurgu olduğunu ifade edebilirim. **start** fonksiyonu programın çalışmaya başladığı yer. Mikrodenetleyici üzerinde bir işletim sistemi bulunmadığından ve doğal olarak rust'ın klasik main fonksiyonunu yürütecek çalışma zamanı olmayacağından farklı bir yöntemle gidiliyor diye düşünebiliriz _(Bunu biraz daha derinlemesine araştırmam lazım)_ Bana göre **no_main** ve **no_std** direktifleriyle rust derleyicisinin beklediği main fonksiyonunun olmadığını ve standart kütüphaneye bağlamadan _(linkleme)_ derlemenin yapılması gerektiğini belirtiyoruz. Tabii programın bir yerden çalışmaya başlayacağının da belirtilmesi lazım. Bu, **[entry]** direktifinin görevi. start fonksiyonu geriye **!** dönüyor gibi duruyor ancak bunun anlamı fonksiyonun hiç sonlanmayacak olması.
+
+Diğer yandan kodda gördüğünüz üzere koşulsuz çalışan sonsuz bir **loop** var. Bu döngüde **5x5** matris şeklindeki dizilime göre tam ortadaki **LED** ışığı ile ilgili bir işlem yapıyoruz. Bir **LED** ışığı kapatıp açmak demek o bölgedeki **GPIO pin**'leri iki noktadan ayarlamakla mümkün oluyor. Dikkat ederseniz döngüden önce **col3** isimli pin'i **low** konumuna çeiyoruz. Aynı konuma gelen **row pin** değerini ise döngü sırasında önce **low** pozisyonuna sonra da **high** pozisyonuna çekiyoruz ve aralarda 1.5 saniyelik bekletmeler yapıyoruz. Bunun sonucu ışığın yanıp sönmesi oluyor. _(Şu anda tam ortadaki LED yanıp sönmeye devam ediyor. Aradan dakikalar geçti. Kastettiğim bu)_ Sonuçta elimizde bir devre kartı var ve üzerinde sunulan led'lere erişmek istiyoruz hatta tam ortadakini yakıp söndüreceğiz ve bunu devamlı yapacağız. Bununla ilgili soyutlamaları kullanıyoruz. Board'un sahipliğini alıp onun üzerinden satır ve sütun yönlendirmeleri ile led'lere ulaşıp set_low ve set_hihg çağrıları ile gerekli yakıp söndürme işlemlerini icra ediyoruz.
 
 ### Led Matrix Hakkında
 
@@ -176,6 +179,8 @@ MEMORY
 }
 ```
 
+**Not:** Farklı kaynaklarda buradaki birtakım ayarların direkt toml dosyaları içerisinden yönetimi de söz konusu. Örneğin kimi kaynak cargo embed arkasından gelen feature gibi özellikleri toml dosyası içerisine alıyor.
+
 ## Target Kurulumu
 
 Yukarıdaki ayarlamalar yeterli değil. Ayrıca rust derleyicisinin bu mikrodenetleyici için çıktı üretmesini sağlayacak enstrümanın yüklenmesi de gerekiyor. Sonuçta farklı bir mikrodenetleyici mimarisi söz konusu. Kullandığım **BBC micro:bit V2.2** denetleyicisi üzerinde **Cortex-M4F** işlemcisi yer alıyor ki bu, rust dünyasında **thumbv7em-none-eabihf** olarak belirtilmiş. Bunu target parametresi ile kullanılabilecek şekilde yüklemek için aşağıdaki terminal komutunu çalıştırmak yeterli.
@@ -189,6 +194,21 @@ rustup target list
 ```
 
 ![Rustup List](../images/RustupList.png)
+
+Veya şu anda sistemde nelerin kurulu olduğunu görmek için show komutu da kullanılabilir.
+
+```bash
+rustup show
+```
+
+![Rustup Show](../images/MicroBit_06.png)
+
+Peki onca target içerisinden hangisini kullanacağımızı nasıl bileceğiz? Bu örnek özelinde ilerleyelim. Öncelikle [Micro:bit resmi kaynaklarından](https://tech.microbit.org/hardware/#nrf52-application-processor) hangi model ile çalıştığımıza bakmamız gerekiyor. Örneğin benim çalıştığım model **Nordic nRF52833** _(ki bu isimle hem [Hardware Abstraction Layer](https://crates.io/crates/nrf52833-hal) hem [Peripheral Access Crate](https://crates.io/crates/nrf52833-pac) türünden küfeler var)_ ve çekirdek bilgisi de **Arm Cortex-M4 32 bit processor with FPU** şeklinde. Buradan hareketle [ARM Developer sitesine](https://developer.arm.com/Processors/cortex-m4) bakıp **Cortex-M4**'ün mimari ve **ISA** bilgilerini not ediyoruz. Örneklerdeki model için **Armv7E-M** mimarisi kullanılıyor ve **ISA** desteği de **Thumb / Thumb-2** şeklinde belirtilmiş. Şimdi buraya kadar elde ettiğimiz anahtar kelimeler **Arm  Cortex-M4 FPU, Armv7E-M, Thumb/Thumb-2** şeklinde. Bu isimlendirmeler hedef platform için önemli. Şimdi [şu adresten](https://doc.rust-lang.org/beta/rustc/platform-support.html) rust'ın desteklediği platformlara baktığımız şu iki isim karşımıza çıkıyor.
+
+- thumbv7em-none-eabi  Bare Armv7E-M
+- thumbv7em-none-eabihf  Bare Armv7E-M, hardfloat
+
+Dikkat edileceği üzer **thumb** ve **v7em** ifadeleri var. İşletim sistemi olmayan bir cihaza çıktı alacağımızdan **none** bilgisi de yer alıyor.
 
 ## Çalışma Zamanı
 
@@ -406,6 +426,59 @@ fn start() -> ! {
 }
 ```
 
+Örneğin güncel hali biraz daha efektif esasında. Harfler constant olarak bir enum türü ile ilişkilendirilerek kullanılabilir. Bunun için letter_pipe isimli bir modül oluşturup içeriğini aşağıdaki gibi güncelleyebiliriz.
+
+```rust
+#[derive(Debug, Clone, Copy)]
+pub enum Letter {
+    Clear,
+    R,
+    U,
+    S,
+    T,
+}
+
+pub const fn get_letter(letter: Letter) -> [[u8; 5]; 5] {
+    match letter {
+        Letter::Clear => [[0; 5]; 5],
+        Letter::R => [
+            [1, 1, 1, 0, 0],
+            [1, 0, 0, 1, 0],
+            [1, 1, 1, 0, 0],
+            [1, 0, 1, 0, 0],
+            [1, 0, 0, 1, 0],
+        ],
+        Letter::U => [
+            [1, 0, 0, 1, 0],
+            [1, 0, 0, 1, 0],
+            [1, 0, 0, 1, 0],
+            [1, 0, 0, 1, 0],
+            [1, 1, 1, 1, 0],
+        ],
+        Letter::S => [
+            [1, 1, 1, 1, 0],
+            [1, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0],
+            [0, 0, 0, 1, 0],
+            [1, 1, 1, 1, 0],
+        ],
+        Letter::T => [
+            [1, 1, 1, 1, 1],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0],
+        ],
+    }
+}
+```
+
+İlgili fonksiyon kod tarafında da aşağıdaki gibi kullanabiliriz.
+
+```rust
+display.show(&mut timer, get_letter(Letter::R), WAIT);
+```
+
 ### Ses Efektleri
 
 // Eklenecek
@@ -413,6 +486,18 @@ fn start() -> ! {
 ### Düğmeler ile Etkileşim
 
 // Eklenecek
+
+### En Basit Hello World
+
+Aslında doğrudan LED'lere ulaşmaya çalışmadan önce basit bir örnekle cihazla iletişim kurup kuramadığımızı da anlayabiliriz. Öncelikle program için gerekli crate'leri ekleyerek başlayalım.
+
+```toml
+
+```
+
+Embed parametresi ile çalışacak komutlar için aşağıdaki içeriğe sahip Embed.toml dosyası işimizi görür.
+
+main.rs dosyasını da şu şekilde ayarlayabiliriz.
 
 ## Debug Modda Çalıştırmak
 
@@ -456,7 +541,7 @@ stepi
 quit
 ```
 
-Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Debugger'ı esasında **VS Code** gibi bir arabirime bağlamak daha iyi bir çözüm olabilir. Zira kalabalık kod kümelerinde bu adımlar işi zorlaştırabilir _(Bu arada Linux tabanlı sistemlerde User Interface Terminal açılabiliyor ve debug işlemleri çok daha kolay icra ediliyor)_ Esasında bu tip mikrodenetleyici çözümlerinde çok karmaşık kodlama yapmak da ne kadar doğru bilemiyorum. Sanki tam anlamıyla **Single Responsibility** ilkesinin Software ve Hardware ekseninde vücut bulmuş haliyle geliştirme yapmak çok daha mantıklı. 
+Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Debugger'ı esasında **VS Code** gibi bir arabirime bağlamak daha iyi bir çözüm olabilir. Zira kalabalık kod kümelerinde bu adımlar işi zorlaştırabilir _(Bu arada Linux tabanlı sistemlerde User Interface Terminal açılabiliyor ve debug işlemleri çok daha kolay icra ediliyor)_ Esasında bu tip mikrodenetleyici çözümlerinde çok karmaşık kodlama yapmak da ne kadar doğru bilemiyorum. Sanki tam anlamıyla **Single Responsibility** ilkesinin Software ve Hardware ekseninde vücut bulmuş haliyle geliştirme yapmak çok daha mantıklı.
 
 ![Debug Mod](../images/MicroBit_04.png)
 
@@ -464,9 +549,9 @@ Kabaca aşağıdaki gibi bir durum deneyimledim diyebilirim. Debugger'ı esasın
 
 Benim gibi gömülü sistem programcılığına uzak olanlar için gerekli belli başlı terimleri aşağıdaki gibi sıralayabiliriz.
 
--- **GPIO _(General Purpose Input/Output)_ :** Genel amaçlı giriş/çıkış pinleridir. LED yakmak, buton okumak, sensörlerden veri almak vb işlemlerde kullanılır. Hem giriş _(Input)_ hem de çıkış _(output)_ olarak yapılandırılabilir.
+- **GPIO _(General Purpose Input/Output)_ :** Genel amaçlı giriş/çıkış pinleridir. LED yakmak, buton okumak, sensörlerden veri almak vb işlemlerde kullanılır. Hem giriş _(Input)_ hem de çıkış _(output)_ olarak yapılandırılabilir.
 - **UART _(Universal Asynchronous Receiver-Transmitter)_:** Mikrodenetleyicilerde sensör verilerinin aktarım işlemlerini tanımlayan bir seri iletişim protokoldür. Sadece mikrodenetleyiciler değil bilgisayarlar içinde geçerlidir.
-- **SPI _(Serial Peripheral Interface)_:** Ağırlıklı olarak yine mikrodenetleyicilerde ele alınan bir senkron ve seri haberleşme standardıdır. 
+- **SPI _(Serial Peripheral Interface)_:** Ağırlıklı olarak yine mikrodenetleyicilerde ele alınan bir senkron ve seri haberleşme standardıdır.
 - **I2C _(Inter-Integrated Circuit)_:**
 - **ADC _(Analog-to-Digital Converter)_:**  Analog sinyali dijitale çeviren dönüştürücüdür. Örneğin mikrofon sensörüne gelen veriyi dijital hale çevirmekte kullanılır.
 - **BSP _(Board Support Package)_ :** Donanım kartına özel olarak geliştirilmiş başlangıç için gerekli tüm unsurları içeren paketlerin genel adıdır. Karta özel pin tanımlarını, saat ayarlarını, buton buzzer pin ayarlarını vb içerir. Örneğin Micro:bit için kullandığımız [microbit-v2](https://crates.io/crates/microbit-v2) BSP örneklerindendir. Bu tip paketler kullanılarak HAL katmanları da geliştirilebilir.
