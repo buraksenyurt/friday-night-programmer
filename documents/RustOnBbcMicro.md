@@ -615,6 +615,13 @@ arm-none-eabi-gdb .\target\thumbv7em-none-eabihf\debug\micro-lights
 # Sonrasında debug sunucusuna bağlanmak için de şu komut işletilmelidir
 target remote :1337
 
+# register'ları görmek için
+info registers
+
+# Assembly kodlarını görmek için
+set print asm-demangle on
+disassemble
+
 # Eğer işlem başarılı olursa örneğin aşağıdaki komut ile main dosyası başına breakpoint koyup durabiliriz
 # Hatta ilk örnekte bunu denersek bulunduğumuz yere göre ışık yanmayabilir veya sürekli yanar pozisyonda da kalabilir
 # Zira kod breakpoint noktasında durmaktadır.
@@ -628,6 +635,22 @@ break 14
 
 # Step into için
 stepi
+
+# local değişkenlerin değerlerini görmek için
+info locals
+
+# Değerini görmek için (örneğin age isimli bir değişkenimiz varsa)
+print age
+# adresini görmek için
+print &age 
+# hatta local değişken değerini değiştirmek için
+set var age=49
+
+# breakpoint'i silmek için 
+delete 1
+
+# mikrodenetleyiciyi resetlemek için
+monitor reset
 
 # Debugger'dan çıkmak içinse 
 quit
