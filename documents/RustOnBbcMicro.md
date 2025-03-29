@@ -497,11 +497,11 @@ display.show(&mut timer, get_letter(Letter::R), WAIT);
 
 ### Ses Efektleri
 
-// Eklenecek
+// MicroRust reposunda ele alınıyor
 
 ### Düğmeler ile Etkileşim
 
-// Eklenecek
+// MicroRust reposunda ele alınıyor
 
 ### En Basit Hello World
 
