@@ -11,7 +11,7 @@ Bu yazıda ilgili kavramlar aşağıdaki konu başlıkları çerçevesinde ele a
         - [AtomicUsize Kullanımı](#atomicusize-kullanımı)
     - [Struct/Enum Türlerinde Padding ve Allignment](#structenum-türlerinde-padding-ve-allignment)
     - [Memory/Object Pooling](#memoryobject-pooling)
-    - [Cache Aware Programming](#cache-aware-programming)
+    - [Cache-Friendly Programming](#cache-friendly-programming)
     - [Zero Cost Abstraction](#zero-cost-abstraction)
 
 Rust, zaten sahip olduğu bazı özellikleri ile _(Ownership, borrow-checker- lifetimes vb)_ belleği güvenli noktada tutmak için .çeşitli imkanlar sağlıyor _(Bilindiği üzere Rust'ta bir Garbage Collector mekanizması yok)_ Yine de bazı senaryolarda belleği efektif kullanmak için az önce saydığım yaklaşımlara da değinmek gerekiyor. Söz gelimi **Interning** konusunda yazılmış duruma göre tercih edilebilecek birçok yardımcı **crate** mevcut.
