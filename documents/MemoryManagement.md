@@ -574,6 +574,7 @@ Tabii Object Pooling dedik, sonra havuz kapasitesini nasıl yöneteceğiz dedik 
 
 Yüksek performanslı kod işletiminde programın çalıştığı sistemin donanımsal avantajlarından yararlanmak da gerekir. Bazı hallerde tampon bellek hassasiyeti olan programlama teknikleri kullanılabilir. Bu pratiklerde genellikle işlemcinin **L1, L2, L3** gibi farklı seviyelerdeki tampon bellek noktaları önemli rol oynar. [Alder Lake](https://en.wikipedia.org/wiki/Alder_Lake) kod adlı 12nci nesil **intel i7** işlemcilerini düşünelim. **L1** cache' de çekirdek başına **80 ila 96Kb**, **L2** cache'de **1.25** ila **2 Mb**, **L3** cache'de ise **30 Mb**'a kadar alan söz konusudur. Dizilim olarak kabaca şöyle düşünebiliriz.
 
+```text
 +------------------+
 +   L1 - 96 Kb     +
 +------------------+
@@ -595,7 +596,8 @@ Yüksek performanslı kod işletiminde programın çalıştığı sistemin donan
 +                  +
 +                  +
 +                  +
-+------------------+        
++------------------+     
+```   
 
 **L** seviye cache'ler çekirdeğin en hızlı erişim yaptığı alanları içerir. L1'den ana belleğe gelirken **bandwidth** daralır ve gecikmeler _(Latency)_ artar. Ancak görüldüğü üzere kullanılabilecek kapasite ana bellekten L1'e gelirken epeyce azalır. Yani hızlanmak için her şeyi L seviye tampon bölgelerinde konumlandırmamız pek mümkün olmayabilir. Çoğu programlama dili bu yönetim için belli metodolojileri benimser. Bu alanda en sık verilen örnek iki boyutlu bir diziyle de ifade edilebilen matrislerdir. **Rust** bir çok dilde olduğu gibi bir matrisi ele alırken **satır öncelikli _(row-major order)_** bir yaklaşımı baz alır. Tahmin edileceği üzere birde **sütun öncelikli _(column-major order)** söz konusudur. Her iki yaklaşım dizi elemanlarının bellekte farklı biçimlerde yerleştirilmesi ile alakalıdır. Biraz daha detay için [Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order) yazısına bakılabilir. 
 
