@@ -570,9 +570,112 @@ impl<T> ObjectPool<T> {
 
 Tabii Object Pooling dedik, sonra havuz kapasitesini nasıl yöneteceğiz dedik ve kendimizi cache stratejilerinin uygulanmasında bulduk. Bu nedenle eğer sıfırdan bir object pool mekanizması tasarlamayacaksak bunu soyutlayan crate'lerden yararlanmak daha iyi olabilir.
 
-## Cache Aware Programming
+## Cache Friendly Programming
 
-_"NOT YET IMPLEMENTED"_
+Yüksek performanslı kod işletiminde programın çalıştığı sistemin donanımsal avantajlarından yararlanmak da gerekir. Bazı hallerde tampon bellek hassasiyeti olan programlama teknikleri kullanılabilir. Bu pratiklerde genellikle işlemcinin **L1, L2, L3** gibi farklı seviyelerdeki tampon bellek noktaları önemli rol oynar. [Alder Lake](https://en.wikipedia.org/wiki/Alder_Lake) kod adlı 12nci nesil **intel i7** işlemcilerini düşünelim. **L1** cache' de çekirdek başına **80 ila 96Kb**, **L2** cache'de **1.25** ila **2 Mb**, **L3** cache'de ise **30 Mb**'a kadar alan söz konusudur. Dizilim olarak kabaca şöyle düşünebiliriz.
+
++------------------+
++   L1 - 96 Kb     +
++------------------+
+         |
++------------------+
++   L2 - 2 Mb      +
++------------------+
+         |
++------------------+
++   L3 - 30 Mb     +
++------------------+ 
+         |
++------------------+
++                  +
++                  +
++                  +
++     Main Ram     +
++                  +
++                  +
++                  +
++                  +
++------------------+        
+
+**L** seviye cache'ler çekirdeğin en hızlı erişim yaptığı alanları içerir. L1'den ana belleğe gelirken **bandwidth** daralır ve gecikmeler _(Latency)_ artar. Ancak görüldüğü üzere kullanılabilecek kapasite ana bellekten L1'e gelirken epeyce azalır. Yani hızlanmak için her şeyi L seviye tampon bölgelerinde konumlandırmamız pek mümkün olmayabilir. Çoğu programlama dili bu yönetim için belli metodolojileri benimser. Bu alanda en sık verilen örnek iki boyutlu bir diziyle de ifade edilebilen matrislerdir. **Rust** bir çok dilde olduğu gibi bir matrisi ele alırken **satır öncelikli _(row-major order)_** bir yaklaşımı baz alır. Tahmin edileceği üzere birde **sütun öncelikli _(column-major order)** söz konusudur. Her iki yaklaşım dizi elemanlarının bellekte farklı biçimlerde yerleştirilmesi ile alakalıdır. Biraz daha detay için [Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order) yazısına bakılabilir. 
+
+Eğer iki boyutlu bir dizinin elemanlarını dolaşırken **row-major order** yaklaşımına uygun kod yazarsak elemanlar belleğe ardışıl dizileceğinden _(Kuvvetle muhtemel L1, L2 seviyesinde)_ erişiminde hızlı olacağını söyleyebiliriz. Konuyu biraz daha net anlamak için aşağıdaki örnek kod parçası ile devam edelim. Bu örnekte **criterion** küfesini de kullanarak benchmark sonuçlarını değerlendireceğiz. _(cache-friendly isimli örnek)_
+
+```rust
+pub const MAX_SIZE: usize = 1024;
+
+pub fn row_major_call(matrix: &[[u8; MAX_SIZE]; MAX_SIZE]) -> usize {
+    let mut sum = 0;
+    for row in 0..MAX_SIZE {
+        for col in 0..MAX_SIZE {
+            sum += matrix[row][col] as usize;
+        }
+    }
+    sum
+}
+
+pub fn column_major_call(matrix: &[[u8; MAX_SIZE]; MAX_SIZE]) -> usize {
+    let mut sum = 0;
+    for col in 0..MAX_SIZE {
+        for row in 0..MAX_SIZE {
+            sum += matrix[row][col] as usize;
+        }
+    }
+    sum
+}
+```
+
+Buradaki fonksiyonlar iki boyutlu bir matris üzerinden toplama işlemini icra etmektedir. İlk etapta kodlar aynı görünebilir, nitekim içiçe iki for döngüsünün işletilmesi söz konusudur. Ancak **row_major_calc** fonksiyonu diğerinin aksine en dış döngüde satırları sayarak ilerlemektedir. Bu iterasyon sırasında her bir satır için kolonlara geçilir. Rust'ın derleyicisi satır öncelikli bir dizilimi benimsediğinden bellek yerleşimi de buna göre ardışıl yapılır. Durumu daha iyi analiz etmek için criterion kütüphanesini kullanarak **benchmark** ölçümlemelerini değerlendirebiliriz. Tabii öncesinde projeye **criterion** küfesinin eklenmesi gerekir.
+
+```bash
+cargo add criterion
+```
+
+Buna bağlı olarak **toml** içeriğini de aşağıdaki gibi değiştirebiliriz.
+
+```toml
+[package]
+name = "cache-friendly"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "matrix-calc"
+harness = false
+```
+
+Projenin root klasöründe benches isimli başka bir klasör açıp aşağıdaki içeriğe sahip **matrix-calc.rs** isimli dosyayı ekleyebiliriz.
+
+```rust
+use cache_friendly::*;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+fn benchmark_access_patterns(c: &mut Criterion) {
+    let matrix = [[1u8; MAX_SIZE]; MAX_SIZE];
+
+    c.bench_function("Row Major Access", |b| {
+        b.iter(|| row_major_call(black_box(&matrix)))
+    });
+
+    c.bench_function("Column Major Access", |b| {
+        b.iter(|| column_major_call(black_box(&matrix)))
+    });
+}
+
+criterion_group!(benches, benchmark_access_patterns);
+criterion_main!(benches);
+```
+
+**Benchmark** testlerini çalıştırmak içinse aşağıdaki komutla ilerlemek yeterli.
+
+```bash
+cargo bench
+```
+
+// SONUÇLAR EKLENECEK
 
 ## Zero Cost Abstraction
 
