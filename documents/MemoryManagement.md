@@ -43,7 +43,7 @@ fn padding_end<'a>(input: &'a str, target_len: usize) -> Cow<'a, str> {
 }
 ```
 
-Burada neler oluyor bir değerlendirelim. Son derece anlamsız bir fonksiyon olan **padding_end**, parametre olarak gelen literalın sonuna **target_len** ile belirtildiği kadar **_** işareti ekliyor ancak gelen içeriğin uzunluğu zaten o kadar ise eklemiyor. Yalnız bu ekleme ve eklememe arasında önemli bir fark var. İfade sonunda boşluklar kalmışsa yeni bir **String** değer oluşturuluyor ve sahipliği fonksiyondan geriye döndürülüyor _(Owned çağrısı)_ . Diğer durumda ise orjinal referans döndürülüyor _(Borrowed çağrısı)_ 
+Burada neler oluyor bir değerlendirelim. Son derece anlamsız bir fonksiyon olan **padding_end**, parametre olarak gelen literalın sonuna **target_len** ile belirtildiği kadar **_** işareti ekliyor ancak gelen içeriğin uzunluğu zaten o kadar ise eklemiyor. Yalnız bu ekleme ve eklememe arasında önemli bir fark var. İfade sonunda boşluklar kalmışsa yeni bir **String** değer oluşturuluyor ve sahipliği fonksiyondan geriye döndürülüyor _(Owned çağrısı)_ . Diğer durumda ise orjinal referans döndürülüyor _(Borrowed çağrısı)_
 
 **Copy on Write** metodolojisi işletim sistemlerinde ortak **page** kullanımlarında ya da **immutable** veritabanı yapılarında yaygın olarak kullanılmakta. Gözle görmedim o yüzden ispat edemem ancak Rust'ın **Clone on Write** özelliğinin daha çok programlama dili ile ilgili olduğu da belirtilmekte. Genel ve yaygın adı **Copy on Write** olsa da Rust tarafındaki **CoW** doğrudan mutasyona izin vermediği için daha çok **Clone on Write** olarak ifade edilmektedir ama özünde benzer bir felsefeye sahip olduklarını ifade edebiliriz.
 
@@ -77,7 +77,7 @@ Veri manupilasyonu sadece gerektiği zamanlarda yapılmış olur.
 
 ## Arena Allocators
 
-**N sayıda** nesne için bellekte baştan bir yer ayırıp _(allocate)_ bunları bu alanda toplamak ve sonrasında hepsini tek seferde düşürmek _(deallocate)_ istediğimiz senaryolarda kullanılan bir teknik olarak ifade edilebilir. Temel çalışma prensibine göre program ayağa kalkarken bellekte belli bir bölge bu iş için tahsis edilir ve gerekli nesneler söz konusu alana ardışıl olarak yerleştirilir. Bölgenin serbest bırakılması nesnelerin de topluca ve tek seferde bellekten düşürülmesi anlamına gelir. Bir **arena** oluşturulduğunda işaretçi _(pointer)_ başlangıç konumuna alınır ve diğer nesnelere ardışıl olarak ulaşılması da kolaylaşır ki bunun da performans açısından önemli bir artısı olduğu söylenebilir. Hatta bu alanlar işletim sistemlerinin kullandığı ön belleklere de benzetilir. 
+**N sayıda** nesne için bellekte baştan bir yer ayırıp _(allocate)_ bunları bu alanda toplamak ve sonrasında hepsini tek seferde düşürmek _(deallocate)_ istediğimiz senaryolarda kullanılan bir teknik olarak ifade edilebilir. Temel çalışma prensibine göre program ayağa kalkarken bellekte belli bir bölge bu iş için tahsis edilir ve gerekli nesneler söz konusu alana ardışıl olarak yerleştirilir. Bölgenin serbest bırakılması nesnelerin de topluca ve tek seferde bellekten düşürülmesi anlamına gelir. Bir **arena** oluşturulduğunda işaretçi _(pointer)_ başlangıç konumuna alınır ve diğer nesnelere ardışıl olarak ulaşılması da kolaylaşır ki bunun da performans açısından önemli bir artısı olduğu söylenebilir. Hatta bu alanlar işletim sistemlerinin kullandığı ön belleklere de benzetilir.
 
 Bu stratejide tüm bellek bölgesinin tek seferde düşmesi en önemli noktalardan birisidir ancak zamanı geldiğinde tek tek düşürülmesi gereken nesneler söz konusu ise bunları **arena** içerisinde ele almak mümkün değildir ya da tam tersi nesneler topluca serbest kalırken yaşaması gerekenler varsa bu yöntem kullanışlı olmayacaktr. Bir başka deyişle aynı yaşam ömrüne _(life-time)_ sahip ya da birlikte sona eren ve çok büyük boyutlu olmayan nesnelerin organizasyonu için daha idealdir. Rust'ta bu amaçla kullanabilecek birçok **crate** mevcut. Bunlardan birisi de [bumpalo](https://crates.io/crates/bumpalo) ve işte basit bir kullanım örneği.
 
@@ -218,11 +218,11 @@ fn address_diff(a: usize, b: usize) -> usize {
 }
 ```
 
-Var olan örnek kodumuza birkaç ekleme yaptık. En önemlisi **Poistion** türü için **Drop** trait davranışını eklememiz. Hatta içerisinde **AtomicUsize** türünden bir sayaç da kullanıyoruz. Eğer teorimiz doğruysa program sonlanırken **scope** dışında kalan **Position** değerleri için **drop trait** 'inin çalışmaması ve dolayısıyla **DROOPED_COUNT** değişkeninin **0** olarak kalması gerekiyor. Kendi yaptığım çalışmada bu sonuca ulaştığımı söyleyebilirim. 
+Var olan örnek kodumuza birkaç ekleme yaptık. En önemlisi **Poistion** türü için **Drop** trait davranışını eklememiz. Hatta içerisinde **AtomicUsize** türünden bir sayaç da kullanıyoruz. Eğer teorimiz doğruysa program sonlanırken **scope** dışında kalan **Position** değerleri için **drop trait** 'inin çalışmaması ve dolayısıyla **DROOPED_COUNT** değişkeninin **0** olarak kalması gerekiyor. Kendi yaptığım çalışmada bu sonuca ulaştığımı söyleyebilirim.
 
 ![bumpalo_runtime](../images/bumpalo_runtime.png)
 
-Dokümantasyona göre **Bumpalo** kütüphanesi söz konusu bellek bölgelerini kendisi oluşturup yönetmekte ve toplu serbest bırakma _(ya da Batch Deallocation)_ işlemi icra etmekte. Yani nesneleri tek tek **drop** etmek yerine ayrılan tüm bellek bloğu için tek seferde boşaltma işlemi uygulamakta. İşte bu noktada Rust'ın **RAII** modelini ezdiği düşünülebilir ki bu normaldir zira kütüphane **stack** yerine kendi bellek bölgesini yönetir. 
+Dokümantasyona göre **Bumpalo** kütüphanesi söz konusu bellek bölgelerini kendisi oluşturup yönetmekte ve toplu serbest bırakma _(ya da Batch Deallocation)_ işlemi icra etmekte. Yani nesneleri tek tek **drop** etmek yerine ayrılan tüm bellek bloğu için tek seferde boşaltma işlemi uygulamakta. İşte bu noktada Rust'ın **RAII** modelini ezdiği düşünülebilir ki bu normaldir zira kütüphane **stack** yerine kendi bellek bölgesini yönetir.
 
 Aslında burada **Drop** davranışı için de bir parantez açmak lazım. Aynı **Position** veri yapılarını **heap** üzerinde tahsis ederek ilerleyelim.
 
@@ -284,7 +284,7 @@ Yukarıdaki son iki örnek kodda **AtomicUsize** veri türünü kullandık. Norm
 - Çoklu thread'ler tarafında bolca okuma ama nadir yazma işlemi söz konusuysa **RwLock< Usize >** ideal çözümdür.
 - Çoklu thread erişimi, sık yazma operasyonu ve performans kritik bir işleyiş gerekiyorsa **AtomicUsize** kullanılması daha iyi olacaktır.
 
-Aslında bu söylediklerimiz ışığında **AtomicUsize** çok daha iyi bir seçim gibi görünebilir ama dezavantajları da vardır. Kilit kullanılmaması her zaman hız avantajı sağlamaz zira işlemci tarafında bellek bariyeri oluşması söz konusudur. Ayrıca örnekte **Sequentially Consistent** kullandık, dolayısıyla işlemci sırf sayacı arttıracağım diye diğer işlemleri durdurabilir ki bu da beklenmedik performans kaybına neden olabilir _(Tabii bu sık kullanılmayla da ilgilidir)_ 
+Aslında bu söylediklerimiz ışığında **AtomicUsize** çok daha iyi bir seçim gibi görünebilir ama dezavantajları da vardır. Kilit kullanılmaması her zaman hız avantajı sağlamaz zira işlemci tarafında bellek bariyeri oluşması söz konusudur. Ayrıca örnekte **Sequentially Consistent** kullandık, dolayısıyla işlemci sırf sayacı arttıracağım diye diğer işlemleri durdurabilir ki bu da beklenmedik performans kaybına neden olabilir _(Tabii bu sık kullanılmayla da ilgilidir)_
 
 Diğer yandan **AtomicUsize** basit bir veri türüdür _(ki Atomic Atomic kelimesi ile başlayan Bool, I16, I32, I64, I8, Isize, Ptr, U16, U32, U64, U8 gibi farklı türler var)_ ve hatta tek bir değişken üzerinde garanti sonuçlar verebilir. Birden fazla **AtomicUsize** kullanımı **Race Condition** problemini doğurabilir. Örnekte birde Ordering kullandık ki bunu belirtmemiz gerekiyordu. Hatta **Drop trait** içindeki ile aynı değeri de vermiştik. **Relaxed**, **Acquire**, **AccRel** gibi farklı değerler de verilebilir ve bunların kombinasyonu önemlidir. Detaylar için [şurada bir tablo var](https://doc.rust-lang.org/std/sync/atomic/struct.AtomicUsize.html#method.compare_and_swap)
 
@@ -292,7 +292,7 @@ Diğer yandan **AtomicUsize** basit bir veri türüdür _(ki Atomic Atomic kelim
 
 Bir **struct** türü belleğe açıldığında alanları _(fields)_ nasıl yerleştiriliyor hiç düşündünüz mü? Ya da bir **enum** sabitinin alanları. Normal şartlarda alanların düzenli bir sırada hizalanması _(alignment)_ ve alanlar arasında sadece gerektiği kadar boşluk bırakılması _(padding minimizasyonu deniyor)_ bu veri yapısına ulaşan program parçaları için kolay ve hızlı erişilebilirlik anlamına gelir. **Rust** genellikle bu tip ayarlamaları bizim yerimize zaten yapar ancak bazı hallerde, örneğin FFI _(Foreign Function Interface)_ hattı üzerinde **harici C kütüphaneleri** ile çalışıldığında belki bu ayarlamaları elle yapmak gerekebilir.
 
-Bu bilgiye ek olarak rust derleyicisinin **niche optimization** _(Friedrich Nietzsche' in nişi değil :P)_ adı verilen bir tekniği kullanarak bazı **enum** türlerini bellek açısından verimli hale getirdiği de belirtilir. **Option<u32>** türünü ele alalım. Pozitif sayılardan oluşan bu 32 bitlik değişken bellekte **8 byte** yer kaplar _(4 byte içerdiği değer için + 4 byte None olma hali için)_ Zira u32 için **None** durumunu ifade etmek ek bir **flag** gerektirmektedir. Lakin **NonZeroU32** türünü de kullanabiliriz. **NonZeroU32**, 0 hariç tüm 32-bit değerleri taşıyabilir ve 0 değeri **None** durumunu ifade etmek için kullanılır. Bu durumda **Option< NonZeroU32 > sadece 4 byte** yer kaplar; **None** değeri altta yatan **0** değeriyle temsil edilir, **Some(value)** ise value’nun kendi değerleriyle temsil edilir​. Daha fazla etay için [buradaki blog yazısını](https://www.0xatticus.com/posts/understanding_rust_niche/) ziyaret edebilirsiniz. Konuyu pekiştirmek için aşağıdaki örnekle devam edelim.
+Bu bilgiye ek olarak rust derleyicisinin **niche optimization** _(Friedrich Nietzsche' in nişi değil :P)_ adı verilen bir tekniği kullanarak bazı **enum** türlerini bellek açısından verimli hale getirdiği de belirtilir. **Option< u32 >** türünü ele alalım. Pozitif sayılardan oluşan bu 32 bitlik değişken bellekte **8 byte** yer kaplar _(4 byte içerdiği değer için + 4 byte None olma hali için)_ Zira u32 için **None** durumunu ifade etmek ek bir **flag** gerektirmektedir. Lakin **NonZeroU32** türünü de kullanabiliriz. **NonZeroU32**, 0 hariç tüm 32-bit değerleri taşıyabilir ve 0 değeri **None** durumunu ifade etmek için kullanılır. Bu durumda **Option< NonZeroU32 > sadece 4 byte** yer kaplar; **None** değeri altta yatan **0** değeriyle temsil edilir, **Some(value)** ise value’nun kendi değerleriyle temsil edilir​. Daha fazla etay için [buradaki blog yazısını](https://www.0xatticus.com/posts/understanding_rust_niche/) ziyaret edebilirsiniz. Konuyu pekiştirmek için aşağıdaki örnekle devam edelim.
 
 ```rust
 use std::num::NonZero;
@@ -370,7 +370,7 @@ Dikkat edileceği üzere **NonZeroU32** kullandığımız durumlarda **None** ve
 
 ![Niche Optimization](../images/niche_opt.png)
 
-Doğal olarak hangisini hangi durumlarda kullanabiliriz sorusu ortaya çıkıyor? Belki gözden kaçırmış olabiliriz ama şöyle bir durum var. **NonZeroU32** adı üstünde **0** değerini taşıyamaz. Sıfır değerini **None** olarak kabul eder. Bu nedenle yaygın görüş U32'nin kullanıldığı bir senaryoda hiçbir şekilde 0 değerinin kullanılmayacağı garanti ise **NonZerou32** tercih edilebilir zira her bir sayısal değer için 8 byte yerine 4 byte ayırabiliriz. 
+Doğal olarak hangisini hangi durumlarda kullanabiliriz sorusu ortaya çıkıyor? Belki gözden kaçırmış olabiliriz ama şöyle bir durum var. **NonZeroU32** adı üstünde **0** değerini taşıyamaz. Sıfır değerini **None** olarak kabul eder. Bu nedenle yaygın görüş U32'nin kullanıldığı bir senaryoda hiçbir şekilde 0 değerinin kullanılmayacağı garanti ise **NonZerou32** tercih edilebilir zira her bir sayısal değer için 8 byte yerine 4 byte ayırabiliriz.
 
 Niche _(niş)_ optimizasyonu denmesinin bir nedeni de **None** yerine geçebilecek ayrıcalıklı yani niş bir değerin bulunmasıdır. **U32** senaryosunda 0 değerinden feragat edilmesi garanti ise 0 bir niş değer olarak ifade edilir ve None yerine kullanılır ve bu da bize büyük bir bellek tasarrufu olarak döner.
 
@@ -519,7 +519,7 @@ pub fn run() {
 }
 ```
 
-**Object pooling**, **arena allocator** başlığı altında incelediğimiz tek bir tampon yaklaşımını da kullanabilir. Örneğin **typed_arena** küfesi tekil **deallocation** işlevleri yerine kapsam dışına çıkıldığında tüm bloğu düşüren ve stack based yerine heap based çalışan bir kütüphanedir. Tipik bir **Arena Allocator** taktiği uyguluyor diyebiliriz. 
+**Object pooling**, **arena allocator** başlığı altında incelediğimiz tek bir tampon yaklaşımını da kullanabilir. Örneğin **typed_arena** küfesi tekil **deallocation** işlevleri yerine kapsam dışına çıkıldığında tüm bloğu düşüren ve stack based yerine heap based çalışan bir kütüphanedir. Tipik bir **Arena Allocator** taktiği uyguluyor diyebiliriz.
 
 **Object Pooling** mevzusunda dikkat çeken noktalardan birisi de havuza nesneler eklendikçe heap' in şişmesidir. Bunu yönetmek de bir tasarım gerektirir. **typed_arena** gibi Arena Allocator stratejisini benimseyen kütüphaneler genellikle tek bir bellek bölgesi ayırmayı tercih eder, tek seferde bellekten düşürür, kapasite dolarsa var olandan bağımsız yeni bir bellek bölgesi daha tahsis eder. Dolayısıyla kendi yazdığımız senaryolarda bu kapasiteyi yönetmemiz de gerekebilir. İlk yazdığımız kodu bu anlamda değerlendirip aşağıdaki gibi yeniden düzenleyebiliriz.
 
@@ -561,12 +561,12 @@ impl<T> ObjectPool<T> {
 }
 ```
 
-**ObjectPool** yapısına **usize** türünden **capacity** alanı eklenmiştir. **add** ve **release** fonksiyonlarında kapasite kontrolü yapılır. Bu yöntem havuzdaki nesne sayısını sabitler ve **heap** bölgesinin gereksiz yere şişmesini engeller ancak dezavantajları da vardır. Örneğin havuzda boş yer yokken bir nesne istersek yeni nesne üretilemeyebilir. Bu da bizi **Eviction** stratejilerine götürür. **Least Recently Used _(LRU)_**, **Time-Aware Least Recently Used _(TLRU)_**, **Least Frequently Used _(LFU)_**, **Most Recently Used _(MRU)_** gibi daha birçok yaklaşım da mevcuttur. Bu teknikler sadece **object pooling** değil **cache mekanizmaları** için de ele alınan stratejilerdir. 
+**ObjectPool** yapısına **usize** türünden **capacity** alanı eklenmiştir. **add** ve **release** fonksiyonlarında kapasite kontrolü yapılır. Bu yöntem havuzdaki nesne sayısını sabitler ve **heap** bölgesinin gereksiz yere şişmesini engeller ancak dezavantajları da vardır. Örneğin havuzda boş yer yokken bir nesne istersek yeni nesne üretilemeyebilir. Bu da bizi **Eviction** stratejilerine götürür. **Least Recently Used _(LRU)_**, **Time-Aware Least Recently Used _(TLRU)_**, **Least Frequently Used _(LFU)_**, **Most Recently Used _(MRU)_** gibi daha birçok yaklaşım da mevcuttur. Bu teknikler sadece **object pooling** değil **cache mekanizmaları** için de ele alınan stratejilerdir.
 
-- **LRU**' da amaç kullanılmayan nesneleri belli bir sıraya göre havuzdan çıkarmaktır ve genellikle **web cache**, **session cahce**, oyunlarda asset yönetimi gibi senaryolarda ele alınır. Burada en az kullanılan nesneye erişmek **Big O** ölçümlemesine göre nispeten yavaş olabilir ve O(1) durumuna getirilmesi gerekebilir. 
-- **TLRU**' da bir zaman damgası kullanılır ve buna göre belli süre kullanılmayan nesnelerin havuzdan çıkartılması sağlanır. Tahmin edileceği üzere amaç belli süre kullanılmayan nesneleri temizlemek bunu da bir zamanlayıcıya göre ayarlamaktır. Örneğin ömrü 60 saniyeden eski olanların temizlenmesi gibi. Geçici dosya yönetiminde, IoT sistemlerde ele alınabilir. 
+- **LRU**' da amaç kullanılmayan nesneleri belli bir sıraya göre havuzdan çıkarmaktır ve genellikle **web cache**, **session cahce**, oyunlarda asset yönetimi gibi senaryolarda ele alınır. Burada en az kullanılan nesneye erişmek **Big O** ölçümlemesine göre nispeten yavaş olabilir ve O(1) durumuna getirilmesi gerekebilir.
+- **TLRU**' da bir zaman damgası kullanılır ve buna göre belli süre kullanılmayan nesnelerin havuzdan çıkartılması sağlanır. Tahmin edileceği üzere amaç belli süre kullanılmayan nesneleri temizlemek bunu da bir zamanlayıcıya göre ayarlamaktır. Örneğin ömrü 60 saniyeden eski olanların temizlenmesi gibi. Geçici dosya yönetiminde, IoT sistemlerde ele alınabilir.
 - **LFU**' da amaç en az kullanılan ya da daha iyi bir tarifle en az başvurulan nesneyi havuzdan çıkarmaktır. Böylece sık kullanılan nesneler havuzda kalırken az kullanılanlar çıkarılır. Makine öğrenme modellerinde cache kullanılacağı zaman veya DB indeksleme işlemlerinde ele alınır. Sık kullanılan nesnelerin havuzda kalması önemli bir avantajdır ancak bu nesnelerin aranması, bulunması tam bir **O(N)** maliyetine eş olabilir.
-- **MRU** ise en son kullanılan nesnenin bellekten çıkartılmasını hedefler. Veri sıkıştırma algoritmaları ve büyük dosya sistemlerinde kullanılan bir yöntem olduğu belirtilmektedir. LRU'nun tam tersi olarak da değerlendirilebilir. 
+- **MRU** ise en son kullanılan nesnenin bellekten çıkartılmasını hedefler. Veri sıkıştırma algoritmaları ve büyük dosya sistemlerinde kullanılan bir yöntem olduğu belirtilmektedir. LRU'nun tam tersi olarak da değerlendirilebilir.
 
 Tabii Object Pooling dedik, sonra havuz kapasitesini nasıl yöneteceğiz dedik ve kendimizi cache stratejilerinin uygulanmasında bulduk. Bu nedenle eğer sıfırdan bir object pool mekanizması tasarlamayacaksak bunu soyutlayan crate'lerden yararlanmak daha iyi olabilir.
 
@@ -597,29 +597,28 @@ Yüksek performanslı kod işletiminde programın çalıştığı sistemin donan
 +                  +
 +                  +
 +------------------+     
-```   
+```
 
-**L** seviye cache'ler çekirdeğin en hızlı erişim yaptığı alanları içerir. L1'den ana belleğe gelirken **bandwidth** daralır ve gecikmeler _(Latency)_ artar. Ancak görüldüğü üzere kullanılabilecek kapasite ana bellekten L1'e gelirken epeyce azalır. Yani hızlanmak için her şeyi L seviye tampon bölgelerinde konumlandırmamız pek mümkün olmayabilir. Çoğu programlama dili bu yönetim için belli metodolojileri benimser. Bu alanda en sık verilen örnek iki boyutlu bir diziyle de ifade edilebilen matrislerdir. **Rust** bir çok dilde olduğu gibi bir matrisi ele alırken **satır öncelikli _(row-major order)_** bir yaklaşımı baz alır. Tahmin edileceği üzere birde **sütun öncelikli _(column-major order)** söz konusudur. Her iki yaklaşım dizi elemanlarının bellekte farklı biçimlerde yerleştirilmesi ile alakalıdır. Biraz daha detay için [Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order) yazısına bakılabilir. 
+**L** seviye cache'ler çekirdeğin en hızlı erişim yaptığı alanları içerir. L1'den ana belleğe gelirken **bandwidth** daralır ve gecikmeler _(Latency)_ artar. Ancak görüldüğü üzere kullanılabilecek kapasite ana bellekten L1'e gelirken epeyce azalır. Yani hızlanmak için her şeyi L seviye tampon bölgelerinde konumlandırmamız pek mümkün olmayabilir. Çoğu programlama dili bu yönetim için belli metodolojileri benimser. Bu alanda en sık verilen örnek iki boyutlu bir diziyle de ifade edilebilen matrislerdir. **Rust** bir çok dilde olduğu gibi bir matrisi ele alırken **satır öncelikli _(row-major order)_** bir yaklaşımı baz alır. Tahmin edileceği üzere birde **sütun öncelikli _(column-major order)** söz konusudur. Her iki yaklaşım dizi elemanlarının bellekte farklı biçimlerde yerleştirilmesi ile alakalıdır. Biraz daha detay için [Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order) yazısına bakılabilir.
 
-Eğer iki boyutlu bir dizinin elemanlarını dolaşırken **row-major order** yaklaşımına uygun kod yazarsak elemanlar belleğe ardışıl dizileceğinden _(Kuvvetle muhtemel L1, L2 seviyesinde)_ erişiminde hızlı olacağını söyleyebiliriz. Konuyu biraz daha net anlamak için aşağıdaki örnek kod parçası ile devam edelim. Bu örnekte **criterion** küfesini de kullanarak benchmark sonuçlarını değerlendireceğiz. _(cache-friendly isimli örnek)_
+Eğer iki boyutlu bir dizinin _(veya buna uygun vektör yapısının)_ elemanlarını dolaşırken **row-major order** yaklaşımına uygun kod yazarsak elemanlar belleğe ardışıl dizileceğinden _(Kuvvetle muhtemel L1, L2 seviyesinde)_ erişiminde hızlı olacağını söyleyebiliriz. Konuyu biraz daha net anlamak için aşağıdaki örnek kod parçası ile devam edelim. Bu örnekte **criterion** küfesini de kullanarak benchmark sonuçlarını değerlendireceğiz. _(cache-friendly isimli örnek)_
 
 ```rust
-pub const MAX_SIZE: usize = 1024;
-
-pub fn row_major_call(matrix: &[[u8; MAX_SIZE]; MAX_SIZE]) -> usize {
+pub fn row_major_call(matrix: &Vec<Vec<u8>>) -> usize {
     let mut sum = 0;
-    for row in 0..MAX_SIZE {
-        for col in 0..MAX_SIZE {
-            sum += matrix[row][col] as usize;
+    for row in matrix {
+        for &val in row {
+            sum += val as usize;
         }
     }
     sum
 }
 
-pub fn column_major_call(matrix: &[[u8; MAX_SIZE]; MAX_SIZE]) -> usize {
+pub fn column_major_call(matrix: &Vec<Vec<u8>>) -> usize {
+    let size = matrix.len();
     let mut sum = 0;
-    for col in 0..MAX_SIZE {
-        for row in 0..MAX_SIZE {
+    for col in 0..size {
+        for row in 0..size {
             sum += matrix[row][col] as usize;
         }
     }
@@ -656,15 +655,17 @@ use cache_friendly::*;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn benchmark_access_patterns(c: &mut Criterion) {
-    let matrix = [[1u8; MAX_SIZE]; MAX_SIZE];
+    for &size in &[128, 1024, 4096, 8192] {
+        let matrix = vec![vec![1u8; size]; size];
 
-    c.bench_function("Row Major Access", |b| {
-        b.iter(|| row_major_call(black_box(&matrix)))
-    });
+        c.bench_function(&format!("Row Major Access {}x{}", size, size), |b| {
+            b.iter(|| row_major_call(black_box(&matrix)))
+        });
 
-    c.bench_function("Column Major Access", |b| {
-        b.iter(|| column_major_call(black_box(&matrix)))
-    });
+        c.bench_function(&format!("Column Major Access {}x{}", size, size), |b| {
+            b.iter(|| column_major_call(black_box(&matrix)))
+        });
+    }
 }
 
 criterion_group!(benches, benchmark_access_patterns);
@@ -677,7 +678,22 @@ criterion_main!(benches);
 cargo bench
 ```
 
-// SONUÇLAR EKLENECEK
+Buradaki testler 12nci nesil Intel i7 işlemcisi için hazırlandı. Aşağıdaki tabloda yer alan durumlara göre bir benchmark oluşturuldu.
+
+|**Level**|**Hedef Boyut**|**Matris Boyutu**|**Veri Boyutu**|
+|-----|-----------|-------------|-----------|
+|L1|~96 Kb|128 x 128|16Kb|
+|L2|~2 Mb|1024 x 1024|1 Mb|
+|L3|~30 Mb|4096 x 4096|16 Mb|
+|Ram||8192 x 8192|64 Mb|
+
+Benchmark ölçümleri target/criterion/report/index.html dosyasından da grafiksel olarak takip edilebilir. Örneğin 128 x 128 test için sütun öncelikli ve satır öncelikli ilk ölçümler aşağıdaki gibidir.
+
+![Column Major](../images/ColumnMajor.png)
+
+ve
+
+![Row Major](../images/RowMajor.png)
 
 ## Zero Cost Abstraction
 
@@ -699,7 +715,7 @@ pub fn run() {
 }
 ```
 
-Birden ona kadar olan sayıların toplanması iki farklı şekilde yapılmaktadır. Birisinde iter() metodu üzerinden ulaşılıp map ve sum fonksiyonları ile hesaplama yapılmaktadır. Diğerinde ise bildiğimiz klasik bir **for** döngüsü kullanılmıştır. Kod okunurluğu açısından iterator kullanımı çok daha idealdir ve aslında birçok fonksiyonel dilde bu tip yüksek seviyeli işlevlere rastlanır ancak bu tip bir soyutlamanın çalışma zamanı maliyetleri dile göre tartışılır. **Zero-Cost Abstraction**, klasik for döngüsü ile yazılan ve optimize edilmiş kod çıktısının iterator fonksiyonlar için de söz konusu olduğunu söyler. 
+Birden ona kadar olan sayıların toplanması iki farklı şekilde yapılmaktadır. Birisinde iter() metodu üzerinden ulaşılıp map ve sum fonksiyonları ile hesaplama yapılmaktadır. Diğerinde ise bildiğimiz klasik bir **for** döngüsü kullanılmıştır. Kod okunurluğu açısından iterator kullanımı çok daha idealdir ve aslında birçok fonksiyonel dilde bu tip yüksek seviyeli işlevlere rastlanır ancak bu tip bir soyutlamanın çalışma zamanı maliyetleri dile göre tartışılır. **Zero-Cost Abstraction**, klasik for döngüsü ile yazılan ve optimize edilmiş kod çıktısının iterator fonksiyonlar için de söz konusu olduğunu söyler.
 
 Peki bu nasıl ispat edilebilir? Sanıyorum doğru optimizasyon seviyesinde üretilen kodun **assembly** çıktılarına bakarak bir kıyaslama yapmak mümkün. Bu henüz tam olarak gerçekeştiremediğim bir şey ancak yol boyunca öğrendiğim bazı şeyler de oldu. Örneğin **src** klasöründe **zca.rs** isimli yalnız başına takılan bir rust dosyası var. Bunu **rustc** ile deledikten sonra assembly koduna bakabiliriz.
 
