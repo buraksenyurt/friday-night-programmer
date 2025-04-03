@@ -77,7 +77,9 @@ Veri manupilasyonu sadece gerektiği zamanlarda yapılmış olur.
 
 ## Arena Allocators
 
-N sayıda nesne için bellekte baştan bir yer ayırıp bunları bu alanda toplamak ve sonrasında hepsini tek seferde düşürmek istediğimiz senaryolarda kullanılan bir teknik olarak ifade edilmektedir. Temel çalışma prensibine göre program ayağa kalkarken bellekte belli bir bölge bu iş için tahsis edilir ve gerekli nesneler söz konusu alana ardışık olarak dizilir. Bölgenin serbest bırakılması nesnelerin de topluca ve tek seferde bellekten düşürülmesi anlamına gelir. Bir arena oluşturulduğunda işaretçi _(pointer)_ başlangıç konumuna alınır ve diğer nesnelere ardışıl olarak ulaşılması da kolaylaşır ki bunun da performans açısından önemli bir artısı olduğu söylenebilir. Hatta bu alanlar işletim sistemlerinin kullandığı ön belleklere de benzetilir. Bu stratejide tüm bellek bölgesinin tek seferde düşmesi en önemli noktalardan birisidi ancak zamanı geldiğinde tek tek düşürülmesi gereken nesneler söz konusu ise bunları arena içerisinde ele almak mümkün değildir ya da tam tersi nesneler topluca serbest kalırken yaşaması gerekenler varsa bu yöntem kullanışlı olmaz. Bir başka deyişle aynı yaşam ömrüne sahip ya da birlikte sona eren ve çok büyük boyutlu olmayan nesnelerin organizasyonu için daha idealdir. Rust'ta bu amaçla kullanabilecek birçok küfe de bulunuyor. Bunlardan birisi de [bumpalo](https://crates.io/crates/bumpalo) ve işte basit kullanım örneği.
+**N sayıda** nesne için bellekte baştan bir yer ayırıp _(allocate)_ bunları bu alanda toplamak ve sonrasında hepsini tek seferde düşürmek _(deallocate)_ istediğimiz senaryolarda kullanılan bir teknik olarak ifade edilebilir. Temel çalışma prensibine göre program ayağa kalkarken bellekte belli bir bölge bu iş için tahsis edilir ve gerekli nesneler söz konusu alana ardışıl olarak yerleştirilir. Bölgenin serbest bırakılması nesnelerin de topluca ve tek seferde bellekten düşürülmesi anlamına gelir. Bir **arena** oluşturulduğunda işaretçi _(pointer)_ başlangıç konumuna alınır ve diğer nesnelere ardışıl olarak ulaşılması da kolaylaşır ki bunun da performans açısından önemli bir artısı olduğu söylenebilir. Hatta bu alanlar işletim sistemlerinin kullandığı ön belleklere de benzetilir. 
+
+Bu stratejide tüm bellek bölgesinin tek seferde düşmesi en önemli noktalardan birisidir ancak zamanı geldiğinde tek tek düşürülmesi gereken nesneler söz konusu ise bunları **arena** içerisinde ele almak mümkün değildir ya da tam tersi nesneler topluca serbest kalırken yaşaması gerekenler varsa bu yöntem kullanışlı olmayacaktr. Bir başka deyişle aynı yaşam ömrüne _(life-time)_ sahip ya da birlikte sona eren ve çok büyük boyutlu olmayan nesnelerin organizasyonu için daha idealdir. Rust'ta bu amaçla kullanabilecek birçok **crate** mevcut. Bunlardan birisi de [bumpalo](https://crates.io/crates/bumpalo) ve işte basit bir kullanım örneği.
 
 ```rust
 use bumpalo::Bump;
@@ -133,9 +135,9 @@ fn address_diff(a: usize, b: usize) -> usize {
 }
 ```
 
-Örnekte bump nesnesi oluşturulduktan sonra içerisine üç farklı Position nesne örneği ekleniyor. Sadece bu örnek özelinde bunların kodlama sırası ile olmasa da ardışıl olarak dizildiklerini ispat edebilmek için adres bilgileri arasındaki farklar hesaplanıyor. Position yapısı 4 byte'tan 3 alan içermekte ve dolayısıyla 12 byte yer kaplamakta. Dolayısıyla nesnelerin başlangıç adresleri arasında 12 byte mesafe olmalı. Elbette bunu çok daha büyük boyutlu bir nesne kümesi için kontrol etmek lazım, tam bir ispattır diyemeyiz.
+Örnekte **bump** nesnesi oluşturulduktan sonra içerisine üç farklı **Position** değişkeni ekleniyor. Sadece bu örnek özelinde değişkenleri kodlama sırası ile olmasa da ardışıl olarak dizildiklerini ispat edebilmek için bellek adresleri arasındaki farklar hesaplanıyor. **Position** yapısı 4 byte'tan oluşan 3 alan içermekte ve dolayısıyla 12 byte yer kaplamakta. Buna göre nesnelerin başlangıç adresleri arasında 12 byte mesafe olmalı. Elbette bunu çok daha büyük boyutlu bir nesne kümesi için kontrol etmek lazım, tam bir ispattır diyemeyiz.
 
-Rust programlama dili çalışma zamanında nesnelerin temizlenmesi için **Resource Acquisition is Initialization _(RAII)_** prensibini kullanır. Buna göre bir değer scope dışında çıktığında düşer ve hatta referans türlü yani heap bazlı bir nesne ise _(Box edilmiş bir tür, Vector gibi)_ drop trait davranışı çalıştırılır. Area Allocator teorisinde ise bu bellek alanının tek seferde düşürülmesi söz konusudur. Dolayısıyla bölgeye atılan nesneler için drop implementasyonlarının çalışmaması gerekir. Bumpalo kütüphanesi açısından bakarsak aşağıdaki örnek kodla durumu özetleyebilir.
+ Bilindiği üzere **rust** programlama dili çalışma zamanında nesnelerin temizlenmesi için **Resource Acquisition is Initialization _(RAII)_** prensibini kullanır. Buna göre bir değer **scope** dışına çıktığında bellekten otomatik olarak düşer ve hatta referans türlü yani **heap** bazlı bir nesne ise _(Box edilmiş bir tür, Vector gibi)_ **drop trait** davranışı çalıştırılır. **Area Allocator** teorisinde ise bu bellek alanının tek seferde düşürülmesi söz konusu. Dolayısıyla bölgeye atılan nesneler için **drop** implementasyonlarının çalışmaması beklenir. **Bumpalo** kütüphanesi açısından bakarsak aşağıdaki örnek kodla durumu özetleyebilir.
 
 ```rust
 use bumpalo::Bump;
@@ -216,11 +218,13 @@ fn address_diff(a: usize, b: usize) -> usize {
 }
 ```
 
-Var olan örnek kodumuza birkaç ekleme yaptık. En önemlisi Poistion türü için **Drop** trait davranışını eklememiz. Hatta içerisinde **AtomicUsize** türünden bir sayaç kullanıyoruz. Eğer teorimiz doğruysa program sonlanırken scope dışında kalan **Position** nesneleri için Drop trait'inin çalışmaması ve dolayısıyla **DROOPED_COUNT** değişkeninin 0 olarak kalması gerekiyor. Kendi yaptığım çalışmada bu sonuca ulaştığımı söyleyebilirim. 
+Var olan örnek kodumuza birkaç ekleme yaptık. En önemlisi **Poistion** türü için **Drop** trait davranışını eklememiz. Hatta içerisinde **AtomicUsize** türünden bir sayaç da kullanıyoruz. Eğer teorimiz doğruysa program sonlanırken **scope** dışında kalan **Position** değerleri için **drop trait** 'inin çalışmaması ve dolayısıyla **DROOPED_COUNT** değişkeninin **0** olarak kalması gerekiyor. Kendi yaptığım çalışmada bu sonuca ulaştığımı söyleyebilirim. 
 
 ![bumpalo_runtime](../images/bumpalo_runtime.png)
 
-Dokümantasyona göre Bumpalo söz konusu bellek bölgelerini kendisi oluşturup yönetmekte ve toplu serbest bırakma _(ya da Batch Deallocation)_ işlemi icra etmekte. Yani tek tek nesneleri drop etmek yerine ayrılan tüm bellek bloğu için tek seferde boşaltma işlemi uygulamakta. İşte bu noktada Rust'ın RAII modelini ezdiği düşünülebilir ki bu normaldir zira kütüphane stack yerine kendi bellek bölgesini yönetir. Aslında burada Drop için de bir parantez açmak lazım. Aynı Position veri yapılarını heap üzerinde tahsis ederek deneyelim. İşte örnek kod,
+Dokümantasyona göre **Bumpalo** kütüphanesi söz konusu bellek bölgelerini kendisi oluşturup yönetmekte ve toplu serbest bırakma _(ya da Batch Deallocation)_ işlemi icra etmekte. Yani nesneleri tek tek **drop** etmek yerine ayrılan tüm bellek bloğu için tek seferde boşaltma işlemi uygulamakta. İşte bu noktada Rust'ın **RAII** modelini ezdiği düşünülebilir ki bu normaldir zira kütüphane **stack** yerine kendi bellek bölgesini yönetir. 
+
+Aslında burada **Drop** davranışı için de bir parantez açmak lazım. Aynı **Position** veri yapılarını **heap** üzerinde tahsis ederek ilerleyelim.
 
 ```rust
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -267,7 +271,7 @@ pub fn run() {
 }
 ```
 
-Bu sefer Velocity isimli struct'lardan birkaç nesne örnekliyoruz ancak dikkat edileceği üzere bunların Box ediyoruz yani Heap üzerine yerleştiriyoruz. Buna göre Drop trait'lerinin otomatik olarak çalışması ve sayaç değerimizin de 3 olması gerekiyor. İşte sonuçlar.
+Bu sefer **Velocity** isimli **struct** 'lardan birkaç değişken tanımlıyoruz ancak dikkat edileceği üzere bunları **Box** ile kullanıyoruz. Bir başka deyişle kasıtlı olarak **Heap** üzerinde yerleşmelerini sağlıyoruz. Bu yeni durumda **Drop trait** 'lerinin otomatik olarak çalışması ve sayaç değerimizin de **3** olması gerekiyor. İşte sonuçlar.
 
 ![boxing_runtime](../images/boxing_runtime.png)
 
