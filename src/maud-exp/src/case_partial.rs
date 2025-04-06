@@ -49,7 +49,7 @@ fn footer() -> Markup {
     }
 }
 
-pub fn create() -> String {
+pub fn create() -> Markup {
     let title = "Last Exam Scores";
 
     let scores = vec![
@@ -65,7 +65,6 @@ pub fn create() -> String {
         (body(title,&scores))
         (footer())
     }
-    .into_string()
 }
 
 struct Score {
