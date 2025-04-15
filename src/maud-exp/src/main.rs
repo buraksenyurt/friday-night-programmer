@@ -27,6 +27,6 @@ async fn main() -> Result<(), Error> {
 }
 
 #[get("/home")]
-fn index(name: &str) -> Markup {
+fn index() -> Markup {
     case_partial::create()
 }
