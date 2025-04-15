@@ -258,3 +258,13 @@ Bu bölümde ele aldığımız konular.
   - Uğur (Vigo) Özyılmazel'in ortam değişkenleri yönetiminde karşılaştığı zorlukları ve çözmek için kullandığı Go ile yazılmış [direnv aracını kalame almış](https://ugur.ozyilmazel.com/blog/tr/2025/02/20/direnv-nedir-ne-ise-yarar/).
   - Erhan Kocabuğa [kişisel bloğunda](https://erhankocabuga.com/grpc-ve-protobuf-ile-hizli-ve-guvenilir-uygulamalar-gelistirme) gRPC ve Protobuf ile yüksek performanslı uygulamalar geliştirilmesi üzerine önemli noktalara değindiği bir yazı kaleme almış.
   - Rust ile gömülü sistem geliştirmek üzerine çalışmak isteyenler için herşeyin bir arada yer aldığı iddialı bir github reposu, [Awesome Embedded Rust](https://github.com/rust-embedded/awesome-embedded-rust)
+
+### Chapter 09 - Gattaca _(15 Nisan 2025 Cuma, 21:30 - 22:30)_
+
+[Yayın Linki]()
+
+Bu bölümde ele alınan konular.
+
+- Orhun Parmaksız'ın önemli katkısı olan Ratatui. (Benim örneğim [şu klasörde yer alan](./src/metrics/) basit örnek.)
+- Template Engine olarak değerlendirilebilecek [Maud](https://maud.lambda.xyz/). Ben [burada](./src/maud-exp/) içerisinde ele aldım.
+- Rust tabanlı web framework kullanmak isteyenler için ciddi bir alternatif olacağını düşündüğüm Tuono. Benim örneğim ise karate ustalarında Chuck Norris'in özlü sözlerini kullanan [norris-facts](./src/norris-facts/) isimli uygulama
