@@ -95,3 +95,23 @@ Sonrasında örnek bir POST request gönderilmeli ve hem tablo değişiklikleri 
 ```bash
 
 ```
+
+## Dezavantajlar
+
+Diğer yazılım prensipleri ve desenlerinde olduğu gibi bu kalıpta da sorgulayıcı yaklaşmakta fayda vardır. Outbox Pattern'in olası dezavantajları aşağıdaki gibi özetlenebilir.
+
+- Oluşan her event için veritabanına bir insert işlemi icra edilir. **Yüksek transaction** sayısı olan sistemlerde veritabanı tarafında ek **I/O yükü** oluşması muhtemeldir. Tablo kontrolsüzce hızla büyüyebilir. Dolayısıyla öncü testler ve tahmini işlem sayıları, büyüme değerleri ve bunun kabul edilebilirliği göz önüne alınarak karar vermekte yarar vardır.
+- **Transaction bütünlüğünü** garanti ederken outbox tablosunun yönetimi, log üretimi, retry mekanizmaları ve gereksiz kayıtların temizlemenmesi veya arşivlenmesi gibi farklı operasyonlarında ele alınması gerekir.
+- Outbox pattern'de mesajların **At-Least-Once Delivery** metodolojisi gereği en az bir kez gönderimi söz konusudur. Aynı mesajın birden fazla gelme durumunun yan etkiye sebebiyet vermemesinin tasarımının da düşünülmesi gerekebilir.
+
+## Alternatifler
+
+//TODO@buraksenyurt Bunları da bir ara araştırmam lazım
+
+- Inbox Pattern
+- Change Data Capture: Bu konuda Debezium aracına bakılması tavsiye ediliyor.
+- Transactional Messaging: Veritabanı ve mesaj kuyruğu ürünlerinin birbirileriyle doğrudan entegre çalışabildiği senaryolar.
+- Transactional Outbox : Polling tekniği yerine sistemin sağladığı Trigger veya Notification enstrümanlarını kullanmak.
+- Two-Phase Commit (Distributed Transaction Coordinator) : Bu çok eski bir yöntem. MSDTC denince birçok deneyimli programcının hatıraları canlanır.
+
+**Sonuç itibariyle,** dağıtık bir sistemde Eventual Consistency kabul ediliyor, kullanılan mesajlaşma sistemi transactional değil, tek bir veritabanından veri ve olay üretimi söz konusu ama en önemlisi veri tabanında bir veri oluştururken başka sistemlerin event yayınlama usulüyle bilgilendirilmesi bekleniyorsa **Outbox Pattern** göz önüne alınabilir. Yine de devasa dağıtık sistem ortamlarında çok iyi test edilerek değerlendirilmesinden fayda vardır. 
