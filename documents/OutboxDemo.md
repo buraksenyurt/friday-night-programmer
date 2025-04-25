@@ -6,7 +6,7 @@ Bir bayi otomasyon sisteminde servis talep formu sürecinde Outbox Pattern'in na
 
 Senaryomuza göre servis talep formunun kaydedileceği veritabanında Outbox verisini tutan bir başka tablo daha yer alır. Servis formu verisi ve outbox verisi her iki tabloya aynı transaction içerisinde yazılmaya çalışılır. Aynı veri tabanı üzerinde gerçekleşen bir transaction doğal olarak dağıtık sistem tabanlı bir transaction mekanizmasına göre daha garantidir. Bu sayede veritabanına veri ekleme ve gönderilecek mesajın kaydedilmesi tek bir ACID transaction ile atomik olarak gerçekleşebilir. Eğer transaction işlemi başarılı olursa hem ana veri hem de outbox mesajı kayıt edilmiş olur aksine rollback işlemi söz konusu olursa ikisi de gerçekleşmemiş olur. Sonraki adımda ayrı bir süreç _(arka planda çalışan bir job olabilir)_ Outbox tablosundaki mesajları okur ve RabbitMQ ya da benzeri bir mesajlaşma sistemine servis talep formunun oluşturulduğuna dair bilgi yayınlar. Mesaj başarılı bir şekilde kuyruğa gönderildiğinde ise Outbox tablosunda statü değişikliği yapılır ve hareketin taraflarca ele alındığı bilgisi onaylanmış olur. Sonuç olarak sistemler arası veri tutarlılığı sağlanır ve mesajların en az bir kez iletildiğinden emin olunur.
 
-//TODO@buraksenyurt Akış Şeması Ekle
+![Outbox Sequence Diagram](../images/OutboxSequenceDiagram.png)
 
 ## Düzenek
 
