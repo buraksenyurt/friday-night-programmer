@@ -1,4 +1,4 @@
-namespace RequestFormApi.Model;
+namespace EventWorker.Model;
 
 public class OutboxMessage
 {
