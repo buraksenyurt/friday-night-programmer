@@ -6,6 +6,8 @@ Bir bayi otomasyon sisteminde servis talep formu sürecinde Outbox Pattern'in na
 
 Senaryomuza göre servis talep formunun kaydedileceği veritabanında Outbox verisini tutan bir başka tablo daha yer alır. Servis formu verisi ve outbox verisi her iki tabloya aynı transaction içerisinde yazılmaya çalışılır. Aynı veri tabanı üzerinde gerçekleşen bir transaction doğal olarak dağıtık sistem tabanlı bir transaction mekanizmasına göre daha garantidir. Bu sayede veritabanına veri ekleme ve gönderilecek mesajın kaydedilmesi tek bir ACID transaction ile atomik olarak gerçekleşebilir. Eğer transaction işlemi başarılı olursa hem ana veri hem de outbox mesajı kayıt edilmiş olur aksine rollback işlemi söz konusu olursa ikisi de gerçekleşmemiş olur. Sonraki adımda ayrı bir süreç _(arka planda çalışan bir job olabilir)_ Outbox tablosundaki mesajları okur ve RabbitMQ ya da benzeri bir mesajlaşma sistemine servis talep formunun oluşturulduğuna dair bilgi yayınlar. Mesaj başarılı bir şekilde kuyruğa gönderildiğinde ise Outbox tablosunda statü değişikliği yapılır ve hareketin taraflarca ele alındığı bilgisi onaylanmış olur. Sonuç olarak sistemler arası veri tutarlılığı sağlanır ve mesajların en az bir kez iletildiğinden emin olunur.
 
+//TODO@buraksenyurt Akış Şeması Ekle
+
 ## Düzenek
 
 Senaryodaki enstrümanları şöyle sıralayabiliriz.
@@ -18,3 +20,78 @@ Senaryodaki enstrümanları şöyle sıralayabiliriz.
 - Postgresql ve Rabbitmq tarafları için Docker-Compose 
 
 Örnek kodları [şu klasörde](../src/OutboxDemo/) bulabilirsiniz.
+
+Bu solution'da;
+
+- RequestFormApi, kullanıcı servis istek formunu oluşturan web api hizmetidir.
+- EventWorker ise Outbox tablosunu dinleyip RabbitMQ'ya mesaj gönderimini üstlenir
+
+## Docker Compose
+
+Docker-compose içeriği aşağıdaki gibidir.
+
+```yaml
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: fnp-postgres
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: somew0rds
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    networks:
+      - fnp-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fnp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: scoth@tiger.com
+      PGADMIN_DEFAULT_PASSWORD: 123456
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - fnp-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fnp-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672" 
+    networks:
+      - fnp-network
+
+volumes:
+  postgres_data:
+
+networks:
+  fnp-network:
+    driver: bridge
+```
+
+## Çalıştırma
+
+Örneği test etmek için öncelikle gerekli docker container'larının ayağa kaldırılması gerekir.
+
+```bash
+docker-compose up -d
+```
+
+Sonrasında örnek bir POST request gönderilmeli ve hem tablo değişiklikleri hem de rabbitmq event kuyruğu kontrol edilmelidir.
+
+//TODO@buraksenyurt Test Sonuçlarını ve Analizi Ekle
+
+```bash
+
+```
