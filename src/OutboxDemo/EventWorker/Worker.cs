@@ -35,7 +35,7 @@ public class Worker : BackgroundService
                     // PoC amaçlı. Gerçek hayatta böyle yapmayın :D
                     var factory = new ConnectionFactory
                     {
-                        HostName = "rabbitmq",
+                        HostName = "localhost",
                         UserName = "guest",
                         Password = "guest"
                     };

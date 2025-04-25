@@ -3,16 +3,11 @@ using RequestFormApi.Model;
 
 namespace RequestFormApi.Db;
 
-public class DealerDbContext
-    : DbContext
+public class DealerDbContext(DbContextOptions<DealerDbContext> options)
+        : DbContext(options)
 {
     public DbSet<ServiceRequestForm> ServiceRequestForms { get; set; }
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
-
-    public DealerDbContext(DbContextOptions<DealerDbContext> options)
-        : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

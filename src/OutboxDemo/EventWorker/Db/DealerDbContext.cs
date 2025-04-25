@@ -3,13 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventWorker.Db;
 
-public class DealerDbContext
-    : DbContext
+public class DealerDbContext(DbContextOptions<DealerDbContext> options)
+        : DbContext(options)
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-
-    public DealerDbContext(DbContextOptions<DealerDbContext> options)
-        : base(options)
-    {
-    }
 }

@@ -8,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // PoC amaçlı. Gerçek hayatta böyle yapmayın :D
-builder.Services.AddDbContext<DealerDbContext>(options => options.UseNpgsql("Host=localhost;Database=dealer;Username=johndoe;Password=somew0rds"));
+builder.Services.AddDbContext<DealerDbContext>(
+    options => options.UseNpgsql("Host=localhost;Database=dealer;Username=johndoe;Password=somew0rds")
+    );
 
 var app = builder.Build();
 
