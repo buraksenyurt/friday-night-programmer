@@ -263,10 +263,4 @@ Bu bölümde ele aldığımız konular.
 
 ### Chapter 09 - Gattaca _(15 Nisan 2025 Cuma, 21:30 - 22:30)_
 
-[Yayın Linki]()
-
-Bu bölümde ele alınan konular.
-
-- Orhun Parmaksız'ın önemli katkısı olan Ratatui. (Benim örneğim [şu klasörde yer alan](./src/metrics/) basit örnek.)
-- Template Engine olarak değerlendirilebilecek [Maud](https://maud.lambda.xyz/). Ben [burada](./src/maud-exp/) içerisinde ele aldım.
-- Rust tabanlı web framework kullanmak isteyenler için ciddi bir alternatif olacağını düşündüğüm Tuono. Benim örneğim ise karate ustalarında Chuck Norris'in özlü sözlerini kullanan [norris-facts](./src/norris-facts/) isimli uygulama
+İptal edildi

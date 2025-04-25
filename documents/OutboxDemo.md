@@ -13,11 +13,11 @@ Senaryomuza göre servis talep formunun kaydedileceği veritabanında Outbox ver
 Senaryodaki enstrümanları şöyle sıralayabiliriz.
 
 - Servis Talep Formunu oluşturan çok basit bir **Web API** hizmeti
-- Veritabanı olarak **Postgresql** 
+- Veritabanı olarak **Postgresql**
 - **ORM _(Object Relational Mapping)_** aracı olarak **Entity Framework**
 - Mesaj kuyruğu olarak **RabbitMQ**
 - **Outbox** tablosunu kontrol edecek periyodik iş için Quartz tabanlı bir uygulama
-- Postgresql ve Rabbitmq tarafları için Docker-Compose 
+- Postgresql ve Rabbitmq tarafları için Docker-Compose
 
 Örnek kodları [şu klasörde](../src/OutboxDemo/) bulabilirsiniz.
 
@@ -86,15 +86,66 @@ networks:
 
 ```bash
 docker-compose up -d
+
+# Migration Adımları
+# Web Api projesindeyken aşağıdaki komut ile migration paketi hazırlanır
+dotnet ef migrations add InitialCreate
+
+# Takip eden komutla dealer veritabanının ve ilgili tabloların oluşturulması da sağlanır
+dotnet ef database update
+
+# Postgresql'a pgAdmin arabiriminden bağlanırken server bilgilerine şunlar girilir
+# name: localhost
+# Host Name : postgres
+# Port : 5432
+# Maintanance Database : postgres
+# Username : johndoe
+# Password : somew0rds
+
+# Diğer yandan Worker görevi üstlenen uygulamanın da çalıştırılması gerekir
+# EventWorker klasöründeyken
+dotnet run
 ```
 
 Sonrasında örnek bir POST request gönderilmeli ve hem tablo değişiklikleri hem de rabbitmq event kuyruğu kontrol edilmelidir.
 
-//TODO@buraksenyurt Test Sonuçlarını ve Analizi Ekle
-
 ```bash
-
+curl -X 'POST' \
+  'https://localhost:7064/api/serviceform' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "id": 1,
+  "customerFullName": "Can Claude Van Dam",
+  "serviceRepresentativeId": 1112,
+  "description": "Araç saatte 90 km civarında sağa doğru çekiyor, direksiyonda hafif titremeler var.",
+  "createDate": "2025-04-25T14:32:58.360Z"
+}'
 ```
+
+Bu şekilde yapılan bir deneme sonrasında öncelikle Postgresql veritabanındaki ilgili tablolarda gerekli satırların oluşması beklenir.
+
+![Outbox Pattern Runtime 01](../images/OutboxDemo_01.png)
+
+![Outbox Pattern Runtime 02](../images/OutboxDemo_02.png)
+
+Bu noktada EventWorker hizmetinin OutboxMessage tablosundaki alanı yakalaması ve RabbitMQ tarafında bir event bırakması beklenir.
+
+Kuyruklarda outbox_events isimli bir tane oluşmalıdır.
+
+![Outbox Pattern Runtime 03](../images/OutboxDemo_06.png)
+
+Ve hareketlilik gözlemlenmelidir.
+
+![Outbox Pattern Runtime 04](../images/OutboxDemo_03.png)
+
+Ayrıca get messages kısmında kuyruğa gelen mesaj içeri de beklediğimiz gibi oluşmalıdır.
+
+![Outbox Pattern Runtime 05](../images/OutboxDemo_04.png)
+
+Son olarak tabloda yer alan IsSent alanının değeri true olarak değişmelidir.
+
+![Outbox Pattern Runtime 06](../images/OutboxDemo_05.png)
 
 ## Dezavantajlar
 
@@ -114,4 +165,4 @@ Diğer yazılım prensipleri ve desenlerinde olduğu gibi bu kalıpta da sorgula
 - Transactional Outbox : Polling tekniği yerine sistemin sağladığı Trigger veya Notification enstrümanlarını kullanmak.
 - Two-Phase Commit (Distributed Transaction Coordinator) : Bu çok eski bir yöntem. MSDTC denince birçok deneyimli programcının hatıraları canlanır.
 
-**Sonuç itibariyle,** dağıtık bir sistemde Eventual Consistency kabul ediliyor, kullanılan mesajlaşma sistemi transactional değil, tek bir veritabanından veri ve olay üretimi söz konusu ama en önemlisi veri tabanında bir veri oluştururken başka sistemlerin event yayınlama usulüyle bilgilendirilmesi bekleniyorsa **Outbox Pattern** göz önüne alınabilir. Yine de devasa dağıtık sistem ortamlarında çok iyi test edilerek değerlendirilmesinden fayda vardır. 
+**Sonuç itibariyle,** dağıtık bir sistemde Eventual Consistency kabul ediliyor, kullanılan mesajlaşma sistemi transactional değil, tek bir veritabanından veri ve olay üretimi söz konusu ama en önemlisi veri tabanında bir veri oluştururken başka sistemlerin event yayınlama usulüyle bilgilendirilmesi bekleniyorsa **Outbox Pattern** göz önüne alınabilir. Yine de devasa dağıtık sistem ortamlarında çok iyi test edilerek değerlendirilmesinden fayda vardır.
