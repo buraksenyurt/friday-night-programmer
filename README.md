@@ -72,7 +72,8 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | 25 | **micro-hello** | BBC Micro:bit V2.2 üzerindeki 5x5 LED Matris'te yazı yazdırma üzerine bir örnek. İlk etapta R, U, S, T harflerini yazdırıyoruz. Micro:bit V2 ile ilgili diğer deneyler için [MicroRust](https://github.com/buraksenyurt/MicroRust) reposunu inceleyebilirsiniz.  | rust, embedded-rust, bbc-micro-bit, bare-metal-programming |
 | 26 | **maud-exp** | [Maud](https://github.com/lambda-fairy/maud) rust ile yazılmış bir HTML template engine'dir. Bu uygulama küfe ile ilgili deneysel bir çalışma içeriyor. | rust, template-engine, html |
 | 27 | **OutboxDemo**| Bu .Net solution içerisinde Outbox Pattern'in çok basit bir simülasyonuna yer verilmektedir | dotnet, #c, outbox-pattern, rabbitMq |
-| | | |
+| 28 | **rust-com** | Rust ile yazılmış bir backend (server-side) runtime denemesi | rust, html, bootstrap, web-framework, server-side|
+| | | | |
 
 ## Yardımcı Dokümanlar
 
@@ -183,7 +184,7 @@ Bu programa geçen bölümden gelen bir soru üzerine yazılım mimarisi seçimi
 - Haftanın oyunu _(Airborne Empire)_ Oyunla alakalı [Steamdb](https://steamdb.info/app/2438680/) üstünden de bilgi alınabilir. Oyun Unity ile geliştirilmiş bir koloni simülasyon oyunu. Diğerlerinden farklı olarak koloniniz havada uçan bir şehir ve sizi sık sık bela olan korsan pilotlar mevcut.
 - O'Reilly, kendi öğrenim platformundaki bilgilerden yararlanarak yıllık bir rapor yayınlamış ve 2025 yılı teknoloji trendlerinden bahsetmiş. Programda yazının detayları _(Özellikle programlama dilleri bölümü)_ üzerinde durduk. [Buradan okuyabilirsiniz](https://www.oreilly.com/radar/technology-trends-for-2025/).
 - The Angry Dev'in C# geliştiricilerinin neden Rust öğrenmesi gerektiğini vurguladığu güzel bir karşılaştırma yazısına denk geldim; [Why C# Developers Should Also Learn Rust, and What It Can Teach Them](https://www.darrenhorrocks.co.uk/why-csharp-developers-should-learn-rust-and-what-it-can-teach-them/)
-- Bir başka güzel yazıda Rust'ın özelliklerinin hangi dillerden esinlenilerek alındığını da içeren şu yazı. [Stop saying Rust is Complicated](https://rust-on-nails.com/blog/rust-complicated/). Bu yazıda Rust'ın sadece bir sistem programla dili olarak değil birçok alanda kullanılabileceği de belirtiliyor. Mesela WASM ile birlikte. Bende [ilkel bir WASM oyunumu paylaşayım](https://github.com/buraksenyurt/rust-farm/tree/main/handson/running_rectangle). Yarıda bırakmış olsam da ilgilenenler daha ileri bir seviyeye taşıyabilirler. 
+- Bir başka güzel yazıda Rust'ın özelliklerinin hangi dillerden esinlenilerek alındığını da içeren şu yazı. [Stop saying Rust is Complicated](https://rust-on-nails.com/blog/rust-complicated/). Bu yazıda Rust'ın sadece bir sistem programla dili olarak değil birçok alanda kullanılabileceği de belirtiliyor. Mesela WASM ile birlikte. Bende [ilkel bir WASM oyunumu paylaşayım](https://github.com/buraksenyurt/rust-farm/tree/main/handson/running_rectangle). Yarıda bırakmış olsam da ilgilenenler daha ileri bir seviyeye taşıyabilirler.
 - Gömülü sistemler ve emniyet-kritik olanlar demişken güzel bir podcast'e de denk geldim. Volvo' da bir Rust eko sisteminin oluşturulmasının hikayesini merak ediyorsanız buyrun. [Volvo with Julius Gustavsson - Rust in Production Podcast](https://corrode.dev/podcast/s03e08-volvo/)
 - Gömülü sistemlerde Rust ile geliştirme yapmayı öğrenmek istiyorsanız [A 5-Step Guide For Learning Embedded Rust](https://www.theembeddedrustacean.com/p/embedded-rust-learning-guide) iyi bir giriş noktası olabilir _(Bu arada pek çok noktada HAL diye bir kavram geçiyor. Bu tabii Kubrick' in Space Odyssey filmindeki [HAL 9000](https://en.wikipedia.org/wiki/HAL_9000) değil :D Hardware Abstraction Layer manasında geçen bir kavram)_
 - Emniyet-kritik sistemler _(Safety-Critical Systems)_ açık kaynak yazılımların belirli güvenlik standartlarına göre sertifikalandırılmasını ifade eder. Bu tür yazılımlar, hataların ciddi sonuçlar doğurabileceği alanlarda kullanılır, örneğin:
@@ -191,7 +192,7 @@ Bu programa geçen bölümden gelen bir soru üzerine yazılım mimarisi seçimi
   - Havacılık [DO-178C - DO-178C - Wikipedia](https://en.wikipedia.org/wiki/DO-178C)
   - Tıp teknolojileri [IEC 62304 - IEC 62304:2006 - Software life cycle processes](https://www.iso.org/standard/38421.html)
   - Endüstriyel otomasyon [IEC 61508 - IEC 61508 - Wikipedia](https://en.wikipedia.org/wiki/IEC_61508)
-- ESP kodlu mikro denetleyicilerde Rust ile geliştirme yapmak isterseniz genele açık şu kitabı tavsiye ederim. [Introduction - The Rust on ESP Book ESP](https://docs.esp-rs.org/book/introduction.html) 
+- ESP kodlu mikro denetleyicilerde Rust ile geliştirme yapmak isterseniz genele açık şu kitabı tavsiye ederim. [Introduction - The Rust on ESP Book ESP](https://docs.esp-rs.org/book/introduction.html)
 - Mikrodenetleyicilerde genellikle farklı bir işletim sistemi çalışır. RTOS _(Real Time Operating System)_ olarak adlandırılır. Temelleri için [RTOS Fundamentals - FreeRTOS™](https://www.freertos.org/Documentation/01-FreeRTOS-quick-start/01-Beginners-guide/01-RTOS-fundamentals) isimli dokümana bakılabilir. Ayrıca iki örnek işletim sistemi şunlar; [Zephyr Project](https://www.zephyrproject.org/) ve [FreeRTOS](https://www.freertos.org/Why-FreeRTOS/What-is-FreeRTOS)
 - Bu bölümde yer verdiğim kitap ise Sovyetler döneminin en önemli bilim kurgu yazarlarından olan Arkadi ve Boris Strugatski kardeşlerin 1997 yılında kaleme aldığı [Kıyamete Bir Milyar Yıl](https://amzn.eu/d/6xdEmQC)
 
@@ -235,7 +236,7 @@ Bu yayın sırasında üzerinde durduğumuz konular kısaca şunlar.
 - Oyunlar demişken geçtiğimiz bölüm incelediğimiz Jetbrains'in Bevy ile oyun geliştirme yazısı üzerine bende ufak bir deneme yaptım. [fly](https://github.com/buraksenyurt/game-dev-with-rust/tree/main/fly) Duvara tosladığım yer ise zıplama sonrası bir platformun üstünde kalabilmek. İşte buralarda hazır fizik motorları kullanmak gerekiyor gibi. Bevy için [Rapier](https://rapier.rs/docs/user_guides/rust/rigid_bodies) öneriliyor. Ancak işin temelinde her zaman matematik var. Oyun mekaniklerini anlamak için vektörler, pisagor, trigonometri, fizik kuralları vs birçok şey işin içerisin giriyor. Matematik ile ilgili şu sitelere de değindik.
   - [Math is Fun](https://www.mathsisfun.com/)
   - [Desomos](https://www.desmos.com/calculator?lang=tr)
-  - [GeoGebra] (https://www.geogebra.org/calculator)
+  - [GeoGebra](https://www.geogebra.org/calculator)
 - Microsoft cephesinden yine yeni bir AI haberi. Oyunlardaki hareketleri, görselleri öğrenip taklit edebilen veya yeni kareler hazırlayabilen MUSE isimli bir yapı geliştirmişler. [Haberi burada](https://www.microsoft.com/en-us/research/blog/introducing-muse-our-first-generative-ai-model-designed-for-gameplay-ideation/)
 - Geçen program kaçırdığımız AST kullanılarak bir sınıftan interface çıkarmak konusuna da detaylıca değindik. İki örneğimiz var. Birisi [rust](./src/ast-test/) ile diğeri [c# roslyn](./src/InterfaceExtractor/) ile geliştirildi. Burada Abstract Syntax Tree mevzusunu anlamak için kullandığımız bir araç da var, [SharpLab](https://sharplab.io/).
 - Bu şubat ayında Youtube 20 yaşına girdi ve severek takip ettiğim gazetecilerden Serdar Kuzuloğlu' nun bu konuda yazdığı güzel [bir makale](https://www.mserdark.com/youtube-20-yasinda/) var. Detayları ile youtube' un nereden nereye geldiğini bilmek isteyenlere.
