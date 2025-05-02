@@ -1,13 +1,14 @@
-mod dom;
-mod tests;
 mod controls;
+mod dom;
 mod handlers;
+mod tests;
+mod utils;
 
+use crate::handlers::index_handler;
 use axum::Router;
 use axum::routing::get;
-use log::{info};
+use log::info;
 use tokio::io;
-use crate::handlers::index_handler;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -29,4 +30,3 @@ fn setup_log() {
     }
     env_logger::init();
 }
-

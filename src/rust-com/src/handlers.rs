@@ -1,8 +1,8 @@
-use crate::controls::control::Control;
+use crate::controls::Button;
+use crate::controls::*;
+use crate::dom::render;
 use axum::response::Html;
 use log::warn;
-use crate::controls::Button;
-use crate::dom::render;
 
 pub async fn index_handler() -> Html<String> {
     warn!("Index Handler call");
