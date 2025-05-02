@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::bindables::*;
-    use crate::controls::Button;
-    use crate::controls::*;
-    use crate::dom::*;
+    use crate::sdk::binding::*;
+    use crate::sdk::controls::Button;
+    use crate::sdk::controls::*;
+    use crate::sdk::dom::*;
 
     #[test]
     fn button_render_test() {

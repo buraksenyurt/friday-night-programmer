@@ -1,3 +1,1 @@
-mod create_subscriber;
-
-pub use create_subscriber::*;
+pub mod create_subscriber;

@@ -1,17 +1,15 @@
-mod bindables;
-mod controls;
-mod dom;
 mod handlers;
 mod models;
 mod tests;
-mod utils;
 mod views;
+mod sdk;
 
 use crate::handlers::*;
 use axum::Router;
 use axum::routing::{get, post};
 use log::info;
 use tokio::io;
+use sdk::utils;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {

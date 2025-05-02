@@ -1,8 +1,9 @@
-use crate::controls::Control;
-use crate::dom::{Element, Node};
+use crate::sdk::controls::Control;
+use crate::sdk::dom::{Element, Node};
 use crate::hashmap;
 use std::fmt::Display;
 
+#[allow(dead_code)]
 pub enum ActionMethod {
     Post,
     Put,
@@ -31,6 +32,7 @@ impl Display for ActionMethod {
         }
     }
 }
+#[allow(dead_code)]
 pub struct Field {
     pub name: String,
     pub control: Box<dyn Control>,

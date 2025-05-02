@@ -1,5 +1,5 @@
-use crate::bindables::{ActionMethod, Field, Form};
-use crate::controls::{Button, Label, PasswordBox, Textbox};
+use crate::sdk::binding::{ActionMethod, Field, Form};
+use crate::sdk::controls::{Button, Label, PasswordBox, Textbox};
 
 pub fn create() -> Form {
     Form {
