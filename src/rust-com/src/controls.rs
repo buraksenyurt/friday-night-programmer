@@ -69,3 +69,25 @@ impl Control for Textbox {
         })
     }
 }
+
+#[derive(Debug)]
+pub struct PasswordBox {
+    pub name: String,
+    pub id: String,
+    pub class: String,
+}
+
+impl Control for PasswordBox {
+    fn render(&self) -> Node {
+        Node::Element(Element {
+            tag: "input".into(),
+            attributes: hashmap! {
+                "type".into() => "password".into(),
+                "name".into() => self.name.clone(),
+                "id".into() => self.id.clone(),
+                "class".into() => self.class.clone(),
+            },
+            children: vec![],
+        })
+    }
+}

@@ -42,4 +42,17 @@ mod tests {
         let expected = "<input class=\"form-control\" id=\"FirstNameTextbox\" name=\"FirstNameTextbox\" value=\"\"></input>";
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn password_box_render_test() {
+        let pass_box = PasswordBox {
+            id: "UserPasswordBox".to_string(),
+            name: "UserPasswordBox".to_string(),
+            class: "form-control".to_string(),
+        };
+        let node = pass_box.render();
+        let actual = render(&node);
+        let expected = "<input class=\"form-control\" id=\"UserPasswordBox\" name=\"UserPasswordBox\" type=\"password\"></input>";
+        assert_eq!(actual, expected);
+    }
 }
