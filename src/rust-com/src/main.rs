@@ -1,22 +1,39 @@
+use axum::Router;
+use axum::response::Html;
+use axum::routing::get;
 use std::collections::HashMap;
+use log::info;
+use tokio::io;
 
-fn main() {
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    env_logger::init();
+    
+    let app = Router::new().route("/", get(index_handler));
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:1903").await?;
+    info!("Server is listening on: 0.0.0.0:1903");
+    axum::serve(listener, app).await?;
+
+    Ok(())
+}
+
+async fn index_handler() -> Html<String> {
     let button = Button {
         label: "Save".to_string(),
         class: "btn btn-primary".to_string(),
     };
     let node = button.render();
-    println!("{}", render(&node));
+    Html(render(&node))
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Node {
     Text(String),
-    Element(VElement),
+    Element(Element),
 }
 
 #[derive(Debug, PartialEq)]
-pub struct VElement {
+pub struct Element {
     pub tag: String,
     pub attributes: HashMap<String, String>,
     pub children: Vec<Node>,
@@ -33,7 +50,7 @@ pub struct Button {
 
 impl Component for Button {
     fn render(&self) -> Node {
-        Node::Element(VElement {
+        Node::Element(Element {
             tag: "button".to_string(),
             attributes: {
                 let mut attrs = HashMap::new();
