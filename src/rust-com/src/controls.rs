@@ -11,6 +11,15 @@ pub struct Button {
     pub class: String,
 }
 
+impl Button {
+    pub fn new(label: &str, class: &str) -> Self {
+        Button {
+            label: label.into(),
+            class: class.to_string(),
+        }
+    }
+}
+
 impl Control for Button {
     fn render(&self) -> Node {
         Node::Element(Element {
@@ -28,6 +37,16 @@ pub struct Label {
     pub text: String,
     pub bounded: String,
     pub class: String,
+}
+
+impl Label {
+    pub fn new(text: &str, bounded: &str, class: &str) -> Self {
+        Label {
+            text: text.into(),
+            bounded: bounded.into(),
+            class: class.into(),
+        }
+    }
 }
 
 impl Control for Label {
@@ -49,6 +68,17 @@ pub struct Textbox {
     pub name: String,
     pub value: Option<String>,
     pub class: String,
+}
+
+impl Textbox {
+    pub fn new(name: &str, class: &str) -> Self {
+        Textbox {
+            id: name.into(),
+            name: name.into(),
+            value: None,
+            class: class.into(),
+        }
+    }
 }
 
 impl Control for Textbox {
@@ -75,6 +105,16 @@ pub struct PasswordBox {
     pub name: String,
     pub id: String,
     pub class: String,
+}
+
+impl PasswordBox {
+    pub fn new(name: &str, class: &str) -> Self {
+        PasswordBox {
+            id: name.into(),
+            name: name.into(),
+            class: class.into(),
+        }
+    }
 }
 
 impl Control for PasswordBox {

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::bindables::*;
     use crate::controls::Button;
     use crate::controls::*;
     use crate::dom::*;
@@ -53,6 +54,32 @@ mod tests {
         let node = pass_box.render();
         let actual = render(&node);
         let expected = "<input class=\"form-control\" id=\"UserPasswordBox\" name=\"UserPasswordBox\" type=\"password\"></input>";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn bindable_form_render_test() {
+        let form = Form {
+            action: "/list-products".into(),
+            method: ActionMethod::Post,
+            fields: vec![
+                Field {
+                    name: "title".into(),
+                    control: Box::new(Label::new("Product Name", "", "form-control")),
+                },
+                Field {
+                    name: "productName".into(),
+                    control: Box::new(Textbox::new("txtProductName", "form-control")),
+                },
+                Field {
+                    name: "submit".into(),
+                    control: Box::new(Button::new("Search", "btn btn-secondary")),
+                },
+            ],
+        };
+        let node = form.render();
+        let actual = render(&node);
+        let expected = "<form action=\"/list-products\" class=\"p-4\" method=\"POST\"><label class=\"form-control\" for=\"\">Product Name</label><input class=\"form-control\" id=\"txtProductName\" name=\"txtProductName\" value=\"\"></input><button class=\"btn btn-secondary\">Search</button></form>";
         assert_eq!(actual, expected);
     }
 }

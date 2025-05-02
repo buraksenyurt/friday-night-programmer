@@ -1,3 +1,4 @@
+mod bindables;
 mod controls;
 mod dom;
 mod handlers;
