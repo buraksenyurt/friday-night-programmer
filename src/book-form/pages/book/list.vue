@@ -12,24 +12,20 @@ const { data: books } = await useFetch('/api/books')
 
 <template>
     <div>
-        <h1>Hugo Ödüllü Bilim Kurgu Kitapları</h1>
+        <h1>Hugo Award Winners</h1>
 
         <table>
             <thead>
                 <tr>
-                    <th>Eser</th>
-                    <th>Yazarı</th>
-                    <th>Basım Tarihi</th>
-                    <th>Hugo Ödülü</th>
+                    <th>Book</th>
+                    <th>Author/s</th>
+                    <th>Published Year</th>
+                    <th>Hugo Year</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="book in books" :key="book.title">
-                    <td>{{ book.title }}</td>
-                    <td>{{ book.author }}</td>
-                    <td>{{ book.published }}</td>
-                    <td>{{ book.hugoYear }}</td>
-                </tr>
+                <BookRow v-for="book in books" :key="book.title" :title="book.title" :author="book.author"
+                    :published="book.published" :hugoYear="book.hugoYear" />
             </tbody>
         </table>
 

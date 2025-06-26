@@ -1,15 +1,9 @@
 <script setup lang="ts">
 const title = 'Rent a Book Form'
+
 const success = ref(false)
 
-const book = reactive({
-  title: '',
-  author: '',
-  published: '',
-  hugoYear: ''
-})
-
-const submit = async () => {
+const addBook = async (book: any) => {
   const res = await $fetch('/api/books', {
     method: 'POST',
     body: book
@@ -26,35 +20,7 @@ const submit = async () => {
   <div>
     <h1>{{ title }}</h1>
 
-    <form @submit.prevent="submit">
-      <table>
-        <tr>
-          <td>
-            <input v-model="book.title" placeholder="Book title" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input v-model="book.author" placeholder="Author" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input v-model="book.published" placeholder="Published" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input v-model="book.hugoYear" placeholder="Hugo Year" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <button type="submit">Add</button>
-          </td>
-        </tr>
-      </table>
-    </form>
+    <BookForm @submit="addBook" />
 
     <p v-if="success">Success</p>
 
