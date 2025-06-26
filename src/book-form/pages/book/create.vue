@@ -6,5 +6,4 @@ const description = 'A form to rent a book from the library'
 <template>
   <h1>{{ title }}</h1>
   <p>{{ description }}</p>
-  <p>{{ $route.params.slug }}</p>
 </template>

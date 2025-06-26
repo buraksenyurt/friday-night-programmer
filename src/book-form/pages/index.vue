@@ -1,8 +1,17 @@
 <template>
-    <h1>Index</h1>
-    <NuxtLink to="/book/create">
+  <h1>Rent a Book from our Hugo Award Winner Stocks</h1>
+  <div>
+    <p>
+      <NuxtLink to="/book/create">
         Rent a new book.
-    </NuxtLink>
+      </NuxtLink>
+    </p>
+    <p>
+      <NuxtLink to="book/list">
+        Books list.
+      </NuxtLink>
+    </p>
+  </div>
 </template>
 
 <style scoped>
