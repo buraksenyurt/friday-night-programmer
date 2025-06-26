@@ -4,6 +4,14 @@ const description = 'A form to rent a book from the library'
 </script>
 
 <template>
-  <h1>{{ title }}</h1>
-  <p>{{ description }}</p>
+  <div>
+    <h1>{{ title }}</h1>
+    <p>{{ description }}</p>
+
+    <p>
+      <NuxtLink to="/">
+        Go to main page
+      </NuxtLink>
+    </p>
+  </div>
 </template>
