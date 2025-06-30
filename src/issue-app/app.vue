@@ -1,3 +1,6 @@
+<script setup lang="ts">
+const { message, messageType, showAlert, clearAlert } = useAlert()
+</script>
 <template>
   <div>
     <NuxtLayout>

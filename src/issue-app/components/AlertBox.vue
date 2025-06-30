@@ -16,7 +16,7 @@ const alertClass = computed(() => {
 
 <template>
     <div :class="['alert', alertClass, 'd-flex', 'justify-content-between', 'align-items-center']" role="alert">
-        <span>{{ message }}</span>
+        <span>{{ props.message }}</span>
         <button type="button" class="btn-close" @click="$emit('close')" aria-label="Close"></button>
     </div>
 </template>
