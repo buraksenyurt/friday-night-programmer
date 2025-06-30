@@ -1,6 +1,27 @@
 <script setup lang="ts">
 
-const { data: books } = await useFetch<Book[]>('/api/books')
+// const { data: books } = await useFetch<Book[]>('/api/books')
+const books = ref<Book[]>([])
+
+const fetchBooks = async () => {
+    const response = await $fetch<Book[]>('/api/books')
+    books.value = response
+}
+
+await fetchBooks()
+
+const deleteBook = async (title: String) => {
+    const confirmed = confirm(`"${title}" will be deleted. Are you sure?`)
+    if (!confirmed)
+        return
+
+    await $fetch('/api/books', {
+        method: "DELETE",
+        body: { title }
+    })
+
+    books.value = books.value.filter(book => book.title !== title)
+}
 
 </script>
 
@@ -15,11 +36,21 @@ const { data: books } = await useFetch<Book[]>('/api/books')
                     <th>Author/s</th>
                     <th>Published Year</th>
                     <th>Hugo Year</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <BookRow v-for="book in books" :key="book.title" :title="book.title" :author="book.author"
-                    :published="book.published" :hugoYear="book.hugoYear" />
+                <tr v-for="book in books" :key="book.title">
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.published }}</td>
+                    <td>{{ book.hugoYear }}</td>
+                    <td>
+                        <button @click="deleteBook(book.title)">Remove</button>
+                    </td>
+                </tr>
+                <!-- <BookRow v-for="book in books" :key="book.title" :title="book.title" :author="book.author"
+                    :published="book.published" :hugoYear="book.hugoYear" /> -->
             </tbody>
         </table>
 
