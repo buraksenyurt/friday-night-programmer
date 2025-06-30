@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { showAlert } = useAlert()
 
 // const { data: books } = await useFetch<Book[]>('/api/books')
 const books = ref<Book[]>([])
@@ -15,12 +16,16 @@ const removeBook = async (title: string) => {
     if (!confirmed)
         return
 
-    const response = await deleteBook(title)
-    if (!response?.success) {
-        alert(response?.message ?? 'Unknown Error')
-        return
-    }
+    await deleteBook(title)
+        .then(() => showAlert('success', 'Book removed succesfully'))
+        .catch(() => showAlert('error', 'Error on remove operation'));
 
+    // const response = await deleteBook(title)
+    // if (!response?.success) {
+    //     showAlert('error', response.message)
+    //     return
+    // }
+    // showAlert('success', response.message)
     books.value = books.value.filter(book => book.title !== title)
 }
 

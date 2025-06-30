@@ -11,10 +11,11 @@
         Books list.
       </NuxtLink>
     </p>
+
   </div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 h1 {
   color: #2c3e50;
   font-size: 2em;
@@ -25,4 +26,4 @@ p {
   color: #34495e;
   font-size: 1.2em;
 }
-</style>
+</style> -->
