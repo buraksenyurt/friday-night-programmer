@@ -9,6 +9,8 @@ yarn create nuxt issue-app
 
 cd issue-app
 yarn add bootstrap
+# SSR-Server Side Rendering tabanlı state yönetimi için pinia paketinin eklenmesi
+yarn add pinia
 
 yarn dev --open
 ```
