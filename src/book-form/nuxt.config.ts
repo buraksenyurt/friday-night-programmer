@@ -4,5 +4,6 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   imports: {
     dirs: ['composables', 'types', 'services']
-  }
+  },
+  css:['bootstrap/dist/css/bootstrap.min.css']
 })
