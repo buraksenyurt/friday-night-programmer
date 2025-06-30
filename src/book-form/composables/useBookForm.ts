@@ -4,15 +4,15 @@ export function useBookForm() {
     const book = reactive<Book>({
         title: '',
         author: '',
-        published: 0,
-        hugoYear: 0
+        published: 1953,
+        hugoYear: 1953
     })
 
     const reset = () => {
         book.title = '',
             book.author = '',
-            book.published = 0,
-            book.hugoYear = 0
+            book.published = 1953,
+            book.hugoYear = 1953
     }
 
     return { book, reset }
