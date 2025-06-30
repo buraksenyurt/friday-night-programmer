@@ -7,7 +7,7 @@
       </NuxtLink>
     </p>
     <p>
-      <NuxtLink to="book/list">
+      <NuxtLink to="/book/list">
         Books list.
       </NuxtLink>
     </p>

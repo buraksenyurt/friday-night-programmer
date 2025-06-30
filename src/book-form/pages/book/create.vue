@@ -3,12 +3,8 @@ const title = 'Rent a Book Form'
 
 const success = ref(false)
 
-const addBook = async (book: any) => {
-  const res = await $fetch('/api/books', {
-    method: 'POST',
-    body: book
-  })
-
+const addBook = async (book: Book) => {
+  const res = await postBook(book)
   if (res.success) {
     success.value = true
   }

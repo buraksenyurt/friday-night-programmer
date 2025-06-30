@@ -1,33 +1,14 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-
-interface Book {
-    title: string
-    author: string
-    published: number | null
-    hugoYear: number | null
-}
+const { book, reset } = useBookForm()
 
 const emit = defineEmits<{
     (e: 'submit', book: Book): void
 }>()
 
-const book = reactive<Book>({
-    title: '',
-    author: '',
-    published: null,
-    hugoYear: null
-})
-
 const submit = () => {
     if (book.title && book.author && book.published && book.hugoYear) {
         emit('submit', { ...book })
-
-        book.title = ''
-        book.author = ''
-        book.published = null
-
-        book.hugoYear = null
+        reset()
     } else {
         alert("Please fill all form")
     }

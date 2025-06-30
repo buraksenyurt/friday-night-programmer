@@ -1,13 +1,7 @@
 <script setup lang="ts">
 
-interface Book {
-    title: string
-    author: string
-    published: number
-    hugoYear: number
-}
+const { data: books } = await useFetch<Book[]>('/api/books')
 
-const { data: books } = await useFetch('/api/books')
 </script>
 
 <template>

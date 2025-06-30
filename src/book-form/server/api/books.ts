@@ -42,4 +42,6 @@ export default defineEventHandler(async (event) => {
             message: "Book added successfully"
         }
     }
+
+    return books;
 })

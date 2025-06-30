@@ -1,11 +1,7 @@
 <script setup lang="ts">
 
-defineProps<{
-    title: string
-    author: string
-    published: number
-    hugoYear: number
-}>()
+import type { Book } from '@/types/book'
+defineProps<Book>()
 
 </script>
 
