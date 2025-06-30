@@ -74,6 +74,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | 27 | **OutboxDemo**| Bu .Net solution içerisinde Outbox Pattern'in çok basit bir simülasyonuna yer verilmektedir | dotnet, #c, outbox-pattern, rabbitMq |
 | 28 | **rust-com** | Rust ile yazılmış bir backend (server-side) runtime denemesi | rust, html, bootstrap, web-framework, server-side|
 | 29 | **book-form**| Nuxt.js framework ile ilk bebek adımları| javascript, typescript, vue, nuxt, web-framework |
+| 30 | **issue-app**| Yine Nuext.js kullanılarak yapılan bir uygulama. Amaç bir yazılım destek talebi açılışında formlar arası veri taşıma senaryosunu işletmek. | javascript, typescript, vue, nuxt, web-framework |
 | | | | |
 
 ## Yardımcı Dokümanlar
