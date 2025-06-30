@@ -34,22 +34,24 @@ export default defineEventHandler(async (event) => {
     if (event.method === 'GET') {
         return books
     }
+
     if (event.method === 'POST') {
         const body = await readBody(event)
         books.push(body)
         return {
             success: true,
-            message: "Book added successfully"
+            message: 'Book added successfully'
         }
     }
-    if (event.method === "DELETE") {
+    
+    if (event.method === 'DELETE') {
         const body = await readBody(event)
         const index = books.findIndex(b => b.title === body.title)
         if (index !== -1) {
             books.splice(index, 1)
             return { success: true }
         }
-        return { success: false, message: "Book not found" }
+        return { success: false, message: 'Book not found' }
     }
 
     return books;

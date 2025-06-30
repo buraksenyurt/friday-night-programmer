@@ -10,15 +10,16 @@ const fetchBooks = async () => {
 
 await fetchBooks()
 
-const deleteBook = async (title: String) => {
+const removeBook = async (title: string) => {
     const confirmed = confirm(`"${title}" will be deleted. Are you sure?`)
     if (!confirmed)
         return
 
-    await $fetch('/api/books', {
-        method: "DELETE",
-        body: { title }
-    })
+    const response = await deleteBook(title)
+    if (!response?.success) {
+        alert(response?.message ?? 'Unknown Error')
+        return
+    }
 
     books.value = books.value.filter(book => book.title !== title)
 }
@@ -46,7 +47,7 @@ const deleteBook = async (title: String) => {
                     <td>{{ book.published }}</td>
                     <td>{{ book.hugoYear }}</td>
                     <td>
-                        <button @click="deleteBook(book.title)">Remove</button>
+                        <button @click="removeBook(book.title)">Remove</button>
                     </td>
                 </tr>
                 <!-- <BookRow v-for="book in books" :key="book.title" :title="book.title" :author="book.author"
