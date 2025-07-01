@@ -11,7 +11,17 @@ builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = null;
 });
+builder.Services.AddCors();
+
 var app = builder.Build();
+
+app.UseCors(policy =>
+    policy
+    .AllowAnyOrigin()
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+);
+
 
 app.MapGet("/api/approvers/{userNo:int}", (int userNo) =>
     {
