@@ -1,7 +1,6 @@
 export const useApplications = () => {
     const fetchApplications = async (): Promise<string[]> => {
-        //TODO@buraksenyurt Fetch application names from external service
-        return ['Invoice', 'Frontend', 'AzonPortal', 'Batch1001', 'CatalogService']
+        return await $fetch('/api/applications')
     }
 
     return { fetchApplications }

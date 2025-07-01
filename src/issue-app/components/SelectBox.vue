@@ -15,7 +15,7 @@ const emit = defineEmits(['update:modelValue'])
         <label class="form-label">{{ label }}</label>
         <select class="form-select" :value="modelValue" @change="emit('update:modelValue', $event.target.value)">
             <option disabled value="">Please select</option>
-            <option v-for="option in options" :key="option">{{ option }}</option>
+            <option v-for="option in options" :key="option" :value="option">{{ option }}</option>
         </select>
     </div>
 </template>
