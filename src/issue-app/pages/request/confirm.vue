@@ -39,6 +39,9 @@ const cancelSubmission = () => {
                         <strong>Severity:</strong> {{ store.formData.severity }}
                     </li>
                     <li class="list-group-item">
+                        <strong>Approver:</strong> {{ store.formData.approver }}
+                    </li>
+                    <li class="list-group-item">
                         <strong>Create Date:</strong> {{ store.formData.createDate }}
                     </li>
                     <li class="list-group-item">

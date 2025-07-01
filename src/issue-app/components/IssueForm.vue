@@ -12,15 +12,23 @@ const issue = ref<Issue>({
     summary: '',
     createDate: new Date().toISOString().split('T')[0],
     application: '',
-    severity: Severity.Low
+    severity: Severity.Low,
+    approver: 0
 })
 
 const applications = ref<string[]>([])
 const severities = Object.values(Severity)
 const { fetchApplications } = useApplications()
+const { fetchApprovers } = useApprovers()
+const approvers = ref<Approver[]>([])
 
 onMounted(async () => {
     applications.value = await fetchApplications()
+    const raw = await fetchApprovers(1001)
+    approvers.value = raw.map(a => ({
+        fullName: a.FullName,
+        identityNo: a.IdentityNo
+    }))
 })
 
 const submitForm = () => {
@@ -54,6 +62,9 @@ const submitForm = () => {
 
         <SelectBox label="Severity" :model-value="issue.severity" :options="severities"
             @update:modelValue="issue.severity = $event" />
+
+        <SelectBoxComplex label="Approver" :model-value="issue.approver" :options="approvers" option-label="fullName"
+            option-value="identityNo" @update:modelValue="issue.approver = $event" />
 
         <div class="text-end">
             <button class="btn btn-primary" type="submit">Send for Approve</button>
