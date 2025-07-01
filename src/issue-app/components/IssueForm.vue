@@ -64,7 +64,7 @@ const submitForm = () => {
             @update:modelValue="issue.severity = $event" />
 
         <SelectBoxComplex label="Approver" :model-value="issue.approver" :options="approvers" option-label="fullName"
-            option-value="identityNo" @update:modelValue="issue.approver = $event" />
+            option-value="identityNo" @update:modelValue="issue.approver = +$event" />
 
         <div class="text-end">
             <button class="btn btn-primary" type="submit">Send for Approve</button>

@@ -5,12 +5,18 @@ const store = useFormStore()
 const router = useRouter()
 const { showAlert } = useAlert()
 
-const confirmSubmission = () => {
-    showAlert('success', 'Request approved successfully')
+const confirmSubmission = async () => {
+    try {
+        await $fetch('/api/issues', {
+            method: 'POST',
+            body: { ...store.formData }
+        })
+        showAlert('success', 'Request approved successfully')
+        setTimeout(() => router.push('/', 2000))
 
-    //todo@buraksenyurt Writer request form's data into a db via service call
-
-    setTimeout(() => router.push('/', 3000))
+    } catch (err) {
+        showAlert('error', 'Failed to save the requested issue')
+    }
 }
 
 const cancelSubmission = () => {
