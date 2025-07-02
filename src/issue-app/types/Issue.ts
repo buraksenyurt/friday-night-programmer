@@ -1,8 +1,9 @@
-import type { Approver } from "./approver"
+import type { Approver } from "./Approver"
 import type { Severity } from "./Severtiy"
+import type { Status } from "./Status"
 
 export interface Issue {
-    id:number,
+    id: number,
     title: string,
     owner: string,
     summary: string,
@@ -10,4 +11,5 @@ export interface Issue {
     application: string
     severity: Severity
     approver: Approver
+    status: Status
 }

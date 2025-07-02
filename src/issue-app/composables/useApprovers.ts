@@ -1,4 +1,4 @@
-import type { Approver } from '@/types/approver'
+import type { Approver } from '~/types/Approver'
 
 export const useApprovers = () => {
     const fetchApprovers = async (identityNo: number): Promise<Approver[]> => {

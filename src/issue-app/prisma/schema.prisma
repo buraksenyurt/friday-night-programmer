@@ -16,4 +16,5 @@ model Issue {
   application String
   severity    String
   approver    Int
+  status      String @default("Open")
 }
