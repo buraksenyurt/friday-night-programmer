@@ -23,6 +23,21 @@ onMounted(async () => {
   }
 });
 
+const removeIssue = async (id: number) => {
+  try {
+    await $fetch('/api/issues', {
+      method: 'DELETE',
+      body: { id }
+    })
+    issues.value = issues.value.filter(issue => issue.id !== id);
+
+    showAlert('success', 'Request removed successfully', 2000)
+
+  } catch (err) {
+    showAlert('error', 'Failed to save the requested issue')
+  }
+}
+
 </script>
 <template>
   <div class="container mt-4">
@@ -47,6 +62,7 @@ onMounted(async () => {
           <th>Application</th>
           <th>Severity</th>
           <th>Approver Id</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -57,6 +73,11 @@ onMounted(async () => {
           <td>{{ issue.application }}</td>
           <td>{{ issue.severity }}</td>
           <td>{{ issue.approver }}</td>
+          <td>
+            <button class="btn btn-outline-danger btn-sm" @click="removeIssue(issue.id)" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
