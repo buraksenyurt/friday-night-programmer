@@ -11,8 +11,8 @@ const confirmSubmission = async () => {
             method: 'POST',
             body: { ...store.formData }
         })
-        showAlert('success', 'Request approved successfully')
-        setTimeout(() => router.push('/', 2000))
+        showAlert('success', 'Request approved successfully',2000)
+        setTimeout(() => router.push('/', 3000))
 
     } catch (err) {
         showAlert('error', 'Failed to save the requested issue')
@@ -20,7 +20,7 @@ const confirmSubmission = async () => {
 }
 
 const cancelSubmission = () => {
-    showAlert('info', 'Request cancelled')
+    showAlert('info', 'Request cancelled',3000)
     router.push('/request/create')
 }
 

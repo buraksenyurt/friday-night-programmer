@@ -1,7 +1,11 @@
 <script setup lang="ts">
+
+const emit = defineEmits(['close'])
+
 const props = defineProps<{
     type: 'success' | 'error' | 'warning' | 'info'
     message: string
+    autoDismiss?: number
 }>()
 
 const alertClass = computed(() => {
@@ -12,6 +16,15 @@ const alertClass = computed(() => {
         info: 'alert-info',
     }[props.type] || 'alert-info'
 })
+
+onMounted(() => {
+    if (props.autoDismiss && props.autoDismiss > 0) {
+        setTimeout(() => {
+            emit('close')
+        }, props.autoDismiss)
+    }
+})
+
 </script>
 
 <template>

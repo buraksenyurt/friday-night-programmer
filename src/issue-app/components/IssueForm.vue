@@ -35,7 +35,7 @@ const submitForm = () => {
     if (issue.value.title && issue.value.owner && issue.value.summary && issue.value.application && issue.value.severity) {
         emit('submit', { ...issue.value })
     } else {
-        showAlert('warning', 'Please fill all fields')
+        showAlert('warning', 'Please fill all fields', 3000)
     }
 }
 
