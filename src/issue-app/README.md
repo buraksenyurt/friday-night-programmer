@@ -48,4 +48,8 @@ Gözden geçirme ve onaya gönderme ekranı.
 
 ![Runtime_01](Runtime_01.png)
 
-Beklenen işlem Approve düğmesine basıldıktan sonra ilgili talebin SQLite veritabanına yazılmasıdır.
+![Runtime_02](Runtime_02.png)
+
+Beklenen işlem Approve düğmesine basıldıktan sonra ilgili talebin SQLite veritabanına yazılmasıdır. Talepler, listeleme sayfasından da gözlemlenebilir.
+
+![Runtime_03](Runtime_03.png)
