@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+useHead({
+  title: 'Approve/Reject - Issue Tracker'
+})
+
 const store = useFormStore()
 const router = useRouter()
 const { showAlert } = useAlert()
@@ -57,7 +61,7 @@ const cancelSubmission = () => {
 
                 <div class="mt-4 d-flex justify-content-end gap-3">
                     <button class="btn btn-success" @click="confirmSubmission">Approve</button>
-                    <button class="btn btn-secondary" @click="cancelSubmission">Cancel</button>
+                    <button class="btn btn-secondary" @click="cancelSubmission">Reject</button>
                 </div>
             </div>
         </div>

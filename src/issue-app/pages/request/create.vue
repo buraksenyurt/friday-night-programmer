@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+useHead({
+  title: 'Open New Issue - Issue Tracker'
+})
+
 const store = useFormStore()
 const router = useRouter()
 
