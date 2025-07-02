@@ -13,7 +13,8 @@ const issue = ref<Issue>({
     createDate: new Date().toISOString().split('T')[0],
     application: '',
     severity: Severity.Low,
-    approver: 0
+    approver: 0,
+    status:'Open'
 })
 
 const applications = ref<string[]>([])

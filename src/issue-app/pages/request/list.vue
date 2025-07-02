@@ -8,6 +8,11 @@ const { showAlert } = useAlert();
 const issues = ref<Issue[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const statusOptions = [
+  { label: 'Open', value: 'Open' },
+  { label: 'Resolved', value: 'Resolved' },
+  { label: 'Canceled', value: 'Canceled' },
+]
 
 onMounted(async () => {
   try {
@@ -38,6 +43,23 @@ const removeIssue = async (id: number) => {
   }
 }
 
+const updateStatus = async (id: number, newStatus: Status) => {
+  try {
+    await $fetch('/api/issues', {
+      method: 'PATCH',
+      body: { id, status: newStatus }
+    })
+
+    const issue = issues.value.find(i => i.id === id)
+    if (issue) {
+      issue.status = newStatus
+    }
+    showAlert('success', 'Issues status updated', 1500)
+  } catch (err) {
+    showAlert('error', 'Failed to update status')
+  }
+}
+
 </script>
 <template>
   <div class="container mt-4">
@@ -58,6 +80,7 @@ const removeIssue = async (id: number) => {
         <tr>
           <th>Create Date</th>
           <th>Title</th>
+          <th>Status</th>
           <th>Owner</th>
           <th>Application</th>
           <th>Severity</th>
@@ -69,6 +92,10 @@ const removeIssue = async (id: number) => {
         <tr v-for="issue in issues" :key="issue.id">
           <td>{{ issue.createDate }}</td>
           <td>{{ issue.title }}</td>
+          <td>
+            <SelectBoxComplex :model-value="issue.status" :options="statusOptions" option-label="label"
+              option-value="value" @update:model-value="updateStatus(issue.id, $event)" />
+          </td>
           <td>{{ issue.owner }}</td>
           <td>{{ issue.application }}</td>
           <td>{{ issue.severity }}</td>
