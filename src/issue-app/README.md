@@ -23,6 +23,9 @@ npx prisma migrate dev --name init-db
 npx prisma generate
 # veya
 yarn prisma generate
+# Eğer veri modelinde değişiklik olursa (örneğin yeni alan eklenirse)
+# Tekrardan yeni bir migration plan işletilebilir
+npx prisma migrate dev --name add_status_to_issue
 
 # Projeyi dev modda başlatıp doğrudan tarayıcıyı açmak için
 yarn dev --open
