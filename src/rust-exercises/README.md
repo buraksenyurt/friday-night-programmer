@@ -6,7 +6,9 @@ Bu dokümanda rust bilgilerimizi tazelemek için çeşitli kaynaklardan derledi�
 
 ### Unwrap/Expect Tuzaklarından Kaçınmak (exc00)
 
-Rust'ın güçlü yönlerinden birisi Option< T > ve Result<T, E> tipleri ile hata yönetimidir. Bazen özellikle development safhasındayken unwrap ve expect kullanarak ilerleyebiliriz zira match veya if let kullanmak kodu uzatabilir. Ancak bu yöntem production kodunda ciddi problemlere yol açabilir. Bir sistemin açılırken kritik bir yapılandırma dosyasını okumaya çalıştığını düşünelim. Dosyanın bulunamamsı veya okuma sırasında bir hata alınması halinde programın paniklemesi yerine kullanıcıya anlamlı bir hata mesajı döndürmek veya izlenebilir, tedbir alınabilir bir makine logu bırakmak daha sağlıklı olacaktır.
+Rust'ın güçlü yönlerinden birisi **Option< T >** ve **Result<T, E>** tipleri ile hata yönetimidir. Bazen özellikle geliştirme safhasındayken **unwrap** ve **expect** kullanarak ilerleyebiliriz zira **match** veya **if let** kullanmak kodu uzatabilir. Ancak bu yaklaşım üretim kodunda ciddi problemlere yol açabilir.
+
+Örneğin bir sistemin açılırken kritik bir yapılandırma dosyasını okumaya çalıştığını düşünelim. Dosyanın bulunamaması veya okuma sırasında bir hata alınması halinde programın paniklemesi yerine kullanıcıya anlamlı bir hata mesajı döndürmek veya izlenebilir, tedbir alınabilir bir makine logu bırakmak daha sağlıklı olacaktır.
 
 ```rust
 use std::fs;
@@ -43,7 +45,7 @@ fn main() {
 
 ### Gereksiz clone Çağrılarından Kaçınmak (exc01)
 
-Rust sahiplik *(ownership)* modelinde özellikle *Vector*, *String* gibi heap bellek bölgesinde değerlendirilen veri yapıları kapsamlar *(scopes)* arasında taşınırken varsayılan olarak sahipliğin aktarımı söz konusudur. Eğer veri yapısı taşındığı fonksiyonda bir değişikliğe, başka bir deyişle mutasyona uğramayacaksa tüm veri yapısını klonlayarak göndermek yerine referans ile göndermek daha performanslı ve bellek dostu bir yaklaşımdır. Söz gelimi büyük bir sayı listesinin vektör veri yapısında ele alındığını düşünelim. Bu sayı kümesinin matematiksel bir analiz fonksiyonu işleten bir metot tarafından da kullanıldığını varsayalım. Analizi yapan fonksiyon veriyi değiştirmeyeceği için tüm vektörün klonlanması yerine referans ile gönderilmesi daha doğru olacaktır.
+Rust sahiplik *(ownership)* modelinde özellikle **Vector**, **String** gibi heap bellek bölgesinde değerlendirilen veri yapıları kapsamlar *(scopes)* arasında taşınırken varsayılan olarak sahipliğin aktarımı söz konusudur. Eğer veri yapısı taşındığı fonksiyonda bir değişikliğe, başka bir deyişle mutasyona uğramayacaksa tüm veri yapısını klonlayarak göndermek yerine referans ile göndermek daha performanslı ve bellek dostu bir yaklaşımdır. Söz gelimi büyük bir sayı listesinin vektör veri yapısında ele alındığını düşünelim. Bu sayı kümesinin matematiksel bir analiz fonksiyonu işleten bir metot tarafından da kullanıldığını varsayalım. Analizi yapan fonksiyon veriyi değiştirmeyeceği için tüm vektörün klonlanması yerine referans ile gönderilmesi daha doğru olacaktır.
 
 ```rust
 // Kötü pratik: ownership alan fonksiyon kullanımı
@@ -109,7 +111,7 @@ fn main() {
 
 ### Mutasyon Kapsamını Sınırlamak (exc02)
 
-Rust programlama dilinde değişkenler varsayılan olarak immutable *(değiştirilemez)* olarak tanımlanır. Değişkenin değerini değiştirmek istediğimizde `mut` anahtar kelimesi ile değişkeni mutable *(değiştirilebilir)* olarak tanımlamamız gerekir. Mutasyonu mümkün olan en dar kapsamda kullanmak kod okunurluğu ve güvenliğini artıran bir pratiktir. Örneğin bileşik faiz hesaplaması yapan bir muhasebe fonksiyonunda döngü içinde güncellenen belli değişkenler olduğunu düşünelim. Bu değişkenler sadece döngü içinde güncellenir ve ihtiyaç duyduğu ara değerler değiştirilemez *(immutable)* olarak tanımlanıp kullanılabilir. Aşağıdaki örnekte bu prensibi uygulayan bir bileşik faiz hesaplama fonksiyonu yer almaktadır.
+Rust programlama dilinde değişkenler varsayılan olarak **immutable** *(değiştirilemez)* olarak tanımlanır. Değişkenin değerini değiştirmek istediğimizde `mut` anahtar kelimesi ile değişkeni **mutable** *(değiştirilebilir)* olarak tanımlamamız gerekir. Mutasyonu mümkün olan en dar kapsamda kullanmak kod okunurluğu ve güvenliğini artıran bir pratiktir. Örneğin bileşik faiz hesaplaması yapan bir muhasebe fonksiyonunda döngü içinde güncellenen belli değişkenler olduğunu düşünelim. Bu değişkenler sadece döngü içinde güncellenir ve ihtiyaç duyduğu ara değerler değiştirilemez *(immutable)* olarak tanımlanıp kullanılabilir. Aşağıdaki örnekte bu prensibi uygulayan bir bileşik faiz hesaplama fonksiyonu yer almaktadır.
 
 ```rust
 fn calculate_compound_interest(principal: f64, annual_rate: f64, years: u32) -> f64 {
@@ -147,9 +149,9 @@ fn main() {
 
 ### Dangling Referanslardan Kaçınmak (exc03)
 
-Rust'ın güçlü sahiplik *(ownership)* ve borçlanma *(borrowing)* modeli, dangling *(Sarkmış)* referansların oluşmasını derleme zamanında engeller. Dangling referanslar, bir değişkenin kapsamı dışına çıktıktan sonra ona erişmeye çalıştığımızda ortaya çıkar ve bu durum bellek güvenliği sorunlarına yol açabilir. Rust, bu tür hataların oluşmasını önlemek için katı kurallar uygular. *Borrow Checker* prensiplerine göre bir referansın atıfta bulunduğu değerden daha uzun yaşaması mümkün değildir. Dangling *(Sarkmış)* referanslar genelde bir fonksiyonun local bir değere referans döndürmeye çalışması sırasında ortaya çıkan kritik bir bellek güvenliği hatasıdır.
+Rust'ın güçlü sahiplik *(ownership)* ve borçlanma *(borrowing)* modeli, dangling *(Sarkmış)* referansların oluşmasını derleme zamanında engeller. Dangling referanslar, bir değişkenin kapsamı dışına çıktıktan sonra ona erişmeye çalıştığımızda ortaya çıkar ve bu durum bellek güvenliği sorunlarına yol açabilir. Rust, bu tür hataların oluşmasını önlemek için katı kurallar uygular. **Borrow Checker** prensiplerine göre bir referansın atıfta bulunduğu değerden daha uzun yaşaması mümkün değildir. Dangling *(Sarkmış)* referanslar genelde bir fonksiyonun local bir değere referans döndürmeye çalışması sırasında ortaya çıkan kritik bir bellek güvenliği hatasıdır.
 
-N sayıda cümleyi literal string olarak tutan bir dizideki en uzun cümleyi bulmaya çalışan bir fonksiyon yazdığımızı düşünelim. En uzun cümleyi referans olarak döndürmeye çalışırsak, fonksiyonun kapsamı sona erdiğinde taşınan dizinin bellekten silinmesiyle birlikte döndürdüğümüz referansın geçersiz hale gelmesi söz konusu olur ve sorunu çözmek için karmaşık lifetime annotasyonları kullanmamız gerekir. Bunun yerine en uzun cümleyi sahiplenen bir String olarak döndürmek daha doğru bir yaklaşımdır.
+**N** sayıda cümleyi **literal string** olarak tutan bir dizideki en uzun cümleyi bulmaya çalışan bir fonksiyon yazdığımızı düşünelim. En uzun cümleyi referans olarak döndürmeye çalışırsak, fonksiyonun kapsamı sona erdiğinde taşınan dizinin bellekten silinmesiyle birlikte döndürdüğümüz referansın geçersiz hale gelmesi söz konusu olur ve sorunu çözmek için karmaşık lifetime annotasyonları kullanmamız gerekir. Bunun yerine en uzun cümleyi sahiplenen bir String olarak döndürmek daha doğru bir yaklaşımdır.
 
 ```rust
 // // Kötü pratik: Dangling referans sorunu oluşması ve lifetime kullanma gerekliliği
@@ -212,7 +214,7 @@ fn main() {
 
 ### Public API'lerde Kapsamlı Dokümantasyon Kullanmak (exc04)
 
-Rust'ın güçlü yanlarından birisi zengin dokümantasyon desteğidir. Özellikle public API'ler geliştirirken kapsamlı dokümantasyon kullanmak, kullanıcıların fonksiyonların nasıl kullanılacağını ve ne işe yaradığını anlamalarına yardımcı olur. Pub erişim belirleyicis ile işaretlenmiş tüm enstrümanlarda zengin dokümantasyon yorumları kullanmak gerekir.
+Rust'ın güçlü yanlarından birisi zengin dokümantasyon desteğidir. Özellikle public API'ler geliştirirken kapsamlı dokümantasyon kullanmak, kullanıcıların fonksiyonların nasıl kullanılacağını ve ne işe yaradığını anlamalarına yardımcı olur. **pub** erişim belirleyicisi ile işaretlenmiş tüm enstrümanlarda zengin dokümantasyon yorumları kullanmak gerekir.
 
 ```rust
 /// Verilen bir fonksiyonun türevini yaklaşık olarak hesaplar.
@@ -305,7 +307,7 @@ pub mod calculus;
 
 Rust nesne yönelimli programlama paradigmalarını tam olarak destekler mi desteklemez mi veya buna ihtiyacı var mıdır bilinmez ancak **Composition over Inheritance** prensibi daha çok ön plana çıkar. Hatta birçok **ECS** tabanlı oyun motorunda bu prensip temel alınarak tasarım yapılır. Bir nesnenin davranışlarını ve özelliklerini başka nesnelerden miras almak yerine, o nesnenin ihtiyaç duyduğu özellikleri ve davranışları başka nesnelerden bileşenler *(components)* aracılığıyla alınması tercih edilmelidir. Bu yaklaşım, kodun daha esnek, yeniden kullanılabilir ve test edilebilir olmasını sağlar.
 
-Bir yazılım sistemindeki kullanıcıları temsil edecek bir yapı geliştirmeye çalıştığımızı düşünelim. Kullanıcı ile ilgili tüm bilgileri tek bir God Object içinde toplamak yerine, kullanıcıya ait farklı özellikleri ve davranışları ayrı bileşenler olarak tanımlayıp, kullanıcı yapısına bu bileşenleri ekleyerek oluşturmak daha esnek bir tasarım sağlar.
+Bir yazılım sistemindeki kullanıcıları temsil edecek bir yapı geliştirmeye çalıştığımızı düşünelim. Kullanıcı ile ilgili tüm bilgileri tek bir **God Object** içinde toplamak yerine, kullanıcıya ait farklı özellikleri ve davranışları ayrı bileşenler olarak tanımlayıp, kullanıcı yapısına bu bileşenleri ekleyerek oluşturmak daha esnek bir tasarım sağlar.
 
 ```rust
 fn main() {
@@ -572,4 +574,59 @@ mod tests {
 
 ## İleri Seviye
 
-> Yakında eklenecek
+### Unsafe Kodları Soyutlamalar ile Sarmak (exc07)
+
+Derleyicinin bellek güvenliğini garantiye alamadığı durumlarda **unsafe** kod blokları kullanılır. Ancak **unsafe** kodların doğrudan kullanımı, bellek güvenliği sorunlarına da yol açabilir. Bu nedenle **unsafe** kodları güvenli soyutlamalar *(safe abstractions)* ile sarmak ideal yaklaşımlardan birisidir.
+
+Örneğin bir sayı dizisini referans olarak kullanırken ödünç alma kurallarını atlayarak herhangi bir noktasından ikiye bölmek istediğimizi düşünelim. 101 elemanlı bir sayı dizisini 16ncı indisinden itibaren iki ayrı parça halinde değiştirilebilir referans olarak ele almak istiyoruz. Normalde rust aynı anda aynı veriye iki farklı değiştirilebilir referans vermeye izin vermez. **unsafe** çağrılabileceğini bildiğimiz bir fonksiyona göz yumup bu kuralı atlayarak geliştirme yapabiliriz. İşte burada unsafe kodu güvenli bir soyutlama ile sarmak önemlidir.
+
+```rust
+use std::slice;
+
+fn main() {
+    let mut numbers = vec![1, 4, 6, 1, 6, 2, 4, 6, 7, 9, 123, 7, 1, 7];
+
+    // numbers dizisi 3. indexten ikiye bölünüyor
+    let (left_slice, right_slice) = split_array_from(&mut numbers, 3);
+
+    println!("Left slice values: {:?}", left_slice);
+    println!("Right slice values: {:?}", right_slice);
+
+    // left_slice dilimindeki ilk elemanı değiştiriyoruz
+    // bu değişiklik orijinal numbers dizisini de etkileyecektir
+    left_slice[0] = 345;
+    println!("After changed the left slice: {:?}", numbers);
+}
+
+/// Bu fonksiyon, verilen `values` dilimini `index` konumunda ikiye böler
+/// ve iki ayrı dilim olarak döner.
+///
+/// # Güvenlik Notu
+///
+/// Bu fonksiyon unsafe kod kullanır, bu nedenle dikkatli olunmalıdır.
+///
+/// # Parametreler
+///
+/// - `values`: Bölünecek olan tamsayı dilimi.
+/// - `index`: Bölme işleminin gerçekleşeceği konum.
+///
+/// # Dönüş Değeri
+/// İki ayrı tamsayı dilimi olarak döner.
+fn split_array_from(values: &mut [i32], index: usize) -> (&mut [i32], &mut [i32]) {
+    let len = values.len();
+    // ptr değişkeni, values diliminin başlangıç adresini tutan bir işaretçidir(pointer).
+    let ptr = values.as_mut_ptr();
+
+    /*
+        from_raw_parts_mut fonksiyonu unsafe türdendir ve bu nedenle
+        unsafe kod bloğu içerisinde çalıştırılması gerekir.
+    */
+    unsafe {
+        // ptr ile tutulan adresten başlayarak index uzunluğunda bir dilim oluşturur.
+        let left = slice::from_raw_parts_mut(ptr, index);
+        // index noktasından başlayarak len - index uzunluğunda bir dilim oluşturur.
+        let right = slice::from_raw_parts_mut(ptr.add(index), len - index);
+        (left, right)
+    }
+}
+```
