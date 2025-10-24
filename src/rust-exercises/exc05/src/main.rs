@@ -123,9 +123,7 @@ impl GamingInfo {
     }
 
     fn level_up(&mut self) {
-        if self.level < u8::MAX {
-            self.level += 1;
-        }
+        self.level = self.level.saturating_add(1);
     }
 
     fn set_level(&mut self, level: u8) {

@@ -1,7 +1,7 @@
 pub fn validate_social_security_number(ssn: &str) -> bool {
     // Basit bir doğrulama: SSN 9 haneli olmalı ve sadece rakamlardan oluşmalı
     let is_nine_digits = ssn.len() == 9;
-    let all_digits = ssn.chars().all(|c| c.is_digit(10));
+    let all_digits = ssn.chars().all(|c| c.is_ascii_digit());
     is_nine_digits && all_digits
 }
 
