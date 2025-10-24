@@ -1,5 +1,6 @@
 [package]
 name = "exc02"
+description = "Rust Exercises - Exercise 02 (Mutability Where Necessary)"
 version = "0.1.0"
 edition = "2024"
 
