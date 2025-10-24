@@ -210,6 +210,95 @@ fn main() {
 }
 ```
 
+### Örnek 5: Public API'lerde Kapsamlı Dokümantasyon Kullanmak
+
+Rust'ın güçlü yanlarından birisi zengin dokümantasyon desteğidir. Özellikle public API'ler geliştirirken kapsamlı dokümantasyon kullanmak, kullanıcıların fonksiyonların nasıl kullanılacağını ve ne işe yaradığını anlamalarına yardımcı olur. Pub erişim belirleyicis ile işaretlenmiş tüm enstrümanlarda zengin dokümantasyon yorumları kullanmak gerekir.
+
+```rust
+/// Verilen bir fonksiyonun türevini yaklaşık olarak hesaplar.
+///
+/// # Argümanlar
+/// * `f` - Türevini almak istediğimiz fonksiyon.
+/// * `x` - Türevini hesaplamak istediğimiz nokta.
+/// * `h` - Küçük bir değer, türev hesaplamasında kullanılır (varsayılan: 1e-7).
+/// # Dönüş Değeri
+/// * `f` fonksiyonunun `x` noktasındaki yaklaşık türevi.
+pub fn derivative<F>(f: F, x: f64, h: f64) -> f64
+where
+    F: Fn(f64) -> f64,
+{
+    (f(x + h) - f(x - h)) / (2.0 * h)
+}
+
+/// Verilen bir fonksiyonun belirli bir aralıktaki integralini yaklaşık olarak hesaplar.
+///
+/// # Argümanlar
+/// * `f` - İntegralini almak istediğimiz fonksiyon.
+/// * `a` - İntegral başlangıç noktası.
+/// * `b` - İntegral bitiş noktası.
+/// * `n` - İntegral hesaplamasında kullanılacak dikdörtgen sayısı (varsayılan: 1000).
+/// # Dönüş Değeri
+/// * `f` fonksiyonunun `[a, b]` aralığındaki yaklaşık integrali.
+pub fn integral<F>(f: F, a: f64, b: f64, n: usize) -> f64
+where
+    F: Fn(f64) -> f64,
+{
+    let width = (b - a) / (n as f64);
+    let mut total_area = 0.0;
+
+    for i in 0..n {
+        let x = a + (i as f64 + 0.5) * width;
+        total_area += f(x) * width;
+    }
+
+    total_area
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn test_derivative() {
+        let f = |x: f64| x.powi(2);
+        let deriv_at_3 = derivative(f, 3.0, 1e-7);
+        assert!((deriv_at_3 - 6.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_integral() {
+        let f = |x: f64| x;
+        let integral_result = integral(f, 0.0, 1.0, 1000);
+        assert!((integral_result - 0.5).abs() < 1e-5);
+    }
+}
+```
+
+ve modül içinde aşağıdaki gibi ilerlenebilir.
+
+```rust
+//! # Calculus Modülü
+//!
+//! Bu modül, temel matematiksel işlemleri gerçekleştiren fonksiyonlar içerir.
+//! Örnek olarak, türev ve integral hesaplamaları için fonksiyonlar sağlar.
+//!
+//! # Örnekler
+//! ```rust
+//! mod calculus;
+//!
+//! use calculus::{derivative, integral};
+//! fn main() {
+//!   let f = |x: f64| x.powi(2);
+//!   let deriv_at_3 = derivative(f, 3.0, 1e-7);
+//!   println!("f'(3) yaklaşık olarak: {}", deriv_at_3); // Yaklaşık 6.0
+//!   let integral_result = integral(f, 0.0, 1.0, 1000);
+//!   println!("∫f(x)dx from 0 to 1 yaklaşık olarak: {}", integral_result); // Yaklaşık 0.3333
+//! }
+//! ```
+
+pub mod calculus;
+```
+
 ## Orta Seviye
 
 > Yakında eklenecek
