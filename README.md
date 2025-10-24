@@ -75,7 +75,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | 28 | **rust-com** | Rust ile yazılmış bir backend (server-side) runtime denemesi | rust, html, bootstrap, web-framework, server-side|
 | 29 | **book-form**| Nuxt.js framework ile ilk bebek adımları| javascript, typescript, vue, nuxt, web-framework |
 | 30 | **issue-app**| Yine Nuext.js kullanılarak yapılan bir uygulama. Amaç bir yazılım destek talebi açılışında formlar arası veri taşıma senaryosunu işletmek. | javascript, typescript, vue, nuxt, web-framework |
-| | | | |
+| 31 | **rust-exercises**| Rust programlama dili bilgilerimizi tazelemek için çeşitli kaynaklardan özet çalışmaları ve örnek kodları içeren çalışma alanıdır | rust, exercises |
 
 ## Yardımcı Dokümanlar
 
