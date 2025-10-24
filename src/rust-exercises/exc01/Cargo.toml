@@ -1,0 +1,7 @@
+[package]
+name = "exc01"
+description = "Rust Exercises - Exercise 01 (Unnecessary Ownership Transfer)"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

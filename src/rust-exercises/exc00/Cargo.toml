@@ -1,6 +1,6 @@
 [package]
 name = "exc00"
-description = "Rust Exercises - Exercise 00 (Unwrap/Expect)"
+description = "Rust Exercises - Exercise 00 (Unnecessary Unwrap/Expect)"
 version = "0.1.0"
 edition = "2024"
 
