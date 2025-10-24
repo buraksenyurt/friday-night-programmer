@@ -4,7 +4,7 @@ Bu dokümanda rust bilgilerimizi tazelemek için çeşitli kaynaklardan derledi�
 
 ## Başlangıç Seviyesi
 
-### Örnek 1: Unwrap/Expect Tuzaklarından Kaçınmak
+### Unwrap/Expect Tuzaklarından Kaçınmak (exc00)
 
 Rust'ın güçlü yönlerinden birisi Option< T > ve Result<T, E> tipleri ile hata yönetimidir. Bazen özellikle development safhasındayken unwrap ve expect kullanarak ilerleyebiliriz zira match veya if let kullanmak kodu uzatabilir. Ancak bu yöntem production kodunda ciddi problemlere yol açabilir. Bir sistemin açılırken kritik bir yapılandırma dosyasını okumaya çalıştığını düşünelim. Dosyanın bulunamamsı veya okuma sırasında bir hata alınması halinde programın paniklemesi yerine kullanıcıya anlamlı bir hata mesajı döndürmek veya izlenebilir, tedbir alınabilir bir makine logu bırakmak daha sağlıklı olacaktır.
 
@@ -41,7 +41,7 @@ fn main() {
 }
 ```
 
-### Örnek 2: Gereksiz clone Çağrılarından Kaçınmak
+### Gereksiz clone Çağrılarından Kaçınmak (exc01)
 
 Rust sahiplik *(ownership)* modelinde özellikle *Vector*, *String* gibi heap bellek bölgesinde değerlendirilen veri yapıları kapsamlar *(scopes)* arasında taşınırken varsayılan olarak sahipliğin aktarımı söz konusudur. Eğer veri yapısı taşındığı fonksiyonda bir değişikliğe, başka bir deyişle mutasyona uğramayacaksa tüm veri yapısını klonlayarak göndermek yerine referans ile göndermek daha performanslı ve bellek dostu bir yaklaşımdır. Söz gelimi büyük bir sayı listesinin vektör veri yapısında ele alındığını düşünelim. Bu sayı kümesinin matematiksel bir analiz fonksiyonu işleten bir metot tarafından da kullanıldığını varsayalım. Analizi yapan fonksiyon veriyi değiştirmeyeceği için tüm vektörün klonlanması yerine referans ile gönderilmesi daha doğru olacaktır.
 
@@ -107,7 +107,7 @@ fn main() {
 }
 ```
 
-### Örnek 3: Mutasyon Kapsamını Sınırlamak
+### Mutasyon Kapsamını Sınırlamak (exc02)
 
 Rust programlama dilinde değişkenler varsayılan olarak immutable *(değiştirilemez)* olarak tanımlanır. Değişkenin değerini değiştirmek istediğimizde `mut` anahtar kelimesi ile değişkeni mutable *(değiştirilebilir)* olarak tanımlamamız gerekir. Mutasyonu mümkün olan en dar kapsamda kullanmak kod okunurluğu ve güvenliğini artıran bir pratiktir. Örneğin bileşik faiz hesaplaması yapan bir muhasebe fonksiyonunda döngü içinde güncellenen belli değişkenler olduğunu düşünelim. Bu değişkenler sadece döngü içinde güncellenir ve ihtiyaç duyduğu ara değerler değiştirilemez *(immutable)* olarak tanımlanıp kullanılabilir. Aşağıdaki örnekte bu prensibi uygulayan bir bileşik faiz hesaplama fonksiyonu yer almaktadır.
 
@@ -145,7 +145,7 @@ fn main() {
 }
 ```
 
-### Örnek 4: Dangling Referanslardan Kaçınmak
+### Dangling Referanslardan Kaçınmak (exc03)
 
 Rust'ın güçlü sahiplik *(ownership)* ve borçlanma *(borrowing)* modeli, dangling *(Sarkmış)* referansların oluşmasını derleme zamanında engeller. Dangling referanslar, bir değişkenin kapsamı dışına çıktıktan sonra ona erişmeye çalıştığımızda ortaya çıkar ve bu durum bellek güvenliği sorunlarına yol açabilir. Rust, bu tür hataların oluşmasını önlemek için katı kurallar uygular. *Borrow Checker* prensiplerine göre bir referansın atıfta bulunduğu değerden daha uzun yaşaması mümkün değildir. Dangling *(Sarkmış)* referanslar genelde bir fonksiyonun local bir değere referans döndürmeye çalışması sırasında ortaya çıkan kritik bir bellek güvenliği hatasıdır.
 
@@ -210,7 +210,7 @@ fn main() {
 }
 ```
 
-### Örnek 5: Public API'lerde Kapsamlı Dokümantasyon Kullanmak
+### Public API'lerde Kapsamlı Dokümantasyon Kullanmak (exc04)
 
 Rust'ın güçlü yanlarından birisi zengin dokümantasyon desteğidir. Özellikle public API'ler geliştirirken kapsamlı dokümantasyon kullanmak, kullanıcıların fonksiyonların nasıl kullanılacağını ve ne işe yaradığını anlamalarına yardımcı olur. Pub erişim belirleyicis ile işaretlenmiş tüm enstrümanlarda zengin dokümantasyon yorumları kullanmak gerekir.
 
@@ -301,7 +301,224 @@ pub mod calculus;
 
 ## Orta Seviye
 
-> Yakında eklenecek
+### Composition Over Inheritance ile Daha Modüler Tasarım (exc05)
+
+Rust nesne yönelimli programlama paradigmalarını tam olarak destekler mi desteklemez mi veya buna ihtiyacı var mıdır bilinmez ancak **Composition over Inheritance** prensibi daha çok ön plana çıkar. Hatta birçok **ECS** tabanlı oyun motorunda bu prensip temel alınarak tasarım yapılır. Bir nesnenin davranışlarını ve özelliklerini başka nesnelerden miras almak yerine, o nesnenin ihtiyaç duyduğu özellikleri ve davranışları başka nesnelerden bileşenler *(components)* aracılığıyla alınması tercih edilmelidir. Bu yaklaşım, kodun daha esnek, yeniden kullanılabilir ve test edilebilir olmasını sağlar.
+
+Bir yazılım sistemindeki kullanıcıları temsil edecek bir yapı geliştirmeye çalıştığımızı düşünelim. Kullanıcı ile ilgili tüm bilgileri tek bir God Object içinde toplamak yerine, kullanıcıya ait farklı özellikleri ve davranışları ayrı bileşenler olarak tanımlayıp, kullanıcı yapısına bu bileşenleri ekleyerek oluşturmak daha esnek bir tasarım sağlar.
+
+```rust
+fn main() {
+    let personal_info = PersonalInfo::new("John".to_string(), "Doe".to_string(), 25);
+    let contact_info = ContactInfo::new("john.doe@nowhere.com".to_string());
+    let activity_status = ActivityStatus::new(true, 120120044543);
+    let gaming_info = GamingInfo::new(7);
+
+    let user = User::new(personal_info, contact_info, activity_status, gaming_info);
+
+    println!("User: {}", user.get_full_name());
+    println!("Email: {}", user.get_email());
+    println!("Active: {}", user.is_active());
+    println!("Level: {}", user.get_level());
+
+    let mut mutable_user = user;
+    mutable_user.set_active(true);
+    mutable_user.level_up();
+
+    println!("New level: {}", mutable_user.get_level());
+}
+
+// Bad Practice: God Object - Tüm bilgileri tek bir struct'ta toplamak
+#[allow(dead_code)]
+struct BadUser {
+    first_name: String,
+    last_name: String,
+    age: u8,
+    email: String,
+    is_active: bool,
+    last_activity_timestamp: u64,
+    level: u8,
+}
+
+// Good Practice: Composition over Inheritance - Farklı sorumlulukları ayrı bileşenlerde tutmak
+#[derive(Debug, Clone)]
+struct PersonalInfo {
+    first_name: String,
+    last_name: String,
+    age: u8,
+}
+
+impl PersonalInfo {
+    fn new(first_name: String, last_name: String, age: u8) -> Self {
+        Self {
+            first_name,
+            last_name,
+            age,
+        }
+    }
+
+    fn get_full_name(&self) -> String {
+        format!("{} {}", self.first_name, self.last_name)
+    }
+
+    fn get_age(&self) -> u8 {
+        self.age
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ContactInfo {
+    email: String,
+}
+
+impl ContactInfo {
+    fn new(email: String) -> Self {
+        Self { email }
+    }
+
+    fn get_email(&self) -> &str {
+        &self.email
+    }
+
+    fn update_email(&mut self, new_email: String) {
+        self.email = new_email;
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ActivityStatus {
+    is_active: bool,
+    last_activity_timestamp: u64,
+}
+
+impl ActivityStatus {
+    fn new(is_active: bool, last_activity_timestamp: u64) -> Self {
+        Self {
+            is_active,
+            last_activity_timestamp,
+        }
+    }
+
+    fn is_active(&self) -> bool {
+        self.is_active
+    }
+
+    fn set_active(&mut self, active: bool) {
+        self.is_active = active;
+        if active {
+            self.last_activity_timestamp = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+        }
+    }
+
+    fn get_last_activity(&self) -> u64 {
+        self.last_activity_timestamp
+    }
+}
+
+#[derive(Debug, Clone)]
+struct GamingInfo {
+    level: u8,
+}
+
+impl GamingInfo {
+    fn new(level: u8) -> Self {
+        Self { level }
+    }
+
+    fn get_level(&self) -> u8 {
+        self.level
+    }
+
+    fn level_up(&mut self) {
+        if self.level < u8::MAX {
+            self.level += 1;
+        }
+    }
+
+    fn set_level(&mut self, level: u8) {
+        self.level = level;
+    }
+}
+
+#[derive(Debug, Clone)]
+struct User {
+    personal_info: PersonalInfo,
+    contact_info: ContactInfo,
+    activity_status: ActivityStatus,
+    gaming_info: GamingInfo,
+}
+
+#[allow(dead_code)]
+impl User {
+    fn new(
+        personal_info: PersonalInfo,
+        contact_info: ContactInfo,
+        activity_status: ActivityStatus,
+        gaming_info: GamingInfo,
+    ) -> Self {
+        Self {
+            personal_info,
+            contact_info,
+            activity_status,
+            gaming_info,
+        }
+    }
+
+    fn get_full_name(&self) -> String {
+        self.personal_info.get_full_name()
+    }
+
+    fn get_age(&self) -> u8 {
+        self.personal_info.get_age()
+    }
+
+    fn get_email(&self) -> &str {
+        self.contact_info.get_email()
+    }
+
+    fn update_email(&mut self, new_email: String) {
+        self.contact_info.update_email(new_email);
+    }
+
+    fn is_active(&self) -> bool {
+        self.activity_status.is_active()
+    }
+
+    fn set_active(&mut self, active: bool) {
+        self.activity_status.set_active(active);
+    }
+
+    fn get_last_activity(&self) -> u64 {
+        self.activity_status.get_last_activity()
+    }
+
+    fn get_level(&self) -> u8 {
+        self.gaming_info.get_level()
+    }
+
+    fn level_up(&mut self) {
+        self.gaming_info.level_up();
+    }
+
+    fn set_level(&mut self, level: u8) {
+        self.gaming_info.set_level(level);
+    }
+
+    fn get_user_summary(&self) -> String {
+        format!(
+            "User: {} ({}), Email: {}, Active: {}, Level: {}",
+            self.get_full_name(),
+            self.get_age(),
+            self.get_email(),
+            self.is_active(),
+            self.get_level()
+        )
+    }
+}
+```
 
 ## İleri Seviye
 
