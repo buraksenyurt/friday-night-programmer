@@ -1,6 +1,6 @@
 [package]
 name = "exc04"
-description = "Rich documentation in public APIs"
+description = "Rust Exercises - Exercise 04: Rich documentation in public APIs"
 version = "0.1.0"
 edition = "2024"
 

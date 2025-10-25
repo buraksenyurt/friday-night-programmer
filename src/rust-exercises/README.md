@@ -659,7 +659,92 @@ fn get_error_logs_eager(log_data: &[String]) -> Vec<String> {
 
 ### Generic Türlerde Kısıtlamaları *(Constraint)* Kullanmak (exc10)
 
-> Eklenecek...
+Generic türlerin kullanıldığı durumlarda türü belli davranışları uygulamaya zorlamak için trait'lerden yararlanılabilir. Böylece örneğin bir iterasyonun aynı davranış veya davranışlara sahip türler ile çalışması sağlanabilir. Böylece tip sistemini kullanarak işlevselliği bir nevi garanti altına almış oluruz ve bunu sıfır maliyetle yaparız.
+
+Herhangi bir tür için minimum ve maksimum değerleri bulan bir fonksiyon düşünelim. Bunun için türün karşılaştırılabilir **Ord** ve kopyalanabilir **Copy** olması gerekir. Aksi takdirde fonksiyon doğru çalışmayacaktır. Bunu sağlamak için generic tür üzerinde trait kısıtlamaları kullanabiliriz.
+
+```rust
+fn main() {
+    let numbers = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+    match find_min_max(&numbers) {
+        Some((min, max)) => {
+            println!("Minimum: {}, Maximum: {}", min, max);
+        }
+        None => {
+            println!("Empty slice provided.");
+        }
+    }
+
+    let chars = vec!['y', 'c', 'm', 'e', 'q', 'l', 'x', 'k'];
+    match find_min_max(&chars) {
+        Some((min, max)) => {
+            println!("Minimum: {}, Maximum: {}", min, max);
+        }
+        None => {
+            println!("Empty slice provided.");
+        }
+    }
+
+    let towers = vec![
+        Tower { height: 150 },
+        Tower { height: 200 },
+        Tower { height: 175 },
+    ];
+    match find_min_max(&towers) {
+        Some((min, max)) => {
+            println!(
+                "Minimum Tower Height: {}, Maximum Tower Height: {}",
+                min.height, max.height
+            );
+        }
+        None => {
+            println!("Empty slice provided.");
+        }
+    }
+}
+
+/// Verilen bir slice içindeki minimum ve maksimum değerleri bulan fonksiyon.
+/// Eğer slice boşsa None döner, aksi takdirde Some((min, max)) döner.
+///
+/// # Arguments
+/// * `values` - Karşılaştırılacak değerlerin bulunduğu slice.
+///
+/// # Returns
+/// * `Option<(T, T)>` - Minimum ve maksimum değerleri içeren bir tuple veya None.
+///
+/// # Constraints
+/// * `T: Ord + Copy` - T türü karşılaştırılabilir ve kopyalanabilir olmalıdır.
+fn find_min_max<T: Ord + Copy>(values: &[T]) -> Option<(T, T)> {
+    if values.is_empty() {
+        return None;
+    }
+
+    let mut min = values[0];
+    let mut max = values[0];
+
+    for &value in values.iter() {
+        if value < min {
+            min = value;
+        }
+        if value > max {
+            max = value;
+        }
+    }
+
+    Some((min, max))
+}
+
+#[derive(Copy, Clone, Eq, PartialOrd, PartialEq)]
+struct Tower {
+    height: u32,
+}
+
+impl Ord for Tower {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.height.cmp(&other.height)
+    }
+}
+```
 
 ### Daha Güçlü Hata Yönetimi için Custom Error Türleri Oluşturmak veya thiserror Kullanmak (exc11)
 
