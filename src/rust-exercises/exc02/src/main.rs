@@ -1,3 +1,14 @@
+/// # Compound Interest Calculator
+/// 
+/// # Arguments
+/// 
+/// * `principal` - Anapara miktarı (başlangıç yatırımı)
+/// * `annual_rate` - Yıllık faiz oranı (yüzde olarak)
+/// * `years` - Yatırım süresi (yıl olarak)
+/// 
+/// # Returns
+/// 
+/// * `f64` - Toplam bileşik faiz getirisi
 fn calculate_compound_interest(principal: f64, annual_rate: f64, years: u32) -> f64 {
     let mut current_amount = principal;
     let mut total_interest = 0.0;

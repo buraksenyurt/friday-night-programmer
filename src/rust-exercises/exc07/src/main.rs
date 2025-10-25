@@ -18,16 +18,15 @@ fn main() {
 /// Bu fonksiyon, verilen `values` dilimini `index` konumunda ikiye böler
 /// ve iki ayrı dilim olarak döner.
 ///
-/// # Güvenlik Notu
+/// # Safety
 ///
 /// Bu fonksiyon unsafe kod kullanır, bu nedenle dikkatli olunmalıdır.
 ///
-/// # Parametreler
-///
+/// # Arguments
 /// - `values`: Bölünecek olan tamsayı dilimi.
 /// - `index`: Bölme işleminin gerçekleşeceği konum.
 ///
-/// # Dönüş Değeri
+/// # Returns
 /// İki ayrı tamsayı dilimi olarak döner.
 fn split_array_from(values: &mut [i32], index: usize) -> (&mut [i32], &mut [i32]) {
     let len = values.len();

@@ -1,10 +1,11 @@
 /// Verilen bir fonksiyonun türevini yaklaşık olarak hesaplar.
 ///
-/// # Argümanlar
+/// # Arguments 
 /// * `f` - Türevini almak istediğimiz fonksiyon.
 /// * `x` - Türevini hesaplamak istediğimiz nokta.
 /// * `h` - Küçük bir değer, türev hesaplamasında kullanılır (varsayılan: 1e-7).
-/// # Dönüş Değeri
+/// 
+/// # Returns
 /// * `f` fonksiyonunun `x` noktasındaki yaklaşık türevi.
 pub fn derivative<F>(f: F, x: f64, h: f64) -> f64
 where
@@ -15,12 +16,12 @@ where
 
 /// Verilen bir fonksiyonun belirli bir aralıktaki integralini yaklaşık olarak hesaplar.
 ///
-/// # Argümanlar
+/// # Arguments
 /// * `f` - İntegralini almak istediğimiz fonksiyon.
 /// * `a` - İntegral başlangıç noktası.
 /// * `b` - İntegral bitiş noktası.
 /// * `n` - İntegral hesaplamasında kullanılacak dikdörtgen sayısı (varsayılan: 1000).
-/// # Dönüş Değeri
+/// # Returns
 /// * `f` fonksiyonunun `[a, b]` aralığındaki yaklaşık integrali.
 pub fn integral<F>(f: F, a: f64, b: f64, n: usize) -> f64
 where

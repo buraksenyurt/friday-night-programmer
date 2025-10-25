@@ -19,11 +19,9 @@ fn main() {
 /// Log verisi alır ve "ERROR" içeren satırları döner
 ///
 /// # Arguments
-///
 /// * `log_data` - Log verisi içeren String vektörü
 ///
 /// # Returns
-///
 /// * `impl Iterator<Item=String>` - "ERROR" içeren log satırlarını üreten iterator
 fn get_error_logs_lazy(log_data: &[String]) -> Vec<String> {
     /*
@@ -33,7 +31,7 @@ fn get_error_logs_lazy(log_data: &[String]) -> Vec<String> {
         Bu sayede gereksiz yere tüm veriyi işlemekten kaçınılır.
     */
     log_data
-        .into_iter()
+        .iter()
         .filter(|line| line.contains("ERROR"))
         .map(|line| {
             let columns = line.split(": ").collect::<Vec<&str>>();

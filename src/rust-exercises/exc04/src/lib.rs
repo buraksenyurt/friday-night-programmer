@@ -3,12 +3,12 @@
 //! Bu modül, temel matematiksel işlemleri gerçekleştiren fonksiyonlar içerir.
 //! Örnek olarak, türev ve integral hesaplamaları için fonksiyonlar sağlar.
 //!
-//! # Fonksiyonlar
+//! # Functions
 //! 
 //! - `derivative`: Verilen bir fonksiyonun türevini yaklaşık olarak hesaplar.
 //! - `integral`: Verilen bir fonksiyonun belirli bir aralıktaki integralini yaklaşık olarak hesaplar.
 //! 
-//! # Kullanım
+//! # Examples
 //! 
 //! Aşağıda, bu modüldeki fonksiyonların nasıl kullanılacağına dair örnekler verilmiştir.
 //! 
