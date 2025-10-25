@@ -1004,7 +1004,81 @@ fn decrypt(value:&str) -> String {
 
 ### Typestate Pattern ile Daha Güvenli API'ler Tasarlamak (exc13)
 
-> Eklenecek...
+Typestate Pattern'de bir nesnenin durumu tür sistemi ile ifade edilir. Böylece nesnenin belirli bir durumda hangi işlemleri yapabileceği tür sistemi tarafından garanti altına alınır. Bu desen, özellikle karmaşık State makineleri veya belirli adımların sırasıyla takip edilmesi gereken işlemler için faydalı bir kullanımdır. Örneğin bir ağ nesnesninin alabileceği durumları düşünelim: Bağlantı kurulmamış, bağlantı kurulmuş, veri gönderme ve alma gibi. Bu durumlardan hangisinde ne tür işlemlerin yapılabileceğini de tür sistemi üzerinden ifade edebiliriz. Böylece yanlış sırayla yapılan işlemler derleme zamanında yakalanabilir.
+
+```rust
+fn main() {
+    let connection = Connection::new();
+    let initialized_connection = connection.initialize("server=localhost;port=8080");
+    match initialized_connection.connect() {
+        Ok(_connected_connection) => {
+            println!("Connection established successfully!");
+        }
+        Err(e) => {
+            println!("Failed to connect: {}", e);
+        }
+    }
+}
+
+/*
+    Durumları temsil eden tipler. Genellikle veri içermezler.
+    Bunlar marker types olarak da bilinir.
+
+    Aşağıdaki örnekte üç durum tanımlanmıştır:
+    - Disconnected: Bağlantı kurulmamış durum
+    - Initialized: Bağlantı başlatılmış ama henüz bağlanmamış durum
+    - Connected: Bağlantı kurulmuş durum
+
+    Initialized durumuna geçilebilmesi için önce Disconnected durumunda olunması gerekir.
+    Connected durumuna geçilebilmesi için ise Initialized durumunda olunması gerekir.
+*/
+struct Disconnected;
+struct Initialized;
+struct Connected {
+    _address: String,
+}
+
+// Connection yapısı, State tür parametresi ile durumunu belirtir.
+struct Connection<State> {
+    config: String,
+    // State türü, Connection yapısının bir parçası değildir ancak tür sistemi tarafından da izlenmesi gereken bir bilgidir.
+    // Bu nedenle PhantomData kullanılmakta. PhantomData, built-in bir marker type'dır. Rust ile gelen standart tür sistemi dışındaki
+    // tür bilgilerini taşımak için kullanılır.
+    state: std::marker::PhantomData<State>,
+}
+
+impl Connection<Disconnected> {
+    fn new() -> Self {
+        println!("Creating new connection");
+        Connection {
+            config: String::new(),
+            state: std::marker::PhantomData,
+        }
+    }
+
+    fn initialize(mut self, config: &str) -> Connection<Initialized> {
+        println!("Initializing connection with config: {}", config);
+        self.config = config.to_string();
+
+        Connection {
+            config: self.config,
+            state: std::marker::PhantomData,
+        }
+    }
+}
+
+impl Connection<Initialized> {
+    fn connect(self) -> Result<Connection<Connected>, String> {
+        println!("Connecting with config: {}", self.config);
+        // Konfigurasyon geçerli ise ve bağlantı başarılı ise Connected durumuna geçiş yaparız.
+        // Aksi halde hata döneriz. Burada basit bir örnek olması için her zaman başarılı sonuç dönüyoruz.
+        Ok(Connection {
+            config: self.config,
+            state: std::marker::PhantomData,
+        })
+    }
+}
+```
 
 ### Uygulama Düzeyinde Hata Yayılımı *(Error Propagation)* için anyhow Kullanmak (exc14)
 

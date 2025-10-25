@@ -1,0 +1,7 @@
+[package]
+name = "exc13"
+description = "Rust Excercises - Exercise 13: Type State Pattern"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
