@@ -574,7 +574,88 @@ mod tests {
 
 ### Lazy Iterator Kullanımı ile Bellek Verimliliğini Artırmak (exc09)
 
-> Eklenecek...
+Rust, fonksiyonel dil özellikleri barındırır ve güçlü iterator fonksiyonlarına sahiptir *(Hatta zero-cost abstraction söz konusudur ve dolayısıyla iteratif fonksiyonların maliyetleri oldukça düşüktür) **map**, **filter** ve **collect** gibi metot zinciri olarak eklenebilen fonksiyonlar esasında **next** işlevi çağırılana kadar yürütülmezler. Bunu **Lazy Evaluation** olarak ifade edebiliriz. Bu durumda gereksiz hesaplamaların önüne geçilerek bellek verimliliği artırılabilir. Bunun tam tersi olarak birde **Eager Evaluation** durumu vardır. Burada tüm veri üzerinde işlemler hemen gerçekleştirilir ve sonuçlar hemen elde edilir. Ancak bu durum büyük veri setlerinde performans ve bellek kullanımı açısından dezavantajlı olabilir. Dolayısıyla duruma göre **Lazy** veya **Eager** load stratejileri tercih edilebilir.
+
+Çok büyük bir log dosyasından ham metin girdilerinin okunup analiz edildiği durumlarda **Lazy Evaluation** ile bellek kullanımını daha optimize edebiliriz.
+
+```rust
+fn main() {
+    let log_data = vec![
+        String::from("INFO: Application started"),
+        String::from("ERROR: Failed to load configuration"),
+        String::from("INFO: User logged in"),
+        String::from("ERROR: Database connection lost"),
+    ];
+
+    println!("--- Lazy Evaluation Results ---");
+    let error_logs = get_error_logs_lazy(&log_data);
+    error_logs.iter().for_each(|log| println!("{}", log));
+
+    println!("--- Eager Evaluation Results ---");
+    let error_logs = get_error_logs_eager(&log_data);
+    error_logs.iter().for_each(|log| println!("{}", log));
+}
+
+/// Basit bir log analiz fonksiyonu (Lazy Evaluation ile)
+/// Log verisi alır ve "ERROR" içeren satırları döner
+///
+/// # Arguments
+///
+/// * `log_data` - Log verisi içeren String vektörü
+///
+/// # Returns
+///
+/// * `impl Iterator<Item=String>` - "ERROR" içeren log satırlarını üreten iterator
+fn get_error_logs_lazy(log_data: &[String]) -> Vec<String> {
+    /*
+        Bu yaklaşımda Lazy Evaluation kullanılmaktadır.
+        Log verisi üzerinde bir iterator oluşturulur ve
+        "ERROR" içeren satırlar filtrelenir.
+        Bu sayede gereksiz yere tüm veriyi işlemekten kaçınılır.
+    */
+    log_data
+        .into_iter()
+        .filter(|line| line.contains("ERROR"))
+        .map(|line| {
+            let columns = line.split(": ").collect::<Vec<&str>>();
+            format!(
+                "Critical Error Found: {}",
+                columns.last().unwrap_or(&"Unknown Error")
+            )
+        })
+        .collect()
+}
+
+/// Basit bir log analiz fonksiyonu (Eager Evaluation ile)
+/// Log verisi alır ve "ERROR" içeren satırları döner
+///
+/// # Arguments
+///
+/// * `log_data` - Log verisi içeren String vektörü
+///
+/// # Returns
+///
+/// * `Vec<String>` - "ERROR" içeren log satırlarını içeren vektör
+fn get_error_logs_eager(log_data: &[String]) -> Vec<String> {
+    /*
+        Bu yaklaşımda Eager Evaluation kullanılmaktadır.
+        Tüm log verisi işlenir ve "ERROR" içeren satırlar
+        hemen döndürülür.
+    */
+    let mut error_logs = Vec::new();
+    for line in log_data {
+        if line.contains("ERROR") {
+            let columns: Vec<&str> = line.split(": ").collect();
+            let formatted_log = format!(
+                "Critical Error Found: {}",
+                columns.last().unwrap_or(&"Unknown Error")
+            );
+            error_logs.push(formatted_log);
+        }
+    }
+    error_logs
+}
+```
 
 ### Generic Türlerde Kısıtlamaları *(Constraint)* Kullanmak (exc10)
 
