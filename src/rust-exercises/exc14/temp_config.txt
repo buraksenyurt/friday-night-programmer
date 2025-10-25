@@ -1,0 +1,3 @@
+id:1002
+name:Gaming Mouse
+price:89.99
