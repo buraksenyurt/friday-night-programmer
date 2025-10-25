@@ -1,0 +1,7 @@
+[package]
+name = "exc08"
+description = "Rust Exercises - Exercise 08 (Arc, Mutex for Data Races)"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

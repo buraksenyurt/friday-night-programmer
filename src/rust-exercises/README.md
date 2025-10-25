@@ -572,6 +572,18 @@ mod tests {
 }
 ```
 
+### Lazy Iterator Kullanımı ile Bellek Verimliliğini Artırmak (exc09)
+
+> Eklenecek...
+
+### Generic Türlerde Kısıtlamaları *(Constraint)* Kullanmak (exc10)
+
+> Eklenecek...
+
+### Daha Güçlü Hata Yönetimi için Custom Error Türleri Oluşturmak veya thiserror Kullanmak (exc11)
+
+> Eklenecek...
+
 ## İleri Seviye
 
 ### Unsafe Kodları Soyutlamalar ile Sarmak (exc07)
@@ -630,3 +642,62 @@ fn split_array_from(values: &mut [i32], index: usize) -> (&mut [i32], &mut [i32]
     }
 }
 ```
+
+### Eşzamanlı *(Concurrency)* Paylaşılan Durumlarda Kilitlenme ve Yarış Durumlarından *(Data Races)* Kaçınmak (exc08)
+
+Farklı iş parçacıklarının aynı veriye eşzamanlı olarak erişmesi gereken senaryolar olabilir. Özellikle erişilen veri üzerinde değişiklik yapılacaksa deadlock'lar oluşması muhtemel senaryolardandır. Hatta bu durum çoğunlukla **Data Races** olarak da bilinir. Rust tarafında data races durumlarının üstesinden gelmek için bir Smart Pointer türevi olan Arc *(Atomic Reference Counting)* ve Mutex *(Mutual Exclusion)* kullanılır.
+
+Bir web sunucusuna gelen sayısız isteiğin birden fazla iş parçacığı tarafından işlendiğini düşünelim. Her bir thread gelen request ile ilgili bir şeyler yapıyor. Bu senaryoda da toplam istek sayısını global bir sayaç ile tuttuğumuzu varsayalım. Her thread aynı veri üzerinde değişiklik yapmaya çalışacak.
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    // Global paylaşımlı değişken
+    // Arc ile çoklu sahiplik
+    // Mutext kilitleme ile değiştirebilir erişim imkanı
+    let counter = Arc::new(Mutex::new(0));
+    let mut threads = vec![];
+    let thread_count = 4;
+
+    for i in 0..thread_count {
+        let counter_clone = Arc::clone(&counter); // Referansları say
+
+        let thread = thread::spawn(move || {
+            println!("Thread {} starting", i);
+
+            // Mutext ile kilitlenir ve MutexGuard alınır.
+            // Diğer erişmeye çalışanlara müsaade edilmez
+            let mut value = counter_clone.lock().unwrap();
+            *value += 1;
+
+            thread::sleep(Duration::from_millis(100));
+        });
+        threads.push(thread);
+    }
+
+    // Tüm iş parçacıklarının bitmesini bekleyelim
+    for t in threads {
+        t.join().unwrap();
+    }
+
+    println!(
+        "Current total request count is {}",
+        *counter.lock().unwrap()
+    );
+}
+```
+
+### Spawn Blocking Tasks ile Asenkron Kodlarda Performans Artışı Sağlamak (exc12)
+
+> Eklenecek...
+
+### Typestate Pattern ile Daha Güvenli API'ler Tasarlamak (exc13)
+
+> Eklenecek...
+
+### Uygulama Düzeyinde Hata Yayılımı *(Error Propagation)* için anyhow Kullanmak (exc14)
+
+> Eklenecek...
