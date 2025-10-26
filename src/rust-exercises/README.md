@@ -13,6 +13,8 @@ Rust'ın temel kavramları ve güvenli programlama pratikleri:
 - **[exc02](#mutasyon-kapsamını-sınırlamak-exc02)** - Mutasyon Kapsamını Sınırlamak
 - **[exc03](#dangling-referanslardan-kaçınmak-exc03)** - Dangling Referanslardan Kaçınmak
 - **[exc04](#public-apilerde-kapsamlı-dokümantasyon-kullanmak-exc04)** - Public API'lerde Kapsamlı Dokümantasyon Kullanmak
+- **[exc15](#ignoring-ownership-exc15)** - Ignoring Ownership
+- **[exc16](#makroların-hatalı-kullanımından-kaçınmak-exc16)** - Makroların Hatalı Kullanımından Kaçınmak
 
 ### **Orta Seviye**
 
@@ -415,6 +417,40 @@ fn main() {
     //     println!("Invalid owned request.");
     // }
     // let body_length = owned_input.len(); // Hata: owned_input artık geçerli değil
+}
+```
+
+### Makroların Hatalı Kullanımından Kaçınmak (exc16)
+
+Makrolar metadata programlamada işimize yarayan rust'ın güçlü enstrümanlarından birisidir. Makroları kullanarak kod üreten kodlar yazılabilir ve özellikle tekrarlı işler için bu yöntemler tercih edilebilir. Ancak makroların yanlış kullanımı kodun okunurluğunu ve bakımını zorlaştırabilir. Mesela çok basit görevler için makro kullanmak yerine fonksiyonlardan yararlanmak daha doğru olabilir. Bu sayede kodun anlaşılması ve hata ayıklanması daha kolay olur. Örneğin basit loglama operasyonlarında makro kullanmak yerine fonksiyon kullanmak daha sağlıklı bir yaklaşımdır. Aşağıdaki kod parçasında kötü ve ideal kullanım örnekleri basitçe ele alınmaktadır.
+
+```rust
+/*
+    Log bırakmak için makro kullanmak yerine fonksiyon kullanmak kodun okunurluğunu daha da basitleştirir.
+    Bir makroda genellikle expression ve çeşitli regex patternler kullanılır. Bu da kodun anlaşılmasını zorlaştırabilir.
+    Özellikle basit işlemler için makro kullanmak yerine fonksiyon kullanmak çok daha kolaydır.
+*/
+macro_rules! log {
+    ($msg:expr, $level:expr) => {
+        println!("[{}]: {}", $level, $msg);
+    };
+}
+
+/// Basit bir log fonksiyonu. 
+/// Mesajı, log seviyesini alır ve formatlı bir şekilde ekrana basar.
+///
+/// # Arguments
+/// * `message` - Log mesajı.
+/// * `level` - Log seviyesi (örneğin: "INFO", "WARN", "ERROR").
+fn log(message: &str, level: &str) {
+    println!("[{}]: {}", level, message);
+}
+
+fn main() {
+    log!("This is a warning message.", "WARN");
+
+    log("This is an info message.", "INFO");
+    log("This is an error message.", "ERROR");
 }
 ```
 

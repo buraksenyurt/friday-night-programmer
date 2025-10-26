@@ -1,5 +1,6 @@
 [package]
 name = "exc15"
+description = "Rust Excercises - Excercise 15: Ignoring Ownership"
 version = "0.1.0"
 edition = "2024"
 
