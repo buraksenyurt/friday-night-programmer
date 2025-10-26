@@ -15,6 +15,7 @@ Rust'ın temel kavramları ve güvenli programlama pratikleri:
 - **[exc04](#public-apilerde-kapsamlı-dokümantasyon-kullanmak-exc04)** - Public API'lerde Kapsamlı Dokümantasyon Kullanmak
 - **[exc15](#ignoring-ownership-exc15)** - Ignoring Ownership
 - **[exc16](#makroların-hatalı-kullanımından-kaçınmak-exc16)** - Makroların Hatalı Kullanımından Kaçınmak
+- **[exc17](#string-yerine-str-ile-çalışmak-exc17)** - String Yerine &str ile Çalışmak
 
 ### **Orta Seviye**
 
@@ -453,6 +454,55 @@ fn main() {
     log("This is an error message.", "ERROR");
 }
 ```
+
+### String Yerine &str ile Çalışmak (exc17)
+
+Programlar belleğin **stack** ve **heap** bölgelerini kullanarak çalışırlar. **Heap** bellek bölgesi çok daha büyüktür ve rastgele okuma/yazma işlemleri sıklıkla gerçekleşir. Maliyet açısından bakıldığında en külfetli operasyonlar heap bölgesinde icra edilir *(Yer tahsis işlemleri, veri taşıma operasyonları, serbest bırakmalar vb.)* Özellikle veri okuma operasyonlarında **heap allocation** maliyetini minimize etmek için referanslarla çalışmak tercih edilen bir yaklaşımdır. Bir başka deyişle bu operasyonlarda ödünç alınabilen **&str** referansları kullanmak performans açısından daha iyidir. **&str**, literal string verilerini temsil eden bir referanstır ve **heap** üzerinde yeni bir **String** nesnesi oluşturmaya gerek kalmadan veri okuma işlemlerini mümkün kılar. Tabii burada veri üzerinde değişiklik yapmayacağımızı kabul etmemiz gerekiyor. Yani sahipliğin devredilmesi veya verinin değiştirilmesi gereken durumlarda yine **String** türü ile çalışmak gerekir.
+
+Bir web suncusuna gelen isteklerin yönlendirilmesi ile ilgili bir kod parçası geliştirdiğimizi düşünelim. HTTP isteklerine ait yol bilgilerini ele alırken, verinin kopyası üzerinden ilerlemek yerine referans kullanarak ilerlemek daha az bellek tüketimi sağlayacaktır zira gereksiz yer tahsisi operasyonuna *(heap allocation)* gerek kalmaz.
+
+Aşağıdaki örnek kod parçasında bu senaryo basit bir şekilde ele alınmaktadır.
+
+```rust
+fn main() {
+    let api_paths = vec![
+        String::from("/api/v1/users"),
+        String::from("/api/v1/orders"),
+        String::from("/api/v1/products"),
+    ];
+
+    for path in api_paths {
+        // // Bad Practice
+        // route_request_owned(path.clone());
+
+        // Good Practice
+        route_request(&path);
+    }
+}
+
+// Bad Practice: Kopya üzerinden işlem yapmak
+#[allow(dead_code)]
+fn route_request_owned(path: String) {
+    match path.as_str() {
+        "/api/v1/users" => println!("Routing to Users API"),
+        "/api/v1/orders" => println!("Routing to Orders API"),
+        "/api/v1/products" => println!("Routing to Products API"),
+        _ => println!("404 Not Found"),
+    }
+}
+
+// Good Practice: Referans üzerinden işlem yapmak
+fn route_request(path: &str) {
+    match path {
+        "/api/v1/users" => println!("Routing to Users API"),
+        "/api/v1/orders" => println!("Routing to Orders API"),
+        "/api/v1/products" => println!("Routing to Products API"),
+        _ => println!("404 Not Found"),
+    }
+}
+```
+
+Dikkat edileceği üzere **api_paths** dizisindeki her bir yol bilgisi için **route_request** fonksiyonu çağrılırken bir referans türü olarak **&str** kullanılmıştır. Yine de ısrarla kopya üzerinden işlem yapmak istersek **clone** metodu ile kopyalama yapılarak ilerlenebilir ancak bu durumda da performans maliyeti ortaya çıkar. Çünkü her bir kopyalama işlemi için heap üzerinde yeni bir alan tahsis edilir ve bu da gereksiz bellek tüketimi demektir. Referans kullanımı ise bu maliyeti ortadan kaldırır.
 
 ## Orta Seviye
 
