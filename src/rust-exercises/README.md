@@ -14,7 +14,7 @@ Rust'ın temel kavramları ve güvenli programlama pratikleri:
 - **[exc03](#dangling-referanslardan-kaçınmak-exc03)** - Dangling Referanslardan Kaçınmak
 - **[exc04](#public-apilerde-kapsamlı-dokümantasyon-kullanmak-exc04)** - Public API'lerde Kapsamlı Dokümantasyon Kullanmak
 - **[exc15](#sahipliği-gözardı-etmek-ignoring-ownership-exc15)** - Sahipliği Gözardı Etmek (Ignoring Ownership)
-- **[exc16](#makroların-hatalı-kullanımından-kaçınmak-exc16)** - Makroların Hatalı Kullanımından Kaçınmak
+- **[exc16](#makroları-hatalı-kullanmaktan-kaçınmak-exc16)** - Makroları Hatalı Kullanmaktan Kaçınmak
 - **[exc17](#string-yerine-str-ile-çalışmak-exc17)** - String Yerine &str ile Çalışmak
 - **[exc18](#if-let-ile-daha-temiz-eşleşmeler-exc18)** - if let ile Daha Temiz Eşleşmeler
 
@@ -341,7 +341,7 @@ pub mod calculus;
 
 ### Sahipliği Gözardı Etmek (Ignoring Ownership) (exc15)
 
-Rust' ın sahiplik *(ownership)* sisteminin bir dizi kuralı vardır. Bunlardan birisi de bir değerin yalnızca bir sahibinin olabileceğidir. Sahipliği alınan bir değer kapsam dışına çıktığında **move** işlemi gerçekleşir ve bellekten silinir *(drop)*. Başka bir değişkene atama yaptığımızda ise verinin sahipliği aktarılır ve bu durumda da orjinal değişken kullanılmaz hale gelir. Ancak bazı durumlarda sahipliği göz ardı etmek mümkündür. Bunu daha çok farklı scope'lara veri taşıyan değişkenler kullandığımızda ele alırız.  Söz gelimi bir web sunucusuna gelen istekleri işlerken **HTTP Body** içeriğini temsil eden bir String nesnesini, bir doğrulama fonksiyonuna geçirdikten sonra orjinal değişkende kullanmaya devam etmek istediğimizi düşünelim. Bu durumda sahipliği göz ardı ederek veriyi referans yoluyla geçmek en doğru ve maliyetsiz yaklaşım olacaktır. Aşağıdaki örnekte kod parçasında bu durum hem sahipliği devralan hem de sahipliği göz ardı eden iki fonksiyonla ele alınmaktadır.
+Rust' ın sahiplik *(ownership)* sisteminin bir dizi kuralı vardır. Bunlardan birisi de bir değerin yalnızca bir sahibinin olabileceğidir. Sahipliği alınan bir değer kapsam dışına çıktığında **move** işlemi gerçekleşir ve bellekten silinir *(drop)*. Başka bir değişkene atama yaptığımızda ise verinin sahipliği aktarılır ve bu durumda da orjinal değişken kullanılmaz hale gelir. Ancak bazı durumlarda sahipliği göz ardı etmek mümkündür. Bunu daha çok farklı scope'lara veri taşıyan değişkenler kullandığımızda ele alırız.  Söz gelimi bir web sunucusuna gelen istekleri işlerken **HTTP Body** içeriğini temsil eden bir String nesnesini, bir doğrulama fonksiyonuna geçirdikten sonra orjinal değişkeni de kullanmaya devam etmek istediğimizi düşünelim. Bu durumda sahipliği göz ardı ederek veriyi referans yoluyla geçmek en doğru ve maliyetsiz yaklaşım olacaktır. Aşağıdaki örnekte kod parçasında bu durum hem sahipliği devralan hem de sahipliği göz ardı eden iki fonksiyonla ele alınmaktadır.
 
 ```rust
 // Sahipliği devralan fonksiyon
@@ -422,9 +422,11 @@ fn main() {
 }
 ```
 
-### Makroların Hatalı Kullanımından Kaçınmak (exc16)
+### Makroları Hatalı Kullanmaktan Kaçınmak (exc16)
 
-Makrolar metadata programlamada işimize yarayan rust'ın güçlü enstrümanlarından birisidir. Makroları kullanarak kod üreten kodlar yazılabilir ve özellikle tekrarlı işler için bu yöntemler tercih edilebilir. Ancak makroların yanlış kullanımı kodun okunurluğunu ve bakımını zorlaştırabilir. Mesela çok basit görevler için makro kullanmak yerine fonksiyonlardan yararlanmak daha doğru olabilir. Bu sayede kodun anlaşılması ve hata ayıklanması daha kolay olur. Örneğin basit loglama operasyonlarında makro kullanmak yerine fonksiyon kullanmak daha sağlıklı bir yaklaşımdır. Aşağıdaki kod parçasında kötü ve ideal kullanım örnekleri basitçe ele alınmaktadır.
+Makrolar **metadata** programlamada oldukça işimize yarayan rust'ın güçlü enstrümanlarından birisidir. Makroları kullanarak kod üreten kodlar yazabilir, derleme sırasında kodu değiştirebiliriz. Genellikle tekrarlı işler için bu makro kullanımı çok yaygındır. Hatta Rust'ı öğrenmeye başladığımız andan itibaren ilk makromuzu da kullanırız *(println!)* Bilindiği üzere ! işareti ile biten metotlar birer makrodur.
+
+Ancak makroların yanlış kullanımı kodun okunurluğunu ve bakımını zorlaştırabilir. Mesela çok basit görevler için makro kullanmak yerine fonksiyonlardan yararlanmak daha doğrudur. Bu sayede kodun anlaşılması ve hataların ayıklanması daha kolay olur. Örneğin basit loglama operasyonlarında makro kullanmak yerine fonksiyon kullanımı tercih edilebilir. Aşağıdaki kod parçasında kötü ve ideal kullanım örnekleri basitçe ele alınmaktadır.
 
 ```rust
 /*
@@ -507,7 +509,7 @@ Dikkat edileceği üzere **api_paths** dizisindeki her bir yol bilgisi için **r
 
 ### if let ile Daha Temiz Eşleşmeler (exc18)
 
-Bir match ifadesinin tek bir varyantının ele alındığı durumlarda daha kısa ve temiz bir sözdizimi olarak **if let** kullanımı tercih edilebilir zira kod okunurluğu artar. **if let** ifadelerini de **Option**, **Result** veya **enum** türleri ile kullanmak mümkündür. Söz gelimi doğrulanmış *(Authenticated)* bir kullanıcının sisteme girdikten sonra profil bilgilerini almak istediğimizi düşünelim. Kullanıcının profil bilgileri doğrulanmışsa bu bilgileri ekrana basmak aksi durumda bir hata mesajı göstermek istiyoruz. Bu durumda **if let** kullanımı **match** ifadesine göre daha kısa ve anlaşılır olacaktır.
+Bir match ifadesinin tek bir varyantının ele alındığı durumlarda daha kısa ve temiz bir sözdizimi olarak **if let** kullanımı tercih edilebilir zira kod okunurluğu artar. **if let** ifadelerini de **Option**, **Result** veya **enum** türleri ile kullanmak mümkündür. Söz gelimi doğrulanmış *(Authenticated)* bir kullanıcının sisteme girdikten sonra profil bilgilerini almak istediğimizi düşünelim. Kullanıcının profil bilgileri doğrulanmışsa bu bilgileri ekrana basmak aksi durumda bir hata mesajı göstermek istiyoruz. Bu durumda **if let** kullanımı **match** ifadesine göre daha kısa ve anlaşılır olacaktır. **if let** daha çok tek bir durumu ele almak istediğimiz senaryolarda gerçekten idealdir. Aşağıdaki örnek kod parçasında **match** ve **if let** kullanımları karşılaştırılmaktadır.
 
 ```rust
 /// Doğrulanmış ve doğrulanmamış kullanıcıları temsil eden bir enum tanımı
