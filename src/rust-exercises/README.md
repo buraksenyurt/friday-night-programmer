@@ -13,9 +13,10 @@ Rust'ın temel kavramları ve güvenli programlama pratikleri:
 - **[exc02](#mutasyon-kapsamını-sınırlamak-exc02)** - Mutasyon Kapsamını Sınırlamak
 - **[exc03](#dangling-referanslardan-kaçınmak-exc03)** - Dangling Referanslardan Kaçınmak
 - **[exc04](#public-apilerde-kapsamlı-dokümantasyon-kullanmak-exc04)** - Public API'lerde Kapsamlı Dokümantasyon Kullanmak
-- **[exc15](#ignoring-ownership-exc15)** - Ignoring Ownership
+- **[exc15](#sahipliği-gözardı-etmek-ignoring-ownership-exc15)** - Sahipliği Gözardı Etmek (Ignoring Ownership)
 - **[exc16](#makroların-hatalı-kullanımından-kaçınmak-exc16)** - Makroların Hatalı Kullanımından Kaçınmak
 - **[exc17](#string-yerine-str-ile-çalışmak-exc17)** - String Yerine &str ile Çalışmak
+- **[exc18](#if-let-ile-daha-temiz-eşleşmeler-exc18)** - if let ile Daha Temiz Eşleşmeler
 
 ### **Orta Seviye**
 
@@ -338,7 +339,7 @@ ve modül içinde aşağıdaki gibi ilerlenebilir.
 pub mod calculus;
 ```
 
-### Ignoring Ownership (exc15)
+### Sahipliği Gözardı Etmek (Ignoring Ownership) (exc15)
 
 Rust' ın sahiplik *(ownership)* sisteminin bir dizi kuralı vardır. Bunlardan birisi de bir değerin yalnızca bir sahibinin olabileceğidir. Sahipliği alınan bir değer kapsam dışına çıktığında **move** işlemi gerçekleşir ve bellekten silinir *(drop)*. Başka bir değişkene atama yaptığımızda ise verinin sahipliği aktarılır ve bu durumda da orjinal değişken kullanılmaz hale gelir. Ancak bazı durumlarda sahipliği göz ardı etmek mümkündür. Bunu daha çok farklı scope'lara veri taşıyan değişkenler kullandığımızda ele alırız.  Söz gelimi bir web sunucusuna gelen istekleri işlerken **HTTP Body** içeriğini temsil eden bir String nesnesini, bir doğrulama fonksiyonuna geçirdikten sonra orjinal değişkende kullanmaya devam etmek istediğimizi düşünelim. Bu durumda sahipliği göz ardı ederek veriyi referans yoluyla geçmek en doğru ve maliyetsiz yaklaşım olacaktır. Aşağıdaki örnekte kod parçasında bu durum hem sahipliği devralan hem de sahipliği göz ardı eden iki fonksiyonla ele alınmaktadır.
 
@@ -503,6 +504,113 @@ fn route_request(path: &str) {
 ```
 
 Dikkat edileceği üzere **api_paths** dizisindeki her bir yol bilgisi için **route_request** fonksiyonu çağrılırken bir referans türü olarak **&str** kullanılmıştır. Yine de ısrarla kopya üzerinden işlem yapmak istersek **clone** metodu ile kopyalama yapılarak ilerlenebilir ancak bu durumda da performans maliyeti ortaya çıkar. Çünkü her bir kopyalama işlemi için heap üzerinde yeni bir alan tahsis edilir ve bu da gereksiz bellek tüketimi demektir. Referans kullanımı ise bu maliyeti ortadan kaldırır.
+
+### if let ile Daha Temiz Eşleşmeler (exc18)
+
+Bir match ifadesinin tek bir varyantının ele alındığı durumlarda daha kısa ve temiz bir sözdizimi olarak **if let** kullanımı tercih edilebilir zira kod okunurluğu artar. **if let** ifadelerini de **Option**, **Result** veya **enum** türleri ile kullanmak mümkündür. Söz gelimi doğrulanmış *(Authenticated)* bir kullanıcının sisteme girdikten sonra profil bilgilerini almak istediğimizi düşünelim. Kullanıcının profil bilgileri doğrulanmışsa bu bilgileri ekrana basmak aksi durumda bir hata mesajı göstermek istiyoruz. Bu durumda **if let** kullanımı **match** ifadesine göre daha kısa ve anlaşılır olacaktır.
+
+```rust
+/// Doğrulanmış ve doğrulanmamış kullanıcıları temsil eden bir enum tanımı
+enum AuthenticatedUser {
+    /// Doğrulanmış kullanıcı bilgilerini tutar
+    Verified { username: String, email: String },
+    /// Doğrulanmamış kullanıcı bilgisini temsil eder
+    Unverified,
+}
+
+/// Kullanıcı bilgilerini temsil eden bir yapı
+struct User {
+    /// Kullanıcı adı
+    username: String,
+    /// Kullanıcı e-posta adresi
+    email: String,
+}
+
+/// Kullanıcıyı doğrulayan bir fonksiyon
+/// Eğer kullanıcı adı veya e-posta boş ise None döner.
+/// E-posta "@" karakterini içeriyorsa Verified, içermiyorsa Unverified döner.
+///
+/// # Arguments
+/// * `user` - Doğrulanacak kullanıcı bilgilerini içeren referans
+/// # Returns
+/// * `Option<AuthenticatedUser>` - Doğrulama sonucunu içeren enum
+fn authenticate(user: &User) -> Option<AuthenticatedUser> {
+    /*
+    Çok basit birkaç doğrulama işlemi gerçekleştiriyoruz.
+    Bir gerçek hayat senaryosunda elbetteki daha karmaşık doğrulama işlemleri yapılması gerekir.
+    Örneğin, e-posta adresinin geçerliliğini kontrol etmek için regex kullanılabilir veya
+    kullanıcı adı belirli kurallara göre doğrulanabilir.
+
+    Bu da birden fazla enum varyantının ele alınması anlamına gelir.
+    Eğer kodda tek varyantla ilgileniyorsak, match ifadesi kullanmak yerine if let kullanımı daha temiz ve okunabilir olur.
+    */
+    if user.username.is_empty() || user.email.is_empty() {
+        return None;
+    }
+
+    if user.email.contains("@") {
+        Some(AuthenticatedUser::Verified {
+            username: user.username.clone(),
+            email: user.email.clone(),
+        })
+    } else {
+        Some(AuthenticatedUser::Unverified)
+    }
+}
+
+fn main() {
+    let user = User {
+        username: "john_doe".to_string(),
+        email: "john_doe@example.com".to_string(),
+    };
+
+    let auth_user = authenticate(&user);
+
+    // Bad Practice: match ifadesi kullanımında tüm durumları ele almak zorundayız
+    match auth_user {
+        Some(AuthenticatedUser::Verified { username, email }) => {
+            println!("Username: {}, Email: {}", username, email);
+        }
+        Some(AuthenticatedUser::Unverified) => {
+            println!("User is unverified.");
+        }
+        _ => {
+            println!("Authentication failed.");
+        }
+    }
+
+    let user = User {
+        username: "jessica".to_string(),
+        email: "jessica@example.com".to_string(),
+    };
+    let auth_user = authenticate(&user);
+
+    // Good Practice: if let kullanımı
+    /*
+    Sadece Verified durumunu ele almak istediğimiz bir senaryoda match ifadesi kullandığımız için tüm
+    durumları kontrol etmek zorunda kalıyoruz. Bu da kodun gereksiz yere karmaşıklaşmasına neden oluyor.
+    if let kullanımı ile sadece ilgilendiğimiz durumu ele alabiliriz ve kod daha temiz ve okunabilir olur.
+    */
+    if let Some(AuthenticatedUser::Verified { username, email }) = auth_user {
+        println!("Username: {}, Email: {}", username, email);
+    } else {
+        println!("User is unverified.");
+    }
+
+    /*
+    Aşağıdaki kullanımda sadece None durumunu ele alıyoruz.
+    Diğer durumlarla ilgilenmiyoruz. Bu durumda match ifadesi yerine if let kullanımı daha temiz ve okunabilir olur.
+    */
+    let user = User {
+        username: "".to_string(),
+        email: "".to_string(),
+    };
+    let auth_user = authenticate(&user);
+    if let None = auth_user {
+        println!("Authentication failed.");
+    }
+}
+```
 
 ## Orta Seviye
 
