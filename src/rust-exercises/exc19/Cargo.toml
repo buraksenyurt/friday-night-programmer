@@ -1,0 +1,7 @@
+[package]
+name = "exc19"
+description = "Rust Exercises - Exercise 19: Implementing Custom Error Types with From Trait"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

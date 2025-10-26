@@ -1,5 +1,6 @@
 [package]
 name = "exc18"
+description = "Rust Exercises - Exercise 18: if let instead of match for Single Pattern Matching"
 version = "0.1.0"
 edition = "2024"
 
