@@ -68,9 +68,15 @@ fn find_min_max<T: Ord + Copy>(values: &[T]) -> Option<(T, T)> {
     Some((min, max))
 }
 
-#[derive(Copy, Clone, Eq, PartialOrd, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 struct Tower {
     height: u32,
+}
+
+impl PartialOrd for Tower {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Ord for Tower {

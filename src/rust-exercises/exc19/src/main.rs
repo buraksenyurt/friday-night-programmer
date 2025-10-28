@@ -7,17 +7,17 @@ fn main() {
     match result {
         Ok(content) => println!("Search successful: {}", content),
         Err(e) => match e {
-            AppError::IoError(err) => eprintln!("I/O Error: {}", err),
-            AppError::ParseError(err) => eprintln!("Parse Error: {}", err),
-            AppError::AuthError(msg) => eprintln!("Authentication Error: {}", msg),
-            AppError::NotFoundError(msg) => eprintln!("Not Found Error: {}", msg),
+            AppError::Io(err) => eprintln!("I/O Error: {}", err),
+            AppError::Parse(err) => eprintln!("Parse Error: {}", err),
+            AppError::Auth(msg) => eprintln!("Authentication Error: {}", msg),
+            AppError::NotFound(msg) => eprintln!("Not Found Error: {}", msg),
         },
     }
 
     let num_str = "32a14";
     if let Err(e) = parse_number(num_str) {
         match e {
-            AppError::ParseError(err) => eprintln!("Failed to parse number: {}", err),
+            AppError::Parse(err) => eprintln!("Failed to parse number: {}", err),
             _ => eprintln!("An unexpected error occurred"),
         }
     }
@@ -27,7 +27,7 @@ fn main() {
     let io_error = io::Error::new(io::ErrorKind::Other, "an I/O error occurred");
     let app_error: AppError = io_error.into();
     match app_error {
-        AppError::IoError(err) => eprintln!("Converted I/O Error: {}", err),
+        AppError::Io(err) => eprintln!("Converted I/O Error: {}", err),
         _ => eprintln!("An unexpected error occurred"),
     }
 }
@@ -57,20 +57,20 @@ fn search(query: &str) -> Result<String, AppError> {
 #[allow(dead_code)]
 #[derive(Debug)]
 enum AppError {
-    IoError(io::Error),
-    ParseError(num::ParseIntError),
-    AuthError(String),
-    NotFoundError(String),
+    Io(io::Error),
+    Parse(num::ParseIntError),
+    Auth(String),
+    NotFound(String),
 }
 
 impl From<io::Error> for AppError {
     fn from(error: io::Error) -> Self {
-        AppError::IoError(error)
+        AppError::Io(error)
     }
 }
 
 impl From<num::ParseIntError> for AppError {
     fn from(error: num::ParseIntError) -> Self {
-        AppError::ParseError(error)
+        AppError::Parse(error)
     }
 }

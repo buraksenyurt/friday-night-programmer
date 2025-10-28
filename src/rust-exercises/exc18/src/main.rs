@@ -88,13 +88,20 @@ fn main() {
     /*
     Aşağıdaki kullanımda sadece None durumunu ele alıyoruz.
     Diğer durumlarla ilgilenmiyoruz. Bu durumda match ifadesi yerine if let kullanımı daha temiz ve okunabilir olur.
+
+    Lakin buna cargo clippy redundant pattern matching, consider using `is_none()` uyarısı verir.
+    is_none() kullanımı daha da temiz ve okunabilirdir.
     */
     let user = User {
         username: "".to_string(),
         email: "".to_string(),
     };
     let auth_user = authenticate(&user);
-    if let None = auth_user {
+    // if let None = auth_user {
+    //     println!("Authentication failed.");
+    // }
+
+    if auth_user.is_none() {
         println!("Authentication failed.");
     }
 }
