@@ -1,0 +1,7 @@
+[package]
+name = "exc22"
+description = "Rust Exercises - Exercise 22: Encapsulation with Getters and Setters in Modules"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
