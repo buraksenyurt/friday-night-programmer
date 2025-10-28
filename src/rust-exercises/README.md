@@ -1289,6 +1289,14 @@ fn main() {
 }
 ```
 
+### Iterator Adaptörleri ve collect Kullanımı (exc21)
+
+Rust'ın fonksiyonel programlama özelliklerinden biri olan iterator adaptörleri, akan veri üzerinde işlem yapmamızı kolaylaştırır. Bunu yaparken döngüsel yapılar kurmamıza gerek kalmaz. Tüm operasyonu zincir metotlar üzerinden halledebiliriz. **Collect**, **fold**, **reduce**, **find**, **any**, **all** gibi pek çok adaptör metodu mevcuttur. Bu adaptörler sayesinde veriyi filtreleyebilir, dönüştürebilir, toplayabilir veya belirli koşullara göre sorgulayabiliriz. Bu adaptörlerden birisi olan **collect** en sık kullanılanlar arasındadır. Standart bir iterator zinciri üzerinden elde edilen veriyi farklı koleksiyon türlerine dönüştürmek için kullanılır. Örneğin bir vektör içindeki sayıları filtreleyip, bu sayıları bir **HashSet** veya başka bir veri yapısına dönüştürmek istediğimizde **collect** metodunu kullanabiliriz. **Collect** sonucu bir değişkene atanabilir ve burada dönüş türü derleyici tarafından otomatik olarak tahmin edilebilir *(type inference)* ama bazen açıkça belirtilmesi de gerekir. Aşağıdaki kod parçasında **collect** kullanımına dair birkaç örnek bulunmaktadır.
+
+```rust
+
+```
+
 ## İleri Seviye
 
 ### Unsafe Kodları Soyutlamalar ile Sarmak (exc07)
