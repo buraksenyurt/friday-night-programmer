@@ -42,6 +42,7 @@ Performans, güvenlik ve sistem programlama konuları:
 - **[exc13](#typestate-pattern-ile-daha-güvenli-apiler-tasarlamak-exc13)** - Typestate Pattern ile Daha Güvenli API'ler Tasarlamak
 - **[exc14](#uygulama-düzeyinde-hata-yayılımı-error-propagation-için-anyhow-kullanmak-exc14)** - Uygulama Düzeyinde Hata Yayılımı için anyhow Kullanmak
 - **[exc23](#ffi-foreign-function-interface-kullanımlarında-unsafe-ile-güvenli-soyutlamalar-oluşturmak-exc23)** - FFI (Foreign Function Interface) Kullanımlarında Unsafe ile Güvenli Soyutlamalar Oluşturmak
+- **[exc24](#eşzamanlılık-concurrency-garantisi-için-send-ve-sync-traitlerini-kullanmak-exc24)** - Eşzamanlılık (Concurrency) Garantisi için Send ve Sync Trait'lerini Kullanmak
 
 ---
 
@@ -1923,4 +1924,78 @@ fn generate_random_number() -> u32 {
     // max çağrısı ile negatif değerleri 0'a map ederek bir overflow oluşma riskini minimize ediyoruz
     result.max(0) as u32
 }
+```
+
+### Eşzamanlılık *(Concurrency)* Garantisi için Send ve Sync Trait'lerini Kullanmak (exc24)
+
+Eş zamanlı *(Concurrent)* çalışan işler arasında tiplerin güvenli bir şekilde paylaşımı/kullanımı önemli bir konudur. **Send** ve **Sync** trait'leri eş zamanlılık için gerekli kısıtlamaları tiplere ekleme becerisine sahiptir. Bir tür **Send** trait'ini implemente ediyorsa, bu türün sahipliği bir iş parçacığından diğerine güvenli bir şekilde taşınabilir. **Sync** trait'ini implemente eden türler ise, birden fazla iş parçacığı tarafından güvenli bir şekilde erişilebilir hale gelir.
+
+Rust'ın standart kütüphanesinde yer alan pek çok tür varsayılan olarak send ve sync trait'lerini uygularlar bazılar ise uygulamaz. Örneğin smart pointer'lardan birisi olan **Rc** yapısı **Send** ve **Sync** trait'lerini implemente etmez. Dolayısıyla referans sayımı iş parçacıkları arasında güvenli bir şekilde paylaşılamaz. Zaten yapının kullanım amacında bu yoktur. Diğer yandan örneğin **Cell** ve **RefCell** türleri de **Sync** trait'ini implemente etmezler çünkü sadece dahili olarak değiştirilebilirlik *(mutability)* sağlarlar. Diğer yandan **Mutex** ve **RwLock** türleri **Sync** trait'ini uygularlar, zira değiştirilebilirliği güvenli bir şekilde yönetirler. Özellikle thread-safe olmayan varlıkları kullandığımız veri yapıları olduğunda bu trait'leri kullanmak önemlidir.
+
+| **Tür** | **Send** | **Sync** | **Genel Bilgi** |
+|-----|------|------|------------|
+| `i32`, `bool`, vb. | 1 | 1 | Primitive tipler her zaman güvenli taşınabilir ve değiştirilebilir |
+| `String`, `Vec<T>` | 1 | 1 | Owned heap tipler de güvenli |
+| `Box<T>` | 1 (T: Send ise) | 1 (T: Sync ise) | Tek sahipli pointer |
+| `Rc<T>` | 0 | 0 | Single-threaded referans sayımı |
+| `Arc<T>` | 1 (T: Send + Sync ise) | 1 (T: Send + Sync ise) | Multi-threaded referans sayımı |
+| `Cell<T>` | 1 (T: Send ise) | 0 | Thread-safe olmayan dahili mutability |
+| `RefCell<T>` | 1 (T: Send ise) | 0 | Thread-safe olmayan dahili mutability |
+| `Mutex<T>` | 1 (T: Send ise) | 1 (T: Send ise) | Thread-safe dahili mutability |
+| `RwLock<T>` | 1 (T: Send ise) | 1 (T: Send + Sync ise) | Thread-safe okuma/yazma kilidi |
+| `*const T`, `*mut T` | 0 | 0 | Raw pointer'lar varsayılan olarak güvensiz |
+
+```rust
+/*
+    Bir oyundaki oyuncu ve takım sayılarına ait istatistikleri tutan Stats isimli bir veri yapımız var.
+    Bu veri yapısındaki player_count alanı Raw Pointer türündendir ve bu türler
+    Rust'ta Send ve Sync trait'lerini otomatik olarak implemente etmezler.
+
+    Dolayısıyla bu veri yapısını farklı thread'ler arasında paylaşmaya çalıştığımızda,
+    "*mut 32 cannot be sent between threads safely" hatasını alırız. Bu hatayı çözmek için
+    Stats yapısına manuel olarak Send trait'ini implemente etmemiz gerekir.
+
+    Şu anki senaryoda sync trait'ine de ihtiyacımız yok gibi görünebilir zira derleme zamanında
+    hata alınmaz. Yine de raw pointer'lar thread-safe olmadığından dolayı Sync trait'ini açıkça
+    ekleyerek kodun güvenliğini artırabiliriz.
+*/
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let game_stats = Arc::new(Mutex::new(Stats {
+        player_count: Box::into_raw(Box::new(0)),
+    }));
+
+    let mut handlers = vec![];
+
+    for _ in 0..10 {
+        let stats_clone = Arc::clone(&game_stats);
+        let handle = std::thread::spawn(move || {
+            let mut stats = stats_clone.lock().unwrap();
+            unsafe {
+                *stats.player_count += 1;
+            }
+            thread::sleep(std::time::Duration::from_millis(10));
+        });
+        handlers.push(handle);
+    }
+
+    for handle in handlers {
+        handle.join().unwrap();
+    }
+
+    println!("Player Count: {}", unsafe {
+        *game_stats.lock().unwrap().player_count
+    });
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+struct Stats {
+    player_count: *mut u32,
+}
+
+unsafe impl Send for Stats {}
+unsafe impl Sync for Stats {}
 ```
