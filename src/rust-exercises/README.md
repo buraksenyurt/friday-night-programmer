@@ -30,6 +30,7 @@ Daha gelişmiş Rust teknikleri ve tasarım desenleri:
 - **[exc19](#tip-dönüşümlerinde-from-ve-into-traitlerini-kullanmak-exc19)** - Tip Dönüşümlerinde From ve Into Trait'lerini Kullanmak
 - **[exc20](#generic-traitlerde-associated-types-kullanımı-exc20)** - Generic Trait'lerde Associated Types Kullanımı
 - **[exc21](#iterator-adaptörleri-ve-collect-kullanımı-exc21)** - Iterator Adapter'ları ve Collect Kullanımı
+- **[exc22](#module-gizleme-ve-erişim-kontrolü-exc22)** - Module Gizleme ve Erişim Kontrolü
 
 ### **İleri Seviye**
 
@@ -605,13 +606,20 @@ fn main() {
     /*
     Aşağıdaki kullanımda sadece None durumunu ele alıyoruz.
     Diğer durumlarla ilgilenmiyoruz. Bu durumda match ifadesi yerine if let kullanımı daha temiz ve okunabilir olur.
+
+    Lakin buna cargo clippy redundant pattern matching, consider using `is_none()` uyarısı verir.
+    is_none() kullanımı daha da temiz ve okunabilirdir.
     */
     let user = User {
         username: "".to_string(),
         email: "".to_string(),
     };
     let auth_user = authenticate(&user);
-    if let None = auth_user {
+    // if let None = auth_user {
+    //     println!("Authentication failed.");
+    // }
+
+    if auth_user.is_none() {
         println!("Authentication failed.");
     }
 }
@@ -1050,9 +1058,15 @@ fn find_min_max<T: Ord + Copy>(values: &[T]) -> Option<(T, T)> {
     Some((min, max))
 }
 
-#[derive(Copy, Clone, Eq, PartialOrd, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 struct Tower {
     height: u32,
+}
+
+impl PartialOrd for Tower {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Ord for Tower {
@@ -1145,17 +1159,17 @@ fn main() {
     match result {
         Ok(content) => println!("Search successful: {}", content),
         Err(e) => match e {
-            AppError::IoError(err) => eprintln!("I/O Error: {}", err),
-            AppError::ParseError(err) => eprintln!("Parse Error: {}", err),
-            AppError::AuthError(msg) => eprintln!("Authentication Error: {}", msg),
-            AppError::NotFoundError(msg) => eprintln!("Not Found Error: {}", msg),
+            AppError::Io(err) => eprintln!("I/O Error: {}", err),
+            AppError::Parse(err) => eprintln!("Parse Error: {}", err),
+            AppError::Auth(msg) => eprintln!("Authentication Error: {}", msg),
+            AppError::NotFound(msg) => eprintln!("Not Found Error: {}", msg),
         },
     }
 
     let num_str = "32a14";
     if let Err(e) = parse_number(num_str) {
         match e {
-            AppError::ParseError(err) => eprintln!("Failed to parse number: {}", err),
+            AppError::Parse(err) => eprintln!("Failed to parse number: {}", err),
             _ => eprintln!("An unexpected error occurred"),
         }
     }
@@ -1165,7 +1179,7 @@ fn main() {
     let io_error = io::Error::new(io::ErrorKind::Other, "an I/O error occurred");
     let app_error: AppError = io_error.into();
     match app_error {
-        AppError::IoError(err) => eprintln!("Converted I/O Error: {}", err),
+        AppError::Io(err) => eprintln!("Converted I/O Error: {}", err),
         _ => eprintln!("An unexpected error occurred"),
     }
 }
@@ -1195,21 +1209,21 @@ fn search(query: &str) -> Result<String, AppError> {
 #[allow(dead_code)]
 #[derive(Debug)]
 enum AppError {
-    IoError(io::Error),
-    ParseError(num::ParseIntError),
-    AuthError(String),
-    NotFoundError(String),
+    Io(io::Error),
+    Parse(num::ParseIntError),
+    Auth(String),
+    NotFound(String),
 }
 
 impl From<io::Error> for AppError {
     fn from(error: io::Error) -> Self {
-        AppError::IoError(error)
+        AppError::Io(error)
     }
 }
 
 impl From<num::ParseIntError> for AppError {
     fn from(error: num::ParseIntError) -> Self {
-        AppError::ParseError(error)
+        AppError::Parse(error)
     }
 }
 ```
