@@ -86,6 +86,8 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Rust, Blanket Traits Nedir?](./documents/BlanketTraits.md)
+- [Rust, PhantomData Nedir?](./documents/PhantomData.md)
 - [Outbox Pattern Demo](./documents/OutboxDemo.md)
 - [BBC Micro:bit - Rust ile Hello Light](./documents/RustOnBbcMicro.md)
 - [Bellek Yönetimi Üzerine Notlar](./documents/MemoryManagement.md)

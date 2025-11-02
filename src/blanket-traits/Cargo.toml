@@ -1,5 +1,6 @@
 [package]
 name = "blanket-traits"
+description = "A demo project for blanket traits in Rust"
 version = "0.1.0"
 edition = "2024"
 
