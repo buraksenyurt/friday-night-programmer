@@ -10,9 +10,17 @@ impl Drop for Identity {
     }
 }
 fn main() {
-    {
-        let _id = Identity { value: 1001 };
-        println!("Scope is closing...");
-    }
+    // case_one();
+    case_two();
     println!("End of the app");
+}
+
+fn case_one() {
+    let _id = &Identity { value: 1001 };
+    println!("Scope is closing...");
+}
+
+fn case_two() {
+    _ = &Identity { value: 1001 };
+    println!("Scope is closing...");
 }
