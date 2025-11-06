@@ -79,14 +79,65 @@ impl Drop for Identity {
     }
 }
 fn main() {
-    {
-        let _id = Identity { value: 1001 };
-        println!("Scope is closing...");
-    }
+    case_one();
     println!("End of the app");
+}
+
+fn case_one() {
+    let _id = &Identity { value: 1001 };
+    println!("Scope is closing...");
 }
 ```
 
-Identity isimli struct çok basit bir veri yapısı. Ona **Drop** trait'ini implemente ediyoruz ve main fonksiyonu içerisinde açtığımız dahili bir scope içerisinde kullanıyoruz. İşlem sırasını tahmin edebilirsiniz. Aşağıdaki ekran görüntüsündeki gibi çalışacaktır.
+**Identity** isimli struct çok basit bir veri yapısı. Ona **Drop** trait'ini implemente ediyoruz case_one isimli fonksiyon içerisinde kullanıyoruz. Bu fonksiyonu da main içerisinden çağırıyoruz. **_id**, **case_one** içerisinde tanımlı bir değişken olduğu için doğal olarak fonksiyon çağrısı sonlandığı yerde bellekten düşürülecek. İşlem sırasını tahmin edebilirsiniz. Aşağıdaki ekran görüntüsündeki gibi çalışacaktır.
 
 ![adventure_00.png](../../images/rust_adventure_00.png)
+
+İşte şimdi beyin yakan kod parçasının tam zamanı. İkinci bir fonksiyon daha ekleyerek ortamı şenlendirelim.
+
+```rust
+#![allow(dead_code)]
+
+struct Identity {
+    value: u32,
+}
+
+impl Drop for Identity {
+    fn drop(&mut self) {
+        println!("Buckle your seat belt, dorothy, because kansas is going bye-bye");
+    }
+}
+fn main() {
+    // case_one();
+    case_two();
+    println!("End of the app");
+}
+
+fn case_one() {
+    let _id = &Identity { value: 1001 };
+    println!("Scope is closing...");
+}
+
+fn case_two() {
+    _ = &Identity { value: 1001 };
+    println!("Scope is closing...");
+}
+```
+
+Bu kodun çalışma zamanı çıktısı ise aşağıdaki gibi olacaktır.
+
+![adventure_01.png](../../images/rust_adventure_01.png)
+
+Aradaki farkı görebildiniz mi? İnanın bu konuya istinaden yazılmış örnek kodlara dakikalarca baktım ve farkı göremedim. Dikkat edileceği üzere **drop** fonksiyonu **case_two** isimli blok sonlanmadan önce ve hatta **_** atamasının yapıldığı satırın hemen ardından çağırılmış görünüyor. Dolayısıyla elimizde tanımlandığı kapsam *(case_two fonksiyonunun kapsamı)* sonuna kadar yaşamamış bir değişken var. İşte burada çok temel bazı bilgileri gözden kaçırmış olduğumu fark ettim.
+
+Aslında her iki metot özelinde düşündüğümüzde **Identity** türünden bir değer oluşturduğumuzda *(eşitliklerin sağ tarafları)* veri bellekte geçici bir alana *(temporary memory location)* alınıyor. Bunda olağanüstü bir durum var. Ta ki biz onu gerçekten kullanacağımızı belirttiğimiz bir değişkene atayıncaya kadar ki bu da **let** anahtar kelimesi ile yapılan bir atama işlemi demek. let ile yapılan atamada bu geçici bellek bölgesi aslında bir değişken ile bağlanırken *(binding)* kendi yaşam süresi de uzatılıyor. Ancak **_** atamasında değişkene bağlama işlemi kasıtlı olarak atlanmakta. Buna ignore the binding deniyor. Yani geçici bellek bölgesi bir değişkene bağlanmadığı için yaşam süresi de uzatılmıyor ve hemen ardından **drop** fonksiyonu çağrılarak bellekten düşürülüyor. Ben bir yaşıma girdim. Belki hiç önemsenmeyecek bir detay gibi görünebilir ama dile olan hakimiyetimiz açısından önemli başlıklardan birisi.
+
+Maceralarım devam edecek :D
+
+## Const ve Non-Mutable Static Değişkenler (adventure_01)
+
+> KONU ANLATIMI GELECEK
+
+## Kaynaklar
+
+- [Resmi Rust Kitabı](https://doc.rust-lang.org/reference/introduction.html)
