@@ -134,7 +134,7 @@ Aslında her iki metot özelinde düşündüğümüzde **Identity** türünden b
 
 Maceralarım devam edecek :D
 
-## Const ve Non-Mutable Static Değişkenler (adventure_01)
+## Her Const Kullanımı Yeni Bir Geçici Kopya Demek mi? (adventure_01)
 
 Değerinin değişmeyeceğini varsaydığımız türler için constant kullanmak yaygın bir alışkanlık. Zaten birçok dilde sabit değerler için böyle bir enstrüman bulunuyor. Rust tarafında constant tanımlamak için **const keyword** kullanılıyor. Constant değişkenler ilk değer ataması ile birlikte tanımlanıyor zira bellekte bu değişmez için ne kadar yer ayrılacağının baştan bilinmesi gerekiyor. Aşağıdaki kod parçasını göz önüne alalım.
 
@@ -148,7 +148,7 @@ fn main() {
 
 Bu kod derlenmeyecek ve aşağıdaki hata üretilecektir.
 
-![adventure_02](../../images/rust_adventure_02.png)
+![rust_adventure_02.png](../../images/rust_adventure_02.png)
 
 ```text
 error: free constant item without body
@@ -160,7 +160,68 @@ error: free constant item without body
   |                     help: provide a definition for the constant: `= <expr>;`
 ```
 
-Şimdi bunu cebimize koyalım. Demek ki bir **constant** tanımlanırken ilk değerinin verilmesi zorunlu. Bir **constant**, **primitive** bir tür değerini taşımak zorunda da değildir. Pekala kendi tasarladığımız bir veri yapısını da constant olarak tanımlayabiliriz.
+Şimdi bunu cebimize koyalım. Demek ki bir **constant** tanımlanırken ilk değerinin verilmesi zorunlu. Bir **constant**, **primitive** bir tür değerini taşımak zorunda değil. Pekala kendi tasarladığımız bir veri yapısını da constant olarak tanımlayabiliriz. Hem kendi veri yapımızı kullanmak hem de farklı bir durumu değerlendirmek için aşağıdaki kod parçasını ele alalım.
+
+```rust
+#![allow(dead_code)]
+
+struct BackgroundColor {
+    name: &'static str,
+    id: u32,
+}
+
+impl Drop for BackgroundColor {
+    fn drop(&mut self) {
+        println!("Dropping constant. State: {},{}", self.name, self.id);
+    }
+}
+
+const BACKGROUND_COLOR: BackgroundColor = BackgroundColor {
+    name: "Lightsaber",
+    id: 1,
+};
+
+fn main() {
+    let value = &mut BACKGROUND_COLOR;
+    value.name = "Black pearl";
+    value.id = 2;
+    println!("Value Name: {} and ID: {}", value.name, value.id);
+
+    BACKGROUND_COLOR.name = "Red wine";
+    BACKGROUND_COLOR.id = 2;
+    println!(
+        "Background Color Name: {} and Id {}",
+        BACKGROUND_COLOR.name, BACKGROUND_COLOR.id
+    );
+}
+```
+
+**BackgroundColor**, **statik** yaşam ömürlü literal string *(&str)* ve stack odaklı 32 bit işaretsiz tamsayı *(u32)* taşıyan bir veri yapısı. Özellikle yaşam döngüsünü izlemek istediğimiz için **Drop** trait'ini de implement ettik. Sonrasında **BACKGROUND_COLOR** isimli bir **constant** tanımlıyoruz ve buna ilk değerini verirken **name** ile **id** alanlarına da birer değer atıyoruz. main fonksiyonu içerisinde ise dikkate değer işler söz konusu. İlk olarak **constant** 'ın **mutable** bir referansını **value** isimli bir değişkene bağlıyoruz. Ardından **value** üzerinden **name** ve **id** alanlarında değişiklik yapıyoruz. Bundan herhangi bir sorun yok zira constant yeni bir temporary alan halinde yeniden oluşturulup bind ediliyor. Sonrasında **BACKGROUND_COLOR** constant'ının **name** alanını değiştiriyoruz ve tekrardan ekrana yazdırıyoruz. Öncelikle kodun çalışma zamanı çıktısını bir inceleyelim.
+
+![rust_adventure_03.png](../../images/rust_adventure_03.png)
+
+İlk dikkat etmemiz ve okumamız gereken yer uyarı mesajı.
+
+```text
+warning: taking a mutable reference to a `const` item
+  --> adventure_01\src\main.rs:22:17
+   |
+22 |     let value = &mut BACKGROUND_COLOR;
+   |                 ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: each usage of a `const` item creates a new temporary
+   = note: the mutable reference will refer to this temporary, not the original `const` item
+note: `const` item defined here
+  --> adventure_01\src\main.rs:16:1
+   |
+16 | const BACKGROUND_COLOR: BackgroundColor = BackgroundColor {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[warn(const_item_mutation)]` on by default
+
+warning: `adventure_01` (bin "adventure_01") generated 1 warning
+```
+
+Uyarı mesajı **const** bir öğeye mutable referans alındığını belirtmekte. Nitekim her **const** kullanımı yeni bir geçici alan oluşturulması demek. Örnek kodda bu yeni alan referans olsa dahi **value** isimli yepyeni bir değişkene bağlanıyor *(binding)*. Bir başka ifadeyle **const** tanımlanan bir öğe bellekte tek bir yerde durmuyor ve her kullanıldığında yeni bir kopyası oluşturuluyor. Dolayısıyla biz değiştirilebilir referans ile bu yeni kopyaya erişiyoruz. Farklı bir kopya üzerinden çalışmamızda bir sakınca yok zira aynı verinin sahipliğini taşımıyorlar. Dolayısıyla **value** üzerinden **name** ve **id** gibi alanları değiştirmemizde bir problem yok ve bu değişiklikler orjinal constant değerini de etkilemiyor. Diğer yandan kodun devam eden kısmında doğrudan **BACKGROUND_COLOR** constant değişkeni üzerinde işlemler yapıyoruz. Sırasıyla name ve id alanlarının içeriğini değiştiriyoruz. Lakin her bir atama işlemi yeni bir constant kopyasının oluşturulması ve satır sonlandığı anda *(yani ; ile ifade tamamlandığında)* da derhal **drop** edilmesi demek. Bu nedenle constant değişkeni üzerinden name ve id alanlarına müdahale etsek dahi asıl constant içeriği sabit kalmaya devam ediyor. Birden fazla constant kopyası oluşmasının ispatı da program sonunda çalıştırılan drop çağrıları ile anlaşılabiliyor.
 
 ## Kaynaklar
 
