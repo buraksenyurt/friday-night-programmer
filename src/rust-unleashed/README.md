@@ -136,7 +136,31 @@ Maceralarım devam edecek :D
 
 ## Const ve Non-Mutable Static Değişkenler (adventure_01)
 
-> KONU ANLATIMI GELECEK
+Değerinin değişmeyeceğini varsaydığımız türler için constant kullanmak yaygın bir alışkanlık. Zaten birçok dilde sabit değerler için böyle bir enstrüman bulunuyor. Rust tarafında constant tanımlamak için **const keyword** kullanılıyor. Constant değişkenler ilk değer ataması ile birlikte tanımlanıyor zira bellekte bu değişmez için ne kadar yer ayrılacağının baştan bilinmesi gerekiyor. Aşağıdaki kod parçasını göz önüne alalım.
+
+```rust
+const MAX_LEVEL: u32;
+
+fn main() {
+
+}
+```
+
+Bu kod derlenmeyecek ve aşağıdaki hata üretilecektir.
+
+![adventure_02](../../images/rust_adventure_02.png)
+
+```text
+error: free constant item without body
+ --> adventure_01\src\main.rs:8:1
+  |
+8 | const MAX_LEVEL: u32;
+  | ^^^^^^^^^^^^^^^^^^^^-
+  |                     |
+  |                     help: provide a definition for the constant: `= <expr>;`
+```
+
+Şimdi bunu cebimize koyalım. Demek ki bir **constant** tanımlanırken ilk değerinin verilmesi zorunlu. Bir **constant**, **primitive** bir tür değerini taşımak zorunda da değildir. Pekala kendi tasarladığımız bir veri yapısını da constant olarak tanımlayabiliriz.
 
 ## Kaynaklar
 
