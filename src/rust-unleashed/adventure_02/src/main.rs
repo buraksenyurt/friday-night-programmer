@@ -63,6 +63,12 @@ impl GameLoop<PausedState> {
 }
 
 fn main() {
+    scenario_one();
+
+    scenario_two();
+}
+
+fn scenario_one() {
     let flow = GameLoop::default().play();
 
     println!(
@@ -77,4 +83,28 @@ fn main() {
         mem::size_of_val(&flow),
         flow.get_state()
     );
+
+    let maryo = Player {
+        id: 1,
+        title: "Mario the Hero",
+        is_active: true,
+    };
+    println!("Size of player {}", mem::size_of_val(&maryo));
+}
+
+fn scenario_two() {
+    let value_x;
+    let value_y = value_x = 23;
+    println!("Value X :{}", value_x);
+    println!(
+        "Value Y : {:?} Size of the value {}",
+        value_y,
+        mem::size_of_val(&value_y)
+    );
+}
+
+struct Player<'a> {
+    id: u32,
+    title: &'a str,
+    is_active: bool,
 }
