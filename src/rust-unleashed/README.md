@@ -227,10 +227,98 @@ Uyarı mesajı **const** bir öğeye mutable referans alındığını belirtmekt
 
 Rust'ın yetenekli bir dil olduğunu biliyoruz. Bu nedenle birçok iyi dilden esinlenip adapte ettiği türlü özellikleri var. Söz gelimi fonksiyonel dil paradigmasında Option ve Result türlerini alması ya da Haskell'den Type Class kavramını alıp Trait enstrümanını kullanması gibi. Bu ve başka özellikler dilini gücünü de artırıyor. Çok fazla söz edilmeyen bir başka güçlü kavram ise Zero Sized Types. Hatta şu anki kod macerasını kavrayabilmek için öncelikle sıfır boyutlu bir veri türü söz konusu olabilir mi, olursa hangi senaryolarda işe yarar bakmam gerekti.
 
-Zero Sized Type *(ZST)* türünden veri yapıları bellekte yer kaplamayan türlerdir. Bir başka deyişle 0 byte uzunluğundadırlar. Örneğin herhangi bir alan içermeyen bir struct, unit türü *(() ile ifade edilir)* ve bazı **enum türleri *(örneğin Empty gibi)*** ZST olarak kabul edilir. İhtiyaca göre kendi ZST veri yapılarımızı da tanımlayabiliriz. Bu konuda daha çok **State Machine** senaryoları gösteriliyor. Böyle ifade edince de aklıma gelen ilk senaryo bir oyundaki ana döngünün yönetilmesi. Hatta bu tip bir senaryoda **PhantomData** kullanımı da söz konusu olabilir. Bu konuya açıklık getirmek için aşağıdaki kod parçasını ele alalım.
+Zero Sized Type *(ZST)* türünden veri yapıları bellekte yer kaplamayan türlerdir. Bir başka deyişle 0 byte uzunluğundadırlar. Örneğin herhangi bir alan içermeyen bir struct, unit türü *(() ile ifade edilir)* ve bazı **enum türleri *(örneğin Empty gibi)*** ZST olarak kabul edilir. İhtiyaca göre kendi ZST veri yapılarımızı da tanımlayabiliriz. Bu konuda daha çok **State Machine** senaryoları gösteriliyor. Böyle ifade edince de aklıma gelen ilk senaryo bir oyundaki ana döngünün yönetilmesi. Hatta bu tip bir senaryoda **PhantomData** kullanımı da söz konusu. PhantomData ile işaret edilen veri türleri derleme zamanında varken çalışma zamanında yoktur dersem de kafaların iyice karışacağını tahmin ediyorum. Ancak gerçekten de böyle bir durum söz konusu. Bazen ilgili veri yapısının sadece kod tarafında kullanıldığı ama çalışma zamanında ele alınması gerekmeyen bir durum söz konusu olabilir. Bu açıdan bakınca oyun döngüsü ne kadar iyi bir örnek tartışmaya açık. Konuya açıklık getirmek için aşağıdaki kod parçasını ele alalım.
 
 ```rust
+#![allow(dead_code)]
+
+use std::marker::PhantomData;
+use std::mem;
+
+struct MenuState;
+struct PlayingState;
+struct PausedState;
+struct GameOverState;
+
+struct GameLoop<State = MenuState> {
+    state: PhantomData<State>,
+}
+
+impl Default for GameLoop<MenuState> {
+    fn default() -> Self {
+        GameLoop { state: PhantomData }
+    }
+}
+
+impl<State> GameLoop<State> {
+    fn change<NextState>(&self) -> GameLoop<NextState> {
+        GameLoop { state: PhantomData }
+    }
+    fn reset(&self) -> Self {
+        Self { state: PhantomData }
+    }
+    fn get_state(&self) -> PhantomData<State> {
+        self.state
+    }
+}
+
+impl GameLoop<MenuState> {
+    fn play(&self) -> GameLoop<PlayingState> {
+        println!("Playing...");
+        self.change::<PlayingState>()
+    }
+}
+
+impl GameLoop<PlayingState> {
+    fn pause(&self) -> GameLoop<PausedState> {
+        println!("Game paused...");
+        self.change::<PausedState>()
+    }
+    fn loose(&self) -> GameLoop<GameOverState> {
+        println!("Game over...");
+        self.change::<GameOverState>()
+    }
+}
+
+impl GameLoop<GameOverState> {
+    fn go_to_menu(&self) -> Self {
+        println!("Going to menu");
+        self.reset()
+    }
+}
+
+impl GameLoop<PausedState> {
+    fn go_on(&self) -> GameLoop<PlayingState> {
+        println!("Playing...");
+        self.change::<PlayingState>()
+    }
+}
+
+fn main() {
+    let flow = GameLoop::default().play();
+
+    println!(
+        "Size of Gameloop is {} bytes and the current state is {:?}",
+        mem::size_of_val(&flow),
+        flow.get_state()
+    );
+
+    let flow = flow.pause().go_on().loose().go_to_menu();
+    println!(
+        "Size of Gameloop is {} bytes and the current state is {:?}",
+        mem::size_of_val(&flow),
+        flow.get_state()
+    );
+}
 ```
+
+Kod biraz karışık görünebilir. Şöyle bir üstünden geçelim; Oyun döngüsü için dört farklı durum söz konusu. Menüde olma hali, oynan oynandığı durum, oynarken pause etme veya yanıp oyunun sonlandığı an. Tabii gerçek bir oyun için bu state'ler yeterli değil ancak amacımız burada **Zero Sized Types** kavramını anlamak. **GameLoop** isimli veri yapısındaki **state** alanını **generic PhantomData** türünden tanımladık. Dolayısıyla bu alanda kullanacağımız **MenuState**, **PlayingState**, **PausedState** ve **GameOverState** değişkenleri sadece derleme aşamasında değerlendirilen ama çalışma zamanında yer tahsisi yapılmayan bir özellik kazanacaklar.
+
+State türlerini ifade eden her bir **struct** için bir **GameLoop** implementasyonu söz konusu. Bu implementasyonlarda state'ler arası geçişleri sağlayan metotlar yer alıyor. Örneğin menüdeyken oyunu başlatıp **PlayingState**'e geçebiliriz veya **PlayingState** halinde iken **pause** metodu ile **PausedState**'e geçebiliriz. Geçişleri kolaylaştırmak veya başa dönmek içinse generic **GameLoop**'un kendisinde tanımlanmış **change**, **reset** gibi metotlardan yararlanabiliriz.
+
+Main metodunda örnek kullanımlar söz konusu. İşin enteresan kısmı kullandığımız GameLoop veri yapısının bu haliyle bellekte ne kadar yer kaplayacağız. Çalışma zamanı çıktısı aşağıdaki gibidir. Görüldüğü üzere veri yapısının boyutu 0 bytes şeklindedir.
+
+![rust_adventure_04.png](../../images/rust_adventure_04.png)
 
 ## Kaynaklar
 
