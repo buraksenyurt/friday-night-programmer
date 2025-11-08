@@ -223,6 +223,15 @@ warning: `adventure_01` (bin "adventure_01") generated 1 warning
 
 Uyarı mesajı **const** bir öğeye mutable referans alındığını belirtmekte. Nitekim her **const** kullanımı yeni bir geçici alan oluşturulması demek. Örnek kodda bu yeni alan referans olsa dahi **value** isimli yepyeni bir değişkene bağlanıyor *(binding)*. Bir başka ifadeyle **const** tanımlanan bir öğe bellekte tek bir yerde durmuyor ve her kullanıldığında yeni bir kopyası oluşturuluyor. Dolayısıyla biz değiştirilebilir referans ile bu yeni kopyaya erişiyoruz. Farklı bir kopya üzerinden çalışmamızda bir sakınca yok zira aynı verinin sahipliğini taşımıyorlar. Dolayısıyla **value** üzerinden **name** ve **id** gibi alanları değiştirmemizde bir problem yok ve bu değişiklikler orjinal constant değerini de etkilemiyor. Diğer yandan kodun devam eden kısmında doğrudan **BACKGROUND_COLOR** constant değişkeni üzerinde işlemler yapıyoruz. Sırasıyla name ve id alanlarının içeriğini değiştiriyoruz. Lakin her bir atama işlemi yeni bir constant kopyasının oluşturulması ve satır sonlandığı anda *(yani ; ile ifade tamamlandığında)* da derhal **drop** edilmesi demek. Bu nedenle constant değişkeni üzerinden name ve id alanlarına müdahale etsek dahi asıl constant içeriği sabit kalmaya devam ediyor. Birden fazla constant kopyası oluşmasının ispatı da program sonunda çalıştırılan drop çağrıları ile anlaşılabiliyor.
 
+## Zero Sized Types (adventure_02)
+
+Rust'ın yetenekli bir dil olduğunu biliyoruz. Bu nedenle birçok iyi dilden esinlenip adapte ettiği türlü özellikleri var. Söz gelimi fonksiyonel dil paradigmasında Option ve Result türlerini alması ya da Haskell'den Type Class kavramını alıp Trait enstrümanını kullanması gibi. Bu ve başka özellikler dilini gücünü de artırıyor. Çok fazla söz edilmeyen bir başka güçlü kavram ise Zero Sized Types. Hatta şu anki kod macerasını kavrayabilmek için öncelikle sıfır boyutlu bir veri türü söz konusu olabilir mi, olursa hangi senaryolarda işe yarar bakmam gerekti.
+
+Zero Sized Type *(ZST)* türünden veri yapıları bellekte yer kaplamayan türlerdir. Bir başka deyişle 0 byte uzunluğundadırlar. Örneğin herhangi bir alan içermeyen bir struct, unit türü *(() ile ifade edilir)* ve bazı **enum türleri *(örneğin Empty gibi)*** ZST olarak kabul edilir. İhtiyaca göre kendi ZST veri yapılarımızı da tanımlayabiliriz. Bu konuda daha çok **State Machine** senaryoları gösteriliyor. Böyle ifade edince de aklıma gelen ilk senaryo bir oyundaki ana döngünün yönetilmesi. Hatta bu tip bir senaryoda **PhantomData** kullanımı da söz konusu olabilir. Bu konuya açıklık getirmek için aşağıdaki kod parçasını ele alalım.
+
+```rust
+```
+
 ## Kaynaklar
 
 - [Resmi Rust Kitabı](https://doc.rust-lang.org/reference/introduction.html)
