@@ -223,11 +223,13 @@ warning: `adventure_01` (bin "adventure_01") generated 1 warning
 
 Uyarı mesajı **const** bir öğeye mutable referans alındığını belirtmekte. Nitekim her **const** kullanımı yeni bir geçici alan oluşturulması demek. Örnek kodda bu yeni alan referans olsa dahi **value** isimli yepyeni bir değişkene bağlanıyor *(binding)*. Bir başka ifadeyle **const** tanımlanan bir öğe bellekte tek bir yerde durmuyor ve her kullanıldığında yeni bir kopyası oluşturuluyor. Dolayısıyla biz değiştirilebilir referans ile bu yeni kopyaya erişiyoruz. Farklı bir kopya üzerinden çalışmamızda bir sakınca yok zira aynı verinin sahipliğini taşımıyorlar. Dolayısıyla **value** üzerinden **name** ve **id** gibi alanları değiştirmemizde bir problem yok ve bu değişiklikler orjinal constant değerini de etkilemiyor. Diğer yandan kodun devam eden kısmında doğrudan **BACKGROUND_COLOR** constant değişkeni üzerinde işlemler yapıyoruz. Sırasıyla name ve id alanlarının içeriğini değiştiriyoruz. Lakin her bir atama işlemi yeni bir constant kopyasının oluşturulması ve satır sonlandığı anda *(yani ; ile ifade tamamlandığında)* da derhal **drop** edilmesi demek. Bu nedenle constant değişkeni üzerinden name ve id alanlarına müdahale etsek dahi asıl constant içeriği sabit kalmaya devam ediyor. Birden fazla constant kopyası oluşmasının ispatı da program sonunda çalıştırılan drop çağrıları ile anlaşılabiliyor.
 
-## Zero Sized Types (adventure_02)
+## Zero Sized Types ve Assignment Expression ile Unit Type İlişkisi (adventure_02)
 
-Rust'ın yetenekli bir dil olduğunu biliyoruz. Bu nedenle birçok iyi dilden esinlenip adapte ettiği türlü özellikleri var. Söz gelimi fonksiyonel dil paradigmasında Option ve Result türlerini alması ya da Haskell'den Type Class kavramını alıp Trait enstrümanını kullanması gibi. Bu ve başka özellikler dilini gücünü de artırıyor. Çok fazla söz edilmeyen bir başka güçlü kavram ise Zero Sized Types. Hatta şu anki kod macerasını kavrayabilmek için öncelikle sıfır boyutlu bir veri türü söz konusu olabilir mi, olursa hangi senaryolarda işe yarar bakmam gerekti.
+**Rust**'ın yetenekli bir dil olduğunu hepimiz biliyoruz. Detayda inanılmaz ayrıntılar içeriyor. Bunda birçok iyi dilden esinlenip adapte ettiği türlü özelliklerin önemli bir payı var. Söz gelimi fonksiyonel dil paradigmasından **Option** ve **Result** türlerini alması ya da **Haskell**'den **Type Class** kavramını alıp **Trait** enstrümanını şeklinde kullanması gibi. Bu ve başka özellikler dilin gücünü daha da artırıyor. Çok fazla söz edilmeyen bir başka güçlü kavram ise **Zero Sized Types**. Hatta şu anki kod macerasını kavrayabilmek için öncelikle sıfır boyutlu bir veri türü söz konusu olabilir mi, olursa hangi senaryolarda işe yarar bakmam gerektiğini anladım.
 
-Zero Sized Type *(ZST)* türünden veri yapıları bellekte yer kaplamayan türlerdir. Bir başka deyişle 0 byte uzunluğundadırlar. Örneğin herhangi bir alan içermeyen bir struct, unit türü *(() ile ifade edilir)* ve bazı **enum türleri *(örneğin Empty gibi)*** ZST olarak kabul edilir. İhtiyaca göre kendi ZST veri yapılarımızı da tanımlayabiliriz. Bu konuda daha çok **State Machine** senaryoları gösteriliyor. Böyle ifade edince de aklıma gelen ilk senaryo bir oyundaki ana döngünün yönetilmesi. Hatta bu tip bir senaryoda **PhantomData** kullanımı da söz konusu. PhantomData ile işaret edilen veri türleri derleme zamanında varken çalışma zamanında yoktur dersem de kafaların iyice karışacağını tahmin ediyorum. Ancak gerçekten de böyle bir durum söz konusu. Bazen ilgili veri yapısının sadece kod tarafında kullanıldığı ama çalışma zamanında ele alınması gerekmeyen bir durum söz konusu olabilir. Bu açıdan bakınca oyun döngüsü ne kadar iyi bir örnek tartışmaya açık. Konuya açıklık getirmek için aşağıdaki kod parçasını ele alalım.
+Zero Sized Type *(ZST)* türünden veri yapıları bellekte yer kaplamayan türler olarak ifade edilebilir. Bir başka ifadeyle bu türler bellekte sıfır byte yer kaplarlar. Nasıl yani; derlemeli bir dil kullanıyoruz, bellek yönetimi konusunda takıntılı, garbage collector olmadan bellek kaçaklarını önlediği sert kurallara sahip ve kodda tanımladığımız bir değişken için çalışma zamanında bellek tahsisi yapılmadan ilerlenbiliyor. Doğru mu anladım?  
+
+Sanırım bu soruya Evet şeklinde cevap verebiliriz. Örneğin herhangi bir alan içermeyen bir **struct**, **unit** türü *(() ile ifade edilir)* ve bazı **enum türleri *(örneğin Empty gibi)*** ZST olarak kabul edilir. Hatta unit dönen bir ifadenin de sıfır boyutlu olduğunu söylesek yeridir. İhtiyaca göre kendi **ZST** veri yapılarımızı da tanımlayabiliriz. Bu konuda daha çok **State Machine** senaryoları örnek olarak gösteriliyor. Böyle ifade edince de aklıma gelen ilk senaryo bir oyundaki ana döngünün yönetilmesi oldu. Hatta bu senaryoda **PhantomData** kullanarak state'leri sıfır maliyetle yönetmek de mümkün diyebilirim. **PhantomData** ile işaret edilen veri türleri derleme zamanında varken çalışma zamanında yoktur dersem de kafaların iyice karışacağını tahmin ediyorum. Ancak gerçekten de böyle bir durum söz konusu. Bazen ilgili veri yapısının sadece kod tarafında kullanıldığı ama çalışma zamanında ele alınması gerekmeyen senaryolar söz konusu olabilir. Bu açıdan bakınca oyun döngüsü ne kadar iyi bir örnek tartışmaya açık. Gelin tüm bunları harmanlayıp örnek bir kod üzerinden ilerleyelim. İlk olarak şu **state machine** senaryosuna bir bakalım.
 
 ```rust
 #![allow(dead_code)]
@@ -312,13 +314,36 @@ fn main() {
 }
 ```
 
-Kod biraz karışık görünebilir. Şöyle bir üstünden geçelim; Oyun döngüsü için dört farklı durum söz konusu. Menüde olma hali, oynan oynandığı durum, oynarken pause etme veya yanıp oyunun sonlandığı an. Tabii gerçek bir oyun için bu state'ler yeterli değil ancak amacımız burada **Zero Sized Types** kavramını anlamak. **GameLoop** isimli veri yapısındaki **state** alanını **generic PhantomData** türünden tanımladık. Dolayısıyla bu alanda kullanacağımız **MenuState**, **PlayingState**, **PausedState** ve **GameOverState** değişkenleri sadece derleme aşamasında değerlendirilen ama çalışma zamanında yer tahsisi yapılmayan bir özellik kazanacaklar.
+Kod biraz karışık görünebilir. Şöyle bir üstünden geçelim; Oyun döngüsü için dört farklı durum söz konusu. Menüde olma hali, oyunun oynandığı durum, oynarken pause etme veya hedefi ıskalayıp yanınca oyunun sonlandığı an. Tabi ki gerçek bir oyun geliştirme ortamı için bu state'ler yeterli değil ancak amacımız burada **Zero Sized Types** kavramını anlamak. **GameLoop** isimli veri yapısındaki **state** alanını **generic PhantomData** türünden tanımladık. Dolayısıyla bu alanda kullanacağımız **MenuState**, **PlayingState**, **PausedState** ve **GameOverState** değişkenleri sadece derleme aşamasında değerlendirilen ama çalışma zamanında yer tahsisi yapılmayan bir özellik kazandı.
 
-State türlerini ifade eden her bir **struct** için bir **GameLoop** implementasyonu söz konusu. Bu implementasyonlarda state'ler arası geçişleri sağlayan metotlar yer alıyor. Örneğin menüdeyken oyunu başlatıp **PlayingState**'e geçebiliriz veya **PlayingState** halinde iken **pause** metodu ile **PausedState**'e geçebiliriz. Geçişleri kolaylaştırmak veya başa dönmek içinse generic **GameLoop**'un kendisinde tanımlanmış **change**, **reset** gibi metotlardan yararlanabiliriz.
+State türlerini ifade eden her bir **struct** için bir **GameLoop** implementasyonu söz konusu. Bu implementasyonlarda state'ler arası geçişleri sağlayan metotlar yer alıyor. Örneğin menüdeyken oyunu başlatıp **PlayingState**'e geçebiliriz veya **PlayingState** halinde iken **pause** metodu ile **PausedState**'e geçebiliriz. Geçişleri kolaylaştırmak veya başa dönmek içinse generic **GameLoop**'un kendisinde tanımlanmış **change** ve **reset** gibi metotlardan yararlanıyoruz.
 
-Main metodunda örnek kullanımlar söz konusu. İşin enteresan kısmı kullandığımız GameLoop veri yapısının bu haliyle bellekte ne kadar yer kaplayacağız. Çalışma zamanı çıktısı aşağıdaki gibidir. Görüldüğü üzere veri yapısının boyutu 0 bytes şeklindedir.
+Main metodunda örnek kullanımlar söz konusu. İşin enteresan kısmı kullandığımız **GameLoop** veri yapısının bu haliyle bellekte ne kadar yer kaplayacağı. Çalışma zamanı çıktısı aşağıdaki ekran görüntüsündeki gibidir. Fark ettiğiniz üzere veri yapısının boyutu **0 bytes**. Hatta bundan biraz daha emin olmak için **Player** isimli, gerçekleşen olayla hiçbir ilgisi bulunmayan bir veri yapısı da kullandık *(Bellekte ne kadar yer ayrıldığını görmek için **mem** modülünden **size_of_val** fonksiyonunu kullandık)*
 
 ![rust_adventure_04.png](../../images/rust_adventure_04.png)
+
+Sıfır boyutlu verileri biraz olsun anladık diye düşünüyorum. Eğer rust ile geliştirmekte olduğunuz projede PhantomData ve ZST kullanımına geçeceğiniz vakalar buluyorsanız dilde epey uzmanlaşmışsınızdır diyebilirim ama tabii ilerleyen maceralar aksini de söyleyebiliri. Neyse neyse... Benzer varlıklardan birisi de ki **()** ile ifade ediliyor **unit** türü. Şimdi bunu da cebimize koyalım ve aşağıdaki kod parçasını göz önüne alalım.
+
+```rust
+use std::mem;
+
+fn main() {
+    let value_x;
+    let value_y = value_x = 23;
+    println!("Value X :{}", value_x);
+    println!(
+        "Value Y : {:?} Size of the value {}",
+        value_y,
+        mem::size_of_val(&value_y)
+    );
+}
+```
+
+Öncelikle kodun çalışma zamanı çıktısına bir bakalım.
+
+![rust_adventure_05.png](rust_adventure_05.png)
+
+Dikkat edileceği üzere **value_y**' nin değeri standart bir placeholder ile değil **{:?}** ile alınabilmektedir zira bu türden atama ifadelerinin *(assignment expression)* dönüşü birim (unit) tiptir. Unit tipler de sıfır boyutlu veri türlerindendir. Dolayısıyla **value_y** değişkenine belirtilen ifadeye göre **()** atanmış ve boyutu otomatik olarak sıfır olmuştur. Böylece **assignment expression** kavramını ne kadar iyi bildiğimizi de sorgulama fırsatı bulmuş olduk. Kafasından duman çıkmayan beri gelsin :D
 
 ## Kaynaklar
 
