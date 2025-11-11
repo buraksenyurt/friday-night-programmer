@@ -345,7 +345,7 @@ fn main() {
 
 Dikkat edileceği üzere **value_y**' nin değeri standart bir placeholder ile değil **{:?}** ile alınabilmektedir zira bu türden atama ifadelerinin *(assignment expression)* dönüşü birim (unit) tiptir. Unit tipler de sıfır boyutlu veri türlerindendir. Dolayısıyla **value_y** değişkenine belirtilen ifadeye göre **()** atanmış ve boyutu otomatik olarak sıfır olmuştur. Böylece **assignment expression** kavramını ne kadar iyi bildiğimizi de sorgulama fırsatı bulmuş olduk. Kafasından duman çıkmayan beri gelsin :D
 
-## Dahili Türlerde Yaşam Süreleri (adventure_03)
+## let-binding Senaryolarında Yaşam Süreleri (adventure_03)
 
 Tanımladığımız değişkenler çeşitli kurallara göre hayatta kalıyorlar. En belirgin ölçü kapsam *(scope)* dışına çıkılması. Genellikle süslü parantezler ile belirlenen alanlar kullanılan değişkenlerin yaşadığı kapsamları ifade ediyor. Elbette verileri kapsamlar arasında kopyalama veya referans yoluyla taşımak mümkün. Ancak hangi teknik olursa olsun sonuçta verilerin ve onları işaret eden değişkenlerin derleyici tarafından bilinen bir yaşam ömrü *(lifetime)* var. Birçok veri türü ile çalışırken kapsamlara çok fazla da aldırış etmeden kodlama yapabiliyoruz. Referans türlerine gelindiğinde ise **lifetime annotation**'lar ile daha karmaşık bir dünyaya geçiyoruz. Bazı senaryolarda kendi veri yapılarımızı tasarlayarak kullanıyoruz ve hatta **container** görevi gören veri yapıları da kullanıyoruz. İşte bu örnek kod parçasında geliştirici tarafından tanımlanmış bir veri yapısını içeren başka bir veri yapısını ele alıyoruz. Amacımız kapsam sonlandığı noktada özellikle iç veri yapısında **drop** mekanizmasının bazı hallerde farklı davranış sergileyebileceğini kanıtlamak. Özellikle de **let** ile yapılan veri atamalarında *(let binding)* anında **drop** operasyonuna neden olabilecek bir durumu yakalamaya çalışacağız. İlk olarak aşağıdaki başlangıç kodlarını ele alalım.
 
@@ -443,11 +443,40 @@ struct Process {
 }
 ```
 
-Önceki senaryodan tamamen farklı yazılan bu örnekte **Process** değerini oluştururken içerdiği name alanını **let-binding** ile dışarıya alıyoruz. Eşitliğin sol tarafında kullandığımız **..** operatörü **... ve geri kalanları** anlamına geliyor. Dolayısıyla oluşturulan Process içerisindeki name alanını dışarıya alıyor ve sonrasında da ekrana bastırıyoruz. Bunun çok bir önemi yok esasında. Önemli olan **ref** keyword kullanımının her iki vakada oluşturduğu fark. Bunu daha iyi yorumlayabilmek amacıyla çalışma zamanı çıktısına bakalım.
+Önceki senaryodan tamamen farklı yazılan bu örnekte **Process** değerini oluştururken içerdiği **name** alanını **let-binding** ile dışarıya alıyoruz. Eşitliğin sol tarafında kullandığımız **..** operatörü **... ve geri kalanları** anlamına geliyor. Dolayısıyla oluşturulan Process içerisindeki **name** alanını dışarıya alıyor ve sonrasında da ekrana bastırıyoruz. Bu çalışmada önemli olan mevzu **ref keyword** kullanımının her iki vakada oluşturduğu fark. Bunu daha iyi yorumlayabilmek amacıyla çalışma zamanı çıktısına bakalım.
 
 ![rust_adventure_07.png](../../images/rust_adventure_07.png)
 
-İlk çağrıda dikkat edileceği üzere önce **ProcesId** veri yapısının **Drop** metodu, Process veri yapısından dışarıya aldığımız **name** alanının yazılmasından önce çağırılıyor. Birbaşka deyişle eşitliğin sağ tarafında, Process tanımında oluşturduğumuz **ProcessId** alanının anında drop edildiği söyleyebiliriz. Bu oldukça mantıklı zira dışarıya aldığımız değişken sadece name alanı ve o da kendi başına yaşayabilecek bir String. Ancak scenario_2 fonksiyonunda farklı bir durum söz konusu. Burada **ref** anahtar kelimesini kullanıyor. Bu durumda **name** alanın ödünç alınıyor ve **Process** verisinin scope sonuna kadar yaşaması gerekiyor, zira Process'in kullandığı name alanını dışarıya bir referans olarak alıyoruz. Bir scope içinde yaşayan referans olup da drop edilmiş bir değişken barındıramayız, bu tabiri caizse Ronin olur. Bu nedenle de önce **name** alanı kullanılmış *(ki senaryomuzda ekrana basılıyor)* ve ardından **ProcessId** drop edilebilmiştir.
+İlk çağrıda dikkat edileceği üzere önce **ProcesId** veri yapısının **Drop** metodunun, Process veri yapısından dışarıya aldığımız **name** alanının ekrana yazılmasından önce çağırıldığı görülüypr. Birbaşka deyişle eşitliğin sağ tarafında, Process tanımında oluşturduğumuz **ProcessId** alanı anında drop ediliyor. Bu oldukça mantıklı zira dışarıya aldığımız değişken sadece **name** alanı ve o da kuvvetle muhtemel klonlanarak akışta devam ediyor. Ancak scenario_2 fonksiyonunda farklı bir uygulama şekli söz konusu. Burada **ref** anahtar kelimesini kullanıyor. Bu durumda **name** alanı bir referans üzerinden ödünç alınıyor ve buna göre de **Process** verisinin scope sonuna kadar yaşaması gerekiyor. Bir scope içinde sahip olduğu alanlardan herhangi birini referans eden bir başka değişkenin halen daha yaşadığı ama kendisi drop edilmiş bir değişken barındıramayız, bu tabiri caizse Ronin olur. ref kullanılan senaryoda bu sebeple **name** alanı ilk olarak ekrana yazdırılmış ve ardından **ProcessId** drop edilebilmiştir.
+
+Burada bir noktaya açıklık getirmemiz gerekiyor. Son örnekte **Process** veri yapısına ait **drop** uygulaması kaldırıldı. Eğer kullanmak istersek aşağıdaki ekran görüntüsünde olduğu gibi bir derleme zamanı hatası alırız.
+
+![rust_adventure_08.png](../../images/rust_adventure_08.png)
+
+```text
+error[E0509]: cannot move out of type `Process`, which implements the `Drop` trait
+  --> adventure_03\src\main.rs:26:32
+   |
+26 |       let Process { name, .. } = Process {
+   |  ___________________----_________^
+   | |                   |
+   | |                   data moved here
+   | |                   move occurs because `name` has type `String`, which does not implement the `Copy` trait
+27 | |         id: ProcessId(1905),
+28 | |         is_active: false,
+29 | |         name: "Docker Compose".to_string(),
+30 | |     };
+   | |_____^ cannot move out of here
+   |
+help: consider borrowing the pattern binding
+   |
+26 |     let Process { ref name, .. } = Process {
+   |                   +++
+
+For more information about this error, try `rustc --explain E0509`.
+```
+
+Bu hata mesajı son derece anlamlıdır. Zira eşitliğin sağ tarafındaki **Process** tanımında yer alan **name** alanını dışarıya almak istediğimiz ama Process'in kendisinin Drop edilmeye çalışıldığı bir durum söz konusudur. Bu nedenle derleyici **bind** işlemi sırasında **name** alanını **ref** ile ödünç almayı önerir.
 
 ## Kaynaklar
 
