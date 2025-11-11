@@ -2,6 +2,11 @@
 
 Bir dili iyi bildiğinize nasıl karar verirsiniz. Çeşitli algoritma sorularını çözerek, zorlu projeler yazarak veya... Rust zaten öğrenme eğrisi oldukça yüksek olan bir dil. En azından başlarda bazı yaklaşımlarını anlamak güç. İlk aklıma gelenler `**Ownership**, **Borrow Checkler**, **Lifetimes**, **Macros** gibi konular. Bu kavramları aştığımız takdirde ilerlemek oldukça kolay ama yine de gerçekten dilin yeteneklerini ne kadar iyi bildiğimize dair bir ölçü değil. Bu nedenle bir süredir çeşitli kaynaklardan *(Internet siteleri olmak üzere)* dilin bizi afallatacak soruları ile ilgili araştırmalar yapıyorum. Çok basit görünen ama bazen dakikalarca baktığım ve çözemediğim sayısız kod parçası ile karşılaştım. Tüm bunların derlenip toplanması ve bir başlık altında kaleme alınması gerekiyordu. İşte bu dokümanın amacı tam olarak bu.
 
+- [Scope Kavramı ve Ignore Binding Meselesi](#scope-kavramı-ve-ignore-binding-meselesi-adventure_00)
+- [Her Const Kullanımı Yeni Bir Geçici Kopya Demek mi?](#her-const-kullanımı-yeni-bir-geçici-kopya-demek-mi-adventure_01)
+- [Zero Sized Types ve Assignment Expression ile Unit Type İlişkisi](#zero-sized-types-ve-assignment-expression-ile-unit-type-i̇lişkisi-adventure_02)
+- [let-binding Senaryolarında Yaşam Süreleri](#let-binding-senaryolarında-yaşam-süreleri-adventure_03)
+
 ## Scope Kavramı ve Ignore Binding Meselesi (adventure_00)
 
 Rust'ta değişkenlerin yaşam süreleri önemli bir konu. Bir C# programcısı bu yaşam ömrünün .Net dünyasında **Garbage Collector** tarafından yönetildiğini bilir ve hatta değişkenler **scope** dışına çıktıklarında anında olmasa bile GC'nin radarına girerek gerektiğinde bellekten düşürülür. Rust dilinde de benzer şekilde scope kullanımı değişkenlerin yaşam ömürleri için belirleyici kriterlerdendir ancak yine biliriz ki Rust dilinde Garbage Collector gibi bir mekanizma yoktur fakat tüm kurallar belleği en yüksek seviyede güvenli kılabilmemizi garanti eder. Artık referanslar, unutulan referanslar, hayalet referanslar vs oluşmaz.
