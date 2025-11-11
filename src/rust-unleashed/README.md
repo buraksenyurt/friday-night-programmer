@@ -347,7 +347,7 @@ Dikkat edileceği üzere **value_y**' nin değeri standart bir placeholder ile d
 
 ## Dahili Türlerde Yaşam Süreleri (adventure_03)
 
-Tanımladığımız değişkenler çeşitli kurallara göre hayatta kalıyorlar. En belirgin ölçü kapsam *(scope)* dışına çıkılması. Genellikle süslü parantezler ile belirlenen alanlar kullanılan değişkenlerin yaşadığı kapsamları ifade ediyor. Elbette verileri kapsamlar arasında kopyalama veya referans yoluyla taşımak mümkün. Ancak hangi teknik olursa olsun sonuçta verilerin ve onları işaret eden değişkenlerin derleyici tarafından bilinen bir yaşam ömrü *(lifetime)* var. Birçok veri türü ile çalışırken kapsamlara çok fazla da aldırış etmeden kodlama yapabiliyoruz. Referans türlerine gelindiğinde ise **lifetime annotation**'lar ile daha karmaşık bir dünyaya geçiyoruz. Bazı senaryolarda kendi veri yapılarımızı tasarlayarak kullanıyoruz ve hatta Container görevi gören veri yapıları da kullanıyoruz. İşte bu örnek kod parçasında geliştirici tarafından tanımlanmış bir veri yapısını içeren başka bir veri yapısını ele alıyoruz. Amacımız kapsam sonlandığı noktada bu içiçe veri yapılarına ait **drop** mekanizmalarının farklı sırada çalışacabileceğini kanıtlamak. Özellikle de **let** ile yapılan veri atamalarında *(let binding)* anında **drop** operasyonuna neden olabilecek durumu göstermeye çalışacağız. İlk olarak aşağıdaki başlangıç kodlarını ele alalım.
+Tanımladığımız değişkenler çeşitli kurallara göre hayatta kalıyorlar. En belirgin ölçü kapsam *(scope)* dışına çıkılması. Genellikle süslü parantezler ile belirlenen alanlar kullanılan değişkenlerin yaşadığı kapsamları ifade ediyor. Elbette verileri kapsamlar arasında kopyalama veya referans yoluyla taşımak mümkün. Ancak hangi teknik olursa olsun sonuçta verilerin ve onları işaret eden değişkenlerin derleyici tarafından bilinen bir yaşam ömrü *(lifetime)* var. Birçok veri türü ile çalışırken kapsamlara çok fazla da aldırış etmeden kodlama yapabiliyoruz. Referans türlerine gelindiğinde ise **lifetime annotation**'lar ile daha karmaşık bir dünyaya geçiyoruz. Bazı senaryolarda kendi veri yapılarımızı tasarlayarak kullanıyoruz ve hatta **container** görevi gören veri yapıları da kullanıyoruz. İşte bu örnek kod parçasında geliştirici tarafından tanımlanmış bir veri yapısını içeren başka bir veri yapısını ele alıyoruz. Amacımız kapsam sonlandığı noktada özellikle iç veri yapısında **drop** mekanizmasının bazı hallerde farklı davranış sergileyebileceğini kanıtlamak. Özellikle de **let** ile yapılan veri atamalarında *(let binding)* anında **drop** operasyonuna neden olabilecek bir durumu yakalamaya çalışacağız. İlk olarak aşağıdaki başlangıç kodlarını ele alalım.
 
 ```rust
 #![allow(dead_code)]
@@ -393,11 +393,61 @@ impl Drop for Process {
 }
 ```
 
-**Process** isimli veri yapısı, **bool**, **String** ve yine kendi tasarladığımız **ProcessId** türünden birer alan içeriyor. Sistemde çalışan process'leri ifade eden çok ilkel bir veri yapısı olarak tasarladığımızı varsayabilirsiniz. Her iki veri yapısı için kapsam dışına çıktığımız noktaları gözlememek adına **Drop** trait'inin uyguluyoruz. scenario_1 isimli fonksiyonda çok basit olarak bir Process değişkeni tanımlıyor ve ekrana yazdırıyoruz. Process tahmin edileceği üzere bu fonksiyon içinde tanımlı. Dolayısıyla fonksiyon dışına çıkıldığı anda drop edilmesi gerekiyor ki bu noktada hemen arkasından ProcessId veri yapısı da drop ediliyor. Çalışma zamanı çıktısına göre drop edilme sırası Process -> ProcessId şeklinde.
+**Process** isimli veri yapısı, **bool**, **String** ve yine kendi tasarladığımız **ProcessId** türünden birer alan içeriyor. Sistemde çalışan process'leri ifade eden çok ilkel bir veri yapısı olarak tasarladığımızı varsayabilirsiniz. Her iki veri yapısı için kapsam dışına çıktığımız noktaları gözlememek adına **Drop** trait'inin uyguluyoruz. **scenario_1** isimli fonksiyonda çok basit olarak bir **Process** değişkeni tanımlıyor ve ekrana yazdırıyoruz. dotenv isimli **Process** türünden olan değişkenimiz tahmin edileceği üzere bu fonksiyon içinde tanımlı ve dolayısıyla fonksiyon sonlandığında drop edilmesi gerekiyor ki bu noktada hemen arkasından **ProcessId** veri yapısı da drop ediliyor. Çalışma zamanı çıktısına göre drop edilme sırası **Process -> ProcessId** şeklinde görünüyor.
 
 ![rust_adventure_06.png](../../images/rust_adventure_06.png)
 
-> Devam Edecek
+Şimdi aynı veri yapılarını tamamen farklı bir senaryoda ele alacağız. Bunun için aşağıdaki kod parçasını ele alabiliriz.
+
+```rust
+#![allow(dead_code)]
+
+fn main() {
+    scenario_2();
+    println!("{}", "*".repeat(20));
+    scenario_3();
+}
+
+fn scenario_2() {
+    let Process { name, .. } = Process {
+        id: ProcessId(1905),
+        is_active: false,
+        name: "Docker Compose".to_string(),
+    };
+    println!("{:?}", name);
+}
+
+fn scenario_3() {
+    let Process { ref name, .. } = Process {
+        id: ProcessId(1905),
+        is_active: false,
+        name: "Docker Compose".to_string(),
+    };
+    println!("{:?}", name);
+}
+
+#[derive(Debug)]
+struct ProcessId(u16);
+
+impl Drop for ProcessId {
+    fn drop(&mut self) {
+        println!("Droping process id {}", self.0);
+    }
+}
+
+#[derive(Debug)]
+struct Process {
+    id: ProcessId,
+    is_active: bool,
+    name: String,
+}
+```
+
+Önceki senaryodan tamamen farklı yazılan bu örnekte **Process** değerini oluştururken içerdiği name alanını **let-binding** ile dışarıya alıyoruz. Eşitliğin sol tarafında kullandığımız **..** operatörü **... ve geri kalanları** anlamına geliyor. Dolayısıyla oluşturulan Process içerisindeki name alanını dışarıya alıyor ve sonrasında da ekrana bastırıyoruz. Bunun çok bir önemi yok esasında. Önemli olan **ref** keyword kullanımının her iki vakada oluşturduğu fark. Bunu daha iyi yorumlayabilmek amacıyla çalışma zamanı çıktısına bakalım.
+
+![rust_adventure_07.png](../../images/rust_adventure_07.png)
+
+İlk çağrıda dikkat edileceği üzere önce **ProcesId** veri yapısının **Drop** metodu, Process veri yapısından dışarıya aldığımız **name** alanının yazılmasından önce çağırılıyor. Birbaşka deyişle eşitliğin sağ tarafında, Process tanımında oluşturduğumuz **ProcessId** alanının anında drop edildiği söyleyebiliriz. Bu oldukça mantıklı zira dışarıya aldığımız değişken sadece name alanı ve o da kendi başına yaşayabilecek bir String. Ancak scenario_2 fonksiyonunda farklı bir durum söz konusu. Burada **ref** anahtar kelimesini kullanıyor. Bu durumda **name** alanın ödünç alınıyor ve **Process** verisinin scope sonuna kadar yaşaması gerekiyor, zira Process'in kullandığı name alanını dışarıya bir referans olarak alıyoruz. Bir scope içinde yaşayan referans olup da drop edilmiş bir değişken barındıramayız, bu tabiri caizse Ronin olur. Bu nedenle de önce **name** alanı kullanılmış *(ki senaryomuzda ekrana basılıyor)* ve ardından **ProcessId** drop edilebilmiştir.
 
 ## Kaynaklar
 
