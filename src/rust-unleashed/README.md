@@ -341,9 +341,63 @@ fn main() {
 
 Öncelikle kodun çalışma zamanı çıktısına bir bakalım.
 
-![rust_adventure_05.png](rust_adventure_05.png)
+![rust_adventure_05.png](../../images/rust_adventure_05.png)
 
 Dikkat edileceği üzere **value_y**' nin değeri standart bir placeholder ile değil **{:?}** ile alınabilmektedir zira bu türden atama ifadelerinin *(assignment expression)* dönüşü birim (unit) tiptir. Unit tipler de sıfır boyutlu veri türlerindendir. Dolayısıyla **value_y** değişkenine belirtilen ifadeye göre **()** atanmış ve boyutu otomatik olarak sıfır olmuştur. Böylece **assignment expression** kavramını ne kadar iyi bildiğimizi de sorgulama fırsatı bulmuş olduk. Kafasından duman çıkmayan beri gelsin :D
+
+## Dahili Türlerde Yaşam Süreleri (adventure_03)
+
+Tanımladığımız değişkenler çeşitli kurallara göre hayatta kalıyorlar. En belirgin ölçü kapsam *(scope)* dışına çıkılması. Genellikle süslü parantezler ile belirlenen alanlar kullanılan değişkenlerin yaşadığı kapsamları ifade ediyor. Elbette verileri kapsamlar arasında kopyalama veya referans yoluyla taşımak mümkün. Ancak hangi teknik olursa olsun sonuçta verilerin ve onları işaret eden değişkenlerin derleyici tarafından bilinen bir yaşam ömrü *(lifetime)* var. Birçok veri türü ile çalışırken kapsamlara çok fazla da aldırış etmeden kodlama yapabiliyoruz. Referans türlerine gelindiğinde ise **lifetime annotation**'lar ile daha karmaşık bir dünyaya geçiyoruz. Bazı senaryolarda kendi veri yapılarımızı tasarlayarak kullanıyoruz ve hatta Container görevi gören veri yapıları da kullanıyoruz. İşte bu örnek kod parçasında geliştirici tarafından tanımlanmış bir veri yapısını içeren başka bir veri yapısını ele alıyoruz. Amacımız kapsam sonlandığı noktada bu içiçe veri yapılarına ait **drop** mekanizmalarının farklı sırada çalışacabileceğini kanıtlamak. Özellikle de **let** ile yapılan veri atamalarında *(let binding)* anında **drop** operasyonuna neden olabilecek durumu göstermeye çalışacağız. İlk olarak aşağıdaki başlangıç kodlarını ele alalım.
+
+```rust
+#![allow(dead_code)]
+
+fn main() {
+    scenario_1();
+    println!("End of the programme");
+}
+
+fn scenario_1() {
+    let dotenv = Process {
+        id: ProcessId(1903),
+        is_active: false,
+        name: "Dot Net Environment".to_string(),
+    };
+    print_process(&dotenv);
+}
+
+fn print_process(process: &Process) {
+    println!("{:?}", process);
+}
+
+#[derive(Debug)]
+struct ProcessId(u16);
+
+impl Drop for ProcessId {
+    fn drop(&mut self) {
+        println!("Droping process id {}", self.0);
+    }
+}
+
+#[derive(Debug)]
+struct Process {
+    id: ProcessId,
+    is_active: bool,
+    name: String,
+}
+
+impl Drop for Process {
+    fn drop(&mut self) {
+        println!("Droping process {}", self.name);
+    }
+}
+```
+
+**Process** isimli veri yapısı, **bool**, **String** ve yine kendi tasarladığımız **ProcessId** türünden birer alan içeriyor. Sistemde çalışan process'leri ifade eden çok ilkel bir veri yapısı olarak tasarladığımızı varsayabilirsiniz. Her iki veri yapısı için kapsam dışına çıktığımız noktaları gözlememek adına **Drop** trait'inin uyguluyoruz. scenario_1 isimli fonksiyonda çok basit olarak bir Process değişkeni tanımlıyor ve ekrana yazdırıyoruz. Process tahmin edileceği üzere bu fonksiyon içinde tanımlı. Dolayısıyla fonksiyon dışına çıkıldığı anda drop edilmesi gerekiyor ki bu noktada hemen arkasından ProcessId veri yapısı da drop ediliyor. Çalışma zamanı çıktısına göre drop edilme sırası Process -> ProcessId şeklinde.
+
+![rust_adventure_06.png](../../images/rust_adventure_06.png)
+
+> Devam Edecek
 
 ## Kaynaklar
 
