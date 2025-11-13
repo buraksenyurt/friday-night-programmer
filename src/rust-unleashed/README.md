@@ -69,7 +69,28 @@ help: the binding `number` is available in a different scope in the same functio
   |             ^^^^^^
 ```
 
-Şimdi bu bilgileri cebimizde tutalım. En basit anlamda bir değişkenin tanımlandığı scope içerisinde kullanılabildiğini ifade edebiliriz. Şimdi Drop trait'inin davranışını incelemek üzere aşağıdaki kod parçasını ele alarak devam edelim.
+Değişken tanımlama demişken esasında bir veriyi bir değişkene bağlamak *(bind)* terimini de kullanabiliriz. Hatta klasik bir değişken tanımı normalde aşağıdaki 
+gibi yapılır.
+
+```rust
+let point = 23;
+```
+
+Ancak yine bildiğimiz üzere _ işareti de isimlendirmede kullanılır ve bu farklı anlamlara gelir. Örneğin,
+
+```rust
+let _point = 23;
+```
+
+şeklinde bir değişken tanımına göre kodda point isimli değişkeninin kasıtlı olarak henzü kullanılmadığı derleyiciye bildirilir. Hatta değişken tanımlamalarında _ operatörü tek başına da kullanılabilir. Döngülerde buna sıklıkla rastlarız. Örneğin aşağıdaki kod parçasında olduğu gibi.
+
+```rust
+ for _ in 0..5 {
+    do_something();
+}
+```
+
+Dolayısıyla bazı hallerde değişken adının başına _ sembolünü getirerek ya da tek başına kullanarak bind operasyonuna farklı anlamlar yüklenmesini sağlayabiliriz. Şimdi bu bilgileri cebimizde tutalım. En basit anlamda bir değişkenin sadece tanımlandığı **scope** içerisinde kullanılabildiğini ifade edebiliriz. Şimdi **Drop** trait'inin davranışını incelemek üzere aşağıdaki kod parçasını ele alarak devam edelim.
 
 ```rust
 #![allow(dead_code)]
