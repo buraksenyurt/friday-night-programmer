@@ -2290,4 +2290,4 @@ fn calculate_with_atomic() {
 
 İşte sonuçlar...
 
-![Mutex vs Atomic Performance](../../images/mutex_vs_atomic.png)
+![Mutex vs Atomic Performance](images/mutex_vs_atomic.png)
