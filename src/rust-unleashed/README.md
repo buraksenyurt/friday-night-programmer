@@ -176,7 +176,7 @@ fn case_one() {
 
 **Identity** isimli struct çok basit bir veri yapısı. Ona **Drop** trait'ini implemente ediyoruz case_one isimli fonksiyon içerisinde kullanıyoruz. Bu fonksiyonu da main içerisinden çağırıyoruz. **_id**, **case_one** içerisinde tanımlı bir değişken olduğu için doğal olarak fonksiyon çağrısı sonlandığı yerde bellekten düşürülecek. İşlem sırasını tahmin edebilirsiniz. Aşağıdaki ekran görüntüsündeki gibi çalışacaktır.
 
-![adventure_00.png](../../images/rust_adventure_00.png)
+![adventure_00.png](images/rust_adventure_00.png)
 
 İşte şimdi beyin yakan kod parçasının tam zamanı. İkinci bir fonksiyon daha ekleyerek ortamı şenlendirelim.
 
@@ -211,7 +211,7 @@ fn case_two() {
 
 Bu kodun çalışma zamanı çıktısı ise aşağıdaki gibi olacaktır.
 
-![adventure_01.png](../../images/rust_adventure_01.png)
+![adventure_01.png](images/rust_adventure_01.png)
 
 Aslında yazımsal olarak aradaki fark belli olsa da bind edilen/edilmeyen veriler söz konusu olduğu için bellek tahisi ve yaşam süreleri arasında önemli bir fark var. Peki ya nasıl bir fark? Dikkat edileceği üzere **drop** fonksiyonu **case_two** isimli blok sonlanmadan önce ve hatta **_** atamasının yapıldığı satırın hemen ardından çağırılmış görünüyor. Dolayısıyla elimizde tanımlandığı kapsam *(case_two fonksiyonunun kapsamı)* sonuna kadar yaşamamış bir değişken var. İşte burada çok temel bazı bilgileri gözden kaçırmış olduğumu fark ettim.
 
@@ -233,7 +233,7 @@ fn main() {
 
 Bu kod derlenmeyecek ve aşağıdaki hata üretilecektir.
 
-![rust_adventure_02.png](../../images/rust_adventure_02.png)
+![rust_adventure_02.png](images/rust_adventure_02.png)
 
 ```text
 error: free constant item without body
@@ -283,7 +283,7 @@ fn main() {
 
 **BackgroundColor**, **statik** yaşam ömürlü literal string *(&str)* ve stack odaklı 32 bit işaretsiz tamsayı *(u32)* taşıyan bir veri yapısı. Özellikle yaşam döngüsünü izlemek istediğimiz için **Drop** trait'ini de implement ettik. Sonrasında **BACKGROUND_COLOR** isimli bir **constant** tanımlıyoruz ve buna ilk değerini verirken **name** ile **id** alanlarına da birer değer atıyoruz. main fonksiyonu içerisinde ise dikkate değer işler söz konusu. İlk olarak **constant** 'ın **mutable** bir referansını **value** isimli bir değişkene bağlıyoruz. Ardından **value** üzerinden **name** ve **id** alanlarında değişiklik yapıyoruz. Bundan herhangi bir sorun yok zira constant yeni bir temporary alan halinde yeniden oluşturulup bind ediliyor. Sonrasında **BACKGROUND_COLOR** constant'ının **name** alanını değiştiriyoruz ve tekrardan ekrana yazdırıyoruz. Öncelikle kodun çalışma zamanı çıktısını bir inceleyelim.
 
-![rust_adventure_03.png](../../images/rust_adventure_03.png)
+![rust_adventure_03.png](images/rust_adventure_03.png)
 
 İlk dikkat etmemiz ve okumamız gereken yer uyarı mesajı.
 
@@ -405,7 +405,7 @@ State türlerini ifade eden her bir **struct** için bir **GameLoop** implementa
 
 Main metodunda örnek kullanımlar söz konusu. İşin enteresan kısmı kullandığımız **GameLoop** veri yapısının bu haliyle bellekte ne kadar yer kaplayacağı. Çalışma zamanı çıktısı aşağıdaki ekran görüntüsündeki gibidir. Fark ettiğiniz üzere veri yapısının boyutu **0 bytes**. Hatta bundan biraz daha emin olmak için **Player** isimli, gerçekleşen olayla hiçbir ilgisi bulunmayan bir veri yapısı da kullandık *(Bellekte ne kadar yer ayrıldığını görmek için **mem** modülünden **size_of_val** fonksiyonunu kullandık)*
 
-![rust_adventure_04.png](../../images/rust_adventure_04.png)
+![rust_adventure_04.png](images/rust_adventure_04.png)
 
 Sıfır boyutlu verileri biraz olsun anladık diye düşünüyorum. Eğer rust ile geliştirmekte olduğunuz projede PhantomData ve ZST kullanımına geçeceğiniz vakalar buluyorsanız dilde epey uzmanlaşmışsınızdır diyebilirim ama tabii ilerleyen maceralar aksini de söyleyebiliri. Neyse neyse... Benzer varlıklardan birisi de ki **()** ile ifade ediliyor **unit** türü. Şimdi bunu da cebimize koyalım ve aşağıdaki kod parçasını göz önüne alalım.
 
@@ -426,7 +426,7 @@ fn main() {
 
 Öncelikle kodun çalışma zamanı çıktısına bir bakalım.
 
-![rust_adventure_05.png](../../images/rust_adventure_05.png)
+![rust_adventure_05.png](images/rust_adventure_05.png)
 
 Dikkat edileceği üzere **value_y**' nin değeri standart bir placeholder ile değil **{:?}** ile alınabilmektedir zira bu türden atama ifadelerinin *(assignment expression)* dönüşü birim (unit) tiptir. Unit tipler de sıfır boyutlu veri türlerindendir. Dolayısıyla **value_y** değişkenine belirtilen ifadeye göre **()** atanmış ve boyutu otomatik olarak sıfır olmuştur. Böylece **assignment expression** kavramını ne kadar iyi bildiğimizi de sorgulama fırsatı bulmuş olduk. Kafasından duman çıkmayan beri gelsin :D
 
@@ -480,7 +480,7 @@ impl Drop for Process {
 
 **Process** isimli veri yapısı, **bool**, **String** ve yine kendi tasarladığımız **ProcessId** türünden birer alan içeriyor. Sistemde çalışan process'leri ifade eden çok ilkel bir veri yapısı olarak tasarladığımızı varsayabilirsiniz. Her iki veri yapısı için kapsam dışına çıktığımız noktaları gözlememek adına **Drop** trait'inin uyguluyoruz. **scenario_1** isimli fonksiyonda çok basit olarak bir **Process** değişkeni tanımlıyor ve ekrana yazdırıyoruz. dotenv isimli **Process** türünden olan değişkenimiz tahmin edileceği üzere bu fonksiyon içinde tanımlı ve dolayısıyla fonksiyon sonlandığında drop edilmesi gerekiyor ki bu noktada hemen arkasından **ProcessId** veri yapısı da drop ediliyor. Çalışma zamanı çıktısına göre drop edilme sırası **Process -> ProcessId** şeklinde görünüyor.
 
-![rust_adventure_06.png](../../images/rust_adventure_06.png)
+![rust_adventure_06.png](images/rust_adventure_06.png)
 
 Şimdi aynı veri yapılarını tamamen farklı bir senaryoda ele alacağız. Bunun için aşağıdaki kod parçasını ele alabiliriz.
 
@@ -530,13 +530,13 @@ struct Process {
 
 Önceki senaryodan tamamen farklı yazılan bu örnekte **Process** değerini oluştururken içerdiği **name** alanını **let-binding** ile dışarıya alıyoruz. Eşitliğin sol tarafında kullandığımız **..** operatörü **... ve geri kalanları** anlamına geliyor. Dolayısıyla oluşturulan Process içerisindeki **name** alanını dışarıya alıyor ve sonrasında da ekrana bastırıyoruz. Bu çalışmada önemli olan mevzu **ref keyword** kullanımının her iki vakada oluşturduğu fark. Bunu daha iyi yorumlayabilmek amacıyla çalışma zamanı çıktısına bakalım.
 
-![rust_adventure_07.png](../../images/rust_adventure_07.png)
+![rust_adventure_07.png](images/rust_adventure_07.png)
 
 İlk çağrıda dikkat edileceği üzere önce **ProcesId** veri yapısının **Drop** metodunun, Process veri yapısından dışarıya aldığımız **name** alanının ekrana yazılmasından önce çağırıldığı görülüypr. Birbaşka deyişle eşitliğin sağ tarafında, Process tanımında oluşturduğumuz **ProcessId** alanı anında drop ediliyor. Bu oldukça mantıklı zira dışarıya aldığımız değişken sadece **name** alanı ve o da kuvvetle muhtemel klonlanarak akışta devam ediyor. Ancak scenario_2 fonksiyonunda farklı bir uygulama şekli söz konusu. Burada **ref** anahtar kelimesini kullanıyor. Bu durumda **name** alanı bir referans üzerinden ödünç alınıyor ve buna göre de **Process** verisinin scope sonuna kadar yaşaması gerekiyor. Bir scope içinde sahip olduğu alanlardan herhangi birini referans eden bir başka değişkenin halen daha yaşadığı ama kendisi drop edilmiş bir değişken barındıramayız, bu tabiri caizse Ronin olur. ref kullanılan senaryoda bu sebeple **name** alanı ilk olarak ekrana yazdırılmış ve ardından **ProcessId** drop edilebilmiştir.
 
 Burada bir noktaya açıklık getirmemiz gerekiyor. Son örnekte **Process** veri yapısına ait **drop** uygulaması kaldırıldı. Eğer kullanmak istersek aşağıdaki ekran görüntüsünde olduğu gibi bir derleme zamanı hatası alırız.
 
-![rust_adventure_08.png](../../images/rust_adventure_08.png)
+![rust_adventure_08.png](images/rust_adventure_08.png)
 
 ```text
 error[E0509]: cannot move out of type `Process`, which implements the `Drop` trait
