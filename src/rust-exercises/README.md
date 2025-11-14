@@ -43,6 +43,7 @@ Performans, güvenlik ve sistem programlama konuları:
 - **[exc14](#uygulama-düzeyinde-hata-yayılımı-error-propagation-için-anyhow-kullanmak-exc14)** - Uygulama Düzeyinde Hata Yayılımı için anyhow Kullanmak
 - **[exc23](#ffi-foreign-function-interface-kullanımlarında-unsafe-ile-güvenli-soyutlamalar-oluşturmak-exc23)** - FFI (Foreign Function Interface) Kullanımlarında Unsafe ile Güvenli Soyutlamalar Oluşturmak
 - **[exc24](#eşzamanlılık-concurrency-garantisi-için-send-ve-sync-traitlerini-kullanmak-exc24)** - Eşzamanlılık (Concurrency) Garantisi için Send ve Sync Trait'lerini Kullanmak
+- **[exc25](#eşzamanlı-garantilerde-mutext-yerine-atomic-türleri-kullanmak-exc25)** - Eşzamanlı Garantilerde Mutex Yerine Atomic Türleri Kullanmak
 
 ---
 
@@ -1999,3 +2000,210 @@ struct Stats {
 unsafe impl Send for Stats {}
 unsafe impl Sync for Stats {}
 ```
+
+### Eşzamanlı Garantilerde Mutext Yerine Atomic Türleri Kullanmak (exc25)
+
+Rust'ta eşzamanlı *(concurrent)* programlama işlemlerinde paylaşılan veriyi yönetmek için genellikle **Mutex** enstrümanından yararlanılır. Ancak özellikle yüksek performans gerektiren senaryolarda Mutex yerine **Atomic** türleri tercih edilebilir. **Atomic** türleri kullanarak kilitlenme *(locking)* maliyetinden kaçılabilir ki bu da performansı artırır.
+
+Örneğin mikroservis cennetine dönüşmüş bir eko sistemde servislere gelen istek sayılarını tuttuğumuzu ve belli bir eşik değerinin aşılması halinde yükün arttığını belirten alarm mekanizmalarını tetiklemek istediğimizi düşünelim. Gelen her istek için paylaşılan bir sayaç değeri üzerinden artış yapmamız gerekir. **Mutex** kullanabiliriz ama her artış işlemi için kilitleme ve açma maliyeti oluşur. Bunun yerine örneğin **AtomicI32** türünü kullanarak Lock-free *(kilitsiz)* bir sayaç oluşturabiliriz. Aşağıdaki ilk kod parçasında klasik **Mutex** kullanımı ile bu senaryo ele alınmaktadır.
+
+Senaryonun çok karmaşık olmaması için servis çağrılarının belli bir eşiği aşması halinde sadece bir uyarı mesajı bastırılıyor. Normal şartlarda servis çağrısını başka bir servise yönlendirme gibi işlemler de yapılabilir.
+
+```rust
+use std::sync::Mutex;
+use std::thread;
+use std::time::Duration;
+
+static REQUEST_COUNTER: Mutex<i32> = Mutex::new(0);
+const THRESHOLD_LEVEL: i32 = 100;
+
+fn main() {
+    let mut handlers = vec![];
+
+    // Farklı servis isteklerini simüle eden thread'ler oluşturuyoruz
+    // İlk thread ProductService isteklerini simüle ediyor
+    let handle = thread::spawn(move || {
+        for _ in 1..100 {
+            handler(
+                ServiceId {
+                    name: "ProductService",
+                    id: 1,
+                },
+                "api/product/10".to_string(),
+            );
+        }
+    });
+    handlers.push(handle);
+
+    // İkinci thread CatalogService isteklerini simüle ediyor
+    let handle = thread::spawn(move || {
+        for _ in 1..100 {
+            handler(
+                ServiceId {
+                    name: "CatalogService",
+                    id: 2,
+                },
+                "api/catalog/computers/top/10".to_string(),
+            );
+        }
+    });
+    handlers.push(handle);
+
+    // Tüm thread'lerin bitmesini bekliyoruz
+    for handle in handlers {
+        handle.join().unwrap();
+    }
+}
+
+/*
+    Sunucuya gelen servis isteklerini ele alan handler fonksiyon olarak düşünebiliriz.
+    Parametrelerin senaryomuz gereği çok bir önemi yok.
+
+*/
+fn handler(service: ServiceId, body: String) {
+    loop {
+        /*
+            Sonsuz döngüde iken sayacı hemen 1 artırıyoruz.
+            Ardından sembolik olarak gelen isteği işliyoruz.
+            Son olarak sayaç eşiği aşıldıysa alarm fonksiyonunu çağırıyoruz.
+        */
+
+        // REQUEST_COUNTER değişkenini kullanabilmek için öncelikle kilidini açıyoruz
+        let mut counter = REQUEST_COUNTER.lock().unwrap();
+        // * operatörü ile Mutex içindeki gerçek değere erişiyoruz
+        *counter += 1;
+
+        _ = read_request(&body);
+
+        // Sayaç eşiğini aşıp aşmadığını kontrol ediyoruz
+        if *counter > THRESHOLD_LEVEL {
+            alert(service);
+        }
+    }
+}
+
+// Simülasyon amaçlı çalışan ve gelen isteği güya işleyen bir fonksiyon
+fn read_request(body: &str) -> Result<(), ()> {
+    // Sanki gerçekten bir iş yapılıyormuş gibi talep okuma işini belirli bir süre uyutuyoruz
+    println!("Processing request body: {}", body);
+    thread::sleep(Duration::from_millis(100));
+    Ok(())
+}
+
+/*
+    Uyarı mesajı veren fonksiyon.
+    Örneğin basit olması açısından sadece mesaj veriyoruz.
+    Aslında buradan dönecek değere göre ana süreç servis çağrılarını başka bir servise yönlendirebilir.
+*/
+fn alert(service: ServiceId) {
+    println!("Alert for {:?}", service);
+}
+
+// Sadece servis ile ilgili bilgi taşımak için kullandığımız bir veri yapısı
+// Sembolik olarak servisin adını ve sayısal değerini taşıyor
+#[derive(Debug, Copy, Clone)]
+struct ServiceId<'a> {
+    id: u32,
+    name: &'a str,
+}
+```
+
+Şimdi aynı senaryoyu **AtomicI32** türünü kullanarak yazalım.
+
+```rust
+use std::sync::atomic::{AtomicI32, Ordering};
+use std::thread;
+use std::time::Duration;
+
+static REQUEST_COUNTER: AtomicI32 = AtomicI32::new(0);
+const THRESHOLD_LEVEL: i32 = 100;
+
+fn main() {
+    let mut handlers = vec![];
+
+    let handle = thread::spawn(move || {
+        for _ in 1..100 {
+            handler(
+                ServiceId {
+                    name: "ProductService",
+                    id: 1,
+                },
+                "api/product/10".to_string(),
+            );
+        }
+    });
+    handlers.push(handle);
+
+    let handle = thread::spawn(move || {
+        for _ in 1..100 {
+            handler(
+                ServiceId {
+                    name: "CatalogService",
+                    id: 2,
+                },
+                "api/catalog/computers/top/10".to_string(),
+            );
+        }
+    });
+    handlers.push(handle);
+
+    for handle in handlers {
+        handle.join().unwrap();
+    }
+}
+
+fn handler(service: ServiceId, body: String) {
+    loop {
+        /*
+            Sonsuz döngüde iken sayacı hemen 1 artırıyoruz.
+            Ardından sembolik olarak gelen isteği işliyoruz.
+            Son olarak sayaç eşiği aşıldıysa alarm fonksiyonunu çağırıyoruz.
+
+            Bunu iki farklı şekilde yapmaktayız.
+            Normalde Mutex kullanarak yaptığımız işlemin çalışma zamanında kilit açma ve kapama
+            maliyeti olduğunu düşünürsek bunu Atomic değişkenler ile yapmanın daha performanslı
+            olacağını iddia edebiliriz.
+        */
+
+        REQUEST_COUNTER
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |count| {
+                Some(count + 1)
+            })
+            .ok();
+
+        _ = read_request(&body);
+
+        if REQUEST_COUNTER.load(Ordering::Relaxed) > THRESHOLD_LEVEL {
+            alert(service);
+        }
+    }
+}
+
+fn read_request(body: &str) -> Result<(), ()> {
+    println!("Processing request body: {}", body);
+    thread::sleep(Duration::from_millis(100));
+    Ok(())
+}
+
+fn alert(service: ServiceId) {
+    println!("Alert for {:?}", service);
+}
+
+#[derive(Debug, Copy, Clone)]
+struct ServiceId<'a> {
+    id: u32,
+    name: &'a str,
+}
+```
+
+Bu yeni kullanımda görüldüğü üzere herhangi bir kilit açma veya kapatma işlemi kullanılmıyor. Bunun yerine **fetch_update** metodu ile atomik bir şekilde sayaç değerini artırıyoruz. Ayrıca sayaç değerini okumak için de **load** metodunu kullanıyoruz. Atomik operasyonlarda işin sırrı Rust'ın doğrudan CPU komutlarını *(Instructions)* kullanmasıdır. Bu komutlar **CPU** seviyesinde kesintilerin sorunsuz şekilde garanti edilmesini sağlar. Bir nevi **CPU** komutlarının garantisini kullandığımızı ifade edebiliriz zira donanım seviyesinde gerçekleştirilen işlemler söz konusudur. Örneğin **x86** tabanlı işlemci setlerinde **LOCK XADD** komutu kullanılarak kesintisiz sayaç artımı yapılabilir. Burada tüm çekirdekler değişikliği anında görür, hiçbir işletim sistemi mekanizması devreye girmez *(thread scheduling gibi)*
+
+Lakin burada özellikle dikkat edilmesi gereken nokta **Ordering** parametreleridir. Bu parametreler, atomik işlemlerin bellek sıralaması üzerindeki etkilerini belirler. Yukarıdaki örnekte **Relaxed** sıralama kullanılmıştır ki bu en gevşek sıralamadır ve en yüksek performansı sağlar. Ancak bazı senaryolarda daha güçlü sıralama garantilerine ihtiyaç duyulabilir. Bu durumda **Acquire**, **Release** veya **SeqCst** gibi farklı sıralama türleri tercih edilmelidir. Karar vermek zor olabilir bu yüzden aşağıdaki tabloyu incelemek faydalı olabilir.
+
+| **Ordering Türü** | **Açıklama** | **Kullanım Senaryoları** |
+|------------------|--------------|-----------------------|
+| **Relaxed** | En gevşek sıralama türüdür. Sadece atomik işlemin kendisi için garantiler sağlar. Diğer bellek işlemleri ile ilgili herhangi bir sıralama garantisi vermez. | Performansın kritik olduğu ve bellek sıralamasının önemli olmadığı durumlarda kullanılır. Örneğin sayaçlar veya flag türler söz konusu olduğunda. |
+| **Acquire** | Okuma işlemleri için kullanılır. Bu sıralama, bu işlemden önceki tüm bellek işlemlerinin tamamlanmasını garanti eder. | Atomik operasyon sırasında başka verilerin senkronize edilmesi gerektiğinde anlamlı olabilir.|
+| **SeqCst** | En güçlü sıralama garantisini sağlar. Tüm atomik işlemler için global olarak sıralama garantisi verir. | Kritik senaryolarda, tüm işlemlerin kesin bir sırayla gerçekleşmesi gerektiğinde kullanılır ama tabii bu seçenek tüm garantileri sağladığı için en yavaş olanıdır. |
+
+Diğer sıralama türleri Release ve Acquire için [resmi dokümantasyona](https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html) bakılabilir.
