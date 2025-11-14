@@ -43,7 +43,7 @@ Performans, güvenlik ve sistem programlama konuları:
 - **[exc14](#uygulama-düzeyinde-hata-yayılımı-error-propagation-için-anyhow-kullanmak-exc14)** - Uygulama Düzeyinde Hata Yayılımı için anyhow Kullanmak
 - **[exc23](#ffi-foreign-function-interface-kullanımlarında-unsafe-ile-güvenli-soyutlamalar-oluşturmak-exc23)** - FFI (Foreign Function Interface) Kullanımlarında Unsafe ile Güvenli Soyutlamalar Oluşturmak
 - **[exc24](#eşzamanlılık-concurrency-garantisi-için-send-ve-sync-traitlerini-kullanmak-exc24)** - Eşzamanlılık (Concurrency) Garantisi için Send ve Sync Trait'lerini Kullanmak
-- **[exc25](#eşzamanlı-garantilerde-mutext-yerine-atomic-türleri-kullanmak-exc25)** - Eşzamanlı Garantilerde Mutex Yerine Atomic Türleri Kullanmak
+- **[exc25](#eşzamanlı-garantilerde-mutex-mutual-exclusion-yerine-atomic-türleri-kullanmak-exc25)** - Eşzamanlı Garantilerde Mutex Yerine Atomic Türleri Kullanmak
 
 ---
 
@@ -2001,11 +2001,13 @@ unsafe impl Send for Stats {}
 unsafe impl Sync for Stats {}
 ```
 
-### Eşzamanlı Garantilerde Mutext Yerine Atomic Türleri Kullanmak (exc25)
+### Eşzamanlı Garantilerde Mutex *(Mutual Exclusion)* Yerine Atomic Türleri Kullanmak (exc25)
 
 Rust'ta eşzamanlı *(concurrent)* programlama işlemlerinde paylaşılan veriyi yönetmek için genellikle **Mutex** enstrümanından yararlanılır. Ancak özellikle yüksek performans gerektiren senaryolarda Mutex yerine **Atomic** türleri tercih edilebilir. **Atomic** türleri kullanarak kilitlenme *(locking)* maliyetinden kaçılabilir ki bu da performansı artırır.
 
 Örneğin mikroservis cennetine dönüşmüş bir eko sistemde servislere gelen istek sayılarını tuttuğumuzu ve belli bir eşik değerinin aşılması halinde yükün arttığını belirten alarm mekanizmalarını tetiklemek istediğimizi düşünelim. Gelen her istek için paylaşılan bir sayaç değeri üzerinden artış yapmamız gerekir. **Mutex** kullanabiliriz ama her artış işlemi için kilitleme ve açma maliyeti oluşur. Bunun yerine örneğin **AtomicI32** türünü kullanarak Lock-free *(kilitsiz)* bir sayaç oluşturabiliriz. Aşağıdaki ilk kod parçasında klasik **Mutex** kullanımı ile bu senaryo ele alınmaktadır.
+
+> **Mutex** senaryosunda bir thread öncelikle kilit ister, işletim sistemi buna göre thread takvimini planlar, eğer bir thread müşterek veri üzerinde çalışmak için onu kitlediyse diğer thread'ler uykuya geçer ve işletim sistemi planlamayı buna göre düzenler, müşterek veriyi çalışan thread işini tamamladığında kilit serbest kalır ve işletim sistemi planına göre uykudaki bir başka thread işine devam eder. Oysa ki Atomic tür kullanıldığında doğrudan **CPU** üzerindeki komut çalıştırılır. Elbette **Mutex** daha çok karmaşık veri türlerinin söz konusu olduğu senaryolarda çne çıkan bir kullanım şeklidir.
 
 Senaryonun çok karmaşık olmaması için servis çağrılarının belli bir eşiği aşması halinde sadece bir uyarı mesajı bastırılıyor. Normal şartlarda servis çağrısını başka bir servise yönlendirme gibi işlemler de yapılabilir.
 
@@ -2207,3 +2209,12 @@ Lakin burada özellikle dikkat edilmesi gereken nokta **Ordering** parametreleri
 | **SeqCst** | En güçlü sıralama garantisini sağlar. Tüm atomik işlemler için global olarak sıralama garantisi verir. | Kritik senaryolarda, tüm işlemlerin kesin bir sırayla gerçekleşmesi gerektiğinde kullanılır ama tabii bu seçenek tüm garantileri sağladığı için en yavaş olanıdır. |
 
 Diğer sıralama türleri Release ve Acquire için [resmi dokümantasyona](https://doc.rust-lang.org/std/sync/atomic/enum.Ordering.html) bakılabilir.
+
+Bunlardan hangisinin kullanılacağına karar vermek için aşağıdaki tablodan yararlanılabilir.
+
+| **Atomic Kullanın** | **Mutex Kullanın** |
+|--------------------------------------------|--------------------------------------------|
+| integer, boolean, pointer gibi basit veri türlü söz konusu ise.|Verinin ilişkili parçalarının bir arada kullanımını güvenli şekilde garanti etmek istediğinizde.|
+|Çoklu iş parçalarından erişim aralığının çok yüksek olduğu senaryolarda|Birkaç adımdan oluşan karmaşık hesaplamaların yer aldığı senaryolarda.|
+|Operasyonun değer artırma, azaltma veya karşılaştırıp değiştirme gibi işlemlerden oluştuğu durumlarda.|Vector, Hashmap, kullanıcı tanımlı struct gibi karmaşık veri yapıları kullanıldığı durumlarda.|
+|Mikrosaniyeler mertebesinde çalışması kritik olan kodlarda.|Çoklu veri alanları arasında tutarlılığı sağlamak gerektiğinde.|
