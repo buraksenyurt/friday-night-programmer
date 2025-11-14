@@ -2218,3 +2218,76 @@ Bunlardan hangisinin kullanılacağına karar vermek için aşağıdaki tablodan
 |Çoklu iş parçalarından erişim aralığının çok yüksek olduğu senaryolarda|Birkaç adımdan oluşan karmaşık hesaplamaların yer aldığı senaryolarda.|
 |Operasyonun değer artırma, azaltma veya karşılaştırıp değiştirme gibi işlemlerden oluştuğu durumlarda.|Vector, Hashmap, kullanıcı tanımlı struct gibi karmaşık veri yapıları kullanıldığı durumlarda.|
 |Mikrosaniyeler mertebesinde çalışması kritik olan kodlarda.|Çoklu veri alanları arasında tutarlılığı sağlamak gerektiğinde.|
+
+Bu iki yaklaşım arasındaki süre farkı hakkında fikir vermek için aşağıdaki örnek kod parçasını ele alabiliriz. Senaryoda 10 farklı thread tarafından ortak bir sayaç değerinin artırılması söz konusu. Mutex ve AtomicI32 kullanımı arasındaki süre farkını ölçüyoruz.
+
+```rust
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Mutex;
+use std::thread;
+use std::time::Instant;
+
+static COUNTER: Mutex<u32> = Mutex::new(0);
+static ATOMIC_COUNTER: AtomicU32 = AtomicU32::new(0);
+const NUMBER_OF_ITERATIONS: u32 = 10_000_000;
+
+fn main() {
+    println!("Calculating with Mutex:");
+    calculate_with_mutex();
+
+    println!("\nCalculating with Atomic:");
+    calculate_with_atomic();
+}
+
+fn calculate_with_mutex() {
+    let mut threads = vec![];
+    let time_start = Instant::now();
+
+    for _ in 0..10 {
+        let t = thread::spawn(|| {
+            for _ in 0..NUMBER_OF_ITERATIONS {
+                let mut num = COUNTER.lock().unwrap();
+                *num += 1;
+            }
+        });
+        threads.push(t);
+    }
+
+    for t in threads {
+        t.join().unwrap();
+    }
+
+    let duration = time_start.elapsed();
+    println!("Final counter value: {}", *COUNTER.lock().unwrap());
+    println!("Time elapsed: {:?}", duration);
+}
+
+fn calculate_with_atomic() {
+    let mut threads = vec![];
+    let time_start = Instant::now();
+
+    for _ in 0..10 {
+        let t = thread::spawn(|| {
+            for _ in 0..NUMBER_OF_ITERATIONS {
+                ATOMIC_COUNTER.fetch_add(1, Ordering::SeqCst);
+            }
+        });
+        threads.push(t);
+    }
+
+    for t in threads {
+        t.join().unwrap();
+    }
+
+    let duration = time_start.elapsed();
+    println!(
+        "Final atomic counter value: {}",
+        ATOMIC_COUNTER.load(Ordering::SeqCst)
+    );
+    println!("Time elapsed: {:?}", duration);
+}
+```
+
+İşte sonuçlar...
+
+![Mutex vs Atomic Performance](../../images/mutex_vs_atomic.png)
