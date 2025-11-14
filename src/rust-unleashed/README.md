@@ -69,28 +69,87 @@ help: the binding `number` is available in a different scope in the same functio
   |             ^^^^^^
 ```
 
-Değişken tanımlama demişken esasında bir veriyi bir değişkene bağlamak *(bind)* terimini de kullanabiliriz. Hatta klasik bir değişken tanımı normalde aşağıdaki 
-gibi yapılır.
+### Ara Not: _ Hakkında
+
+Değişken tanımlama demişken esasında bir veriyi bir değişkene bağlamak *(bind)* terimini de kullanabiliriz. Hatta klasik bir değişken tanımı normalde aşağıdaki gibi yapılır.
 
 ```rust
 let point = 23;
 ```
 
-Ancak yine bildiğimiz üzere _ işareti de isimlendirmede kullanılır ve bu farklı anlamlara gelir. Örneğin,
+Ancak yine bildiğimiz üzere **_** işareti ile başlayan değişken isimlendirmeleri de söz konusudur ki bu farklı anlamlara gelir. Örneğin,
 
 ```rust
 let _point = 23;
 ```
 
-şeklinde bir değişken tanımına göre kodda point isimli değişkeninin kasıtlı olarak henzü kullanılmadığı derleyiciye bildirilir. Hatta değişken tanımlamalarında _ operatörü tek başına da kullanılabilir. Döngülerde buna sıklıkla rastlarız. Örneğin aşağıdaki kod parçasında olduğu gibi.
+şeklinde bir değişken tanımına göre kodda **point** isimli değişkenin kasıtlı olarak henüz kullanılmadığı derleyiciye bildirilir. Aksi durumlar genellikle aşağıdaki gibi bir derleme zamanı uyarısına sebebiyet verir.
+
+```text
+warning: unused variable: `point`
+  --> adventure_00\src\main.rs:17:9
+   |
+17 |     let point = 23;
+   |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_point`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+```
+
+**_** operatörünün birçok farklı kullanımı da söz konusudur. Bunları aşağıdaki kod parçasında ele alabiliriz.
 
 ```rust
- for _ in 0..5 {
-    do_something();
+fn main() {
+    case_when_to_use_underscore();
+}
+
+fn case_when_to_use_underscore() {
+    let in_future_value = 23; // Warning: "unused variable: `in_future_value`"
+
+    // Example of ignoring specific variables in a pattern
+    let sections = (100, 200, 300, 400);
+    let (_, second, _, fourth) = sections; // No warning for unused variables
+    println!("Second section: {}, Fourth section: {}", second, fourth);
+
+    // Example of ignoring remaining elements in a pattern
+    let top_scorers = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace"];
+    match top_scorers {
+        [first, second, third, ..] => {
+            println!("Top three scorers are: {}, {}, {}", first, second, third);
+        }
+    }
+
+    // Example of does not bind a variable
+    for _ in 0..3 {
+        println!("It's a great day for Rust programming!");
+    }
+
+    // Example of ignoring a function return value
+    fn compute_value() -> i32 {
+        42
+    }
+    _ = compute_value(); // No warning for unused return value
+
+    // Example of always match a value
+    let score = Some(85);
+    match score {
+        Some(_) => println!("You have a score!"), // Variable not bound
+        None => println!("No score available."),
+    }
 }
 ```
 
-Dolayısıyla bazı hallerde değişken adının başına _ sembolünü getirerek ya da tek başına kullanarak bind operasyonuna farklı anlamlar yüklenmesini sağlayabiliriz. Şimdi bu bilgileri cebimizde tutalım. En basit anlamda bir değişkenin sadece tanımlandığı **scope** içerisinde kullanılabildiğini ifade edebiliriz. Şimdi **Drop** trait'inin davranışını incelemek üzere aşağıdaki kod parçasını ele alarak devam edelim.
+Bu kod parçasında altı farklı kullanım senaryosu yer almakta.
+
+- İlk kullanımda tanımlandığımız değişkeni kodun kalan kısmında kullanmadığımız için derleme zamanında bir warning alırız.
+- İkinci kullanımda **sections** isimli bir **tuple**'dan sadece belli elemanları çekip kalanları yok sayıyoruz *(ignore)*
+- Üçüncü kullanımda **top_scorers** isimli dizi içerisinden sadece ilk üç elemanı alıp geri kalanlarını yok sayıyoruz.
+- Dördüncü kullanımda for döngüsünde yer alan sayaç değişkenini kullanmayacağımızı belirtiyoruz. Bu çok sık karşılaştığımız kullanımlardan da birisidir.
+- Beşinci kullanımda **i32** türünden değer döndüren **compute_value** isimli fonksiyonun dönüş değerini hesaba katmayacağımızı belirtiyoruz ki bu kullanımı az sonra farklı bir açıdan ele alacağız.
+- Örnekte yer alan son kullanımda ise **Option** türünden bir değeri eşleştirirken *(ki Some(T) veya None döner)* onu bir değişkene bağlamadan sadece var olup olmadığına bakmaktayız.
+
+### Drop Trait'i ve _ Atamasının Etkisi
+
+Dolayısıyla **_** sembolüne farklı anlamlar yüklenmesini sağlayabiliriz. Şimdi bu bilgileri cebimizde tutalım. En basit anlamda bir değişkenin sadece tanımlandığı **scope** içerisinde kullanılabildiğini göz önüne alalım. Şimdi **Drop** trait'inin davranışını incelemek üzere aşağıdaki kod parçasını ile incelememize devam edelim.
 
 ```rust
 #![allow(dead_code)]
