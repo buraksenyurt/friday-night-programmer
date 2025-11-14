@@ -1,8 +1,10 @@
-use std::sync::Mutex;
+// use std::sync::Mutex;
+use std::sync::atomic::{AtomicI32, Ordering};
 use std::thread;
 use std::time::Duration;
 
-static REQUEST_COUNTER: Mutex<i32> = Mutex::new(0);
+// static REQUEST_COUNTER: Mutex<i32> = Mutex::new(0);
+static REQUEST_COUNTER: AtomicI32 = AtomicI32::new(0);
 const THRESHOLD_LEVEL: i32 = 100;
 
 fn main() {
@@ -54,19 +56,36 @@ fn handler(service: ServiceId, body: String) {
             Sonsuz döngüde iken sayacı hemen 1 artırıyoruz.
             Ardından sembolik olarak gelen isteği işliyoruz.
             Son olarak sayaç eşiği aşıldıysa alarm fonksiyonunu çağırıyoruz.
+
+            Bunu iki farklı şekilde yapmaktayız.
+            Normalde Mutex kullanarak yaptığımız işlemin çalışma zamanında kilit açma ve kapama
+            maliyeti olduğunu düşünürsek bunu Atomic değişkenler ile yapmanın daha performanslı
+            olacağını iddia edebiliriz.
         */
 
-        // REQUEST_COUNTER değişkenini kullanabilmek için öncelikle kilidini açıyoruz
-        let mut counter = REQUEST_COUNTER.lock().unwrap();
-        // * operatörü ile Mutex içindeki gerçek değere erişiyoruz
-        *counter += 1;
+        REQUEST_COUNTER
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |count| {
+                Some(count + 1)
+            })
+            .ok();
 
         _ = read_request(&body);
 
-        // Sayaç eşiğini aşıp aşmadığını kontrol ediyoruz
-        if *counter > THRESHOLD_LEVEL {
+        if REQUEST_COUNTER.load(Ordering::Relaxed) > THRESHOLD_LEVEL {
             alert(service);
         }
+
+        // // REQUEST_COUNTER değişkenini kullanabilmek için öncelikle kilidini açıyoruz
+        // let mut counter = REQUEST_COUNTER.lock().unwrap();
+        // // * operatörü ile Mutex içindeki gerçek değere erişiyoruz
+        // *counter += 1;
+
+        // _ = read_request(&body);
+
+        // // Sayaç eşiğini aşıp aşmadığını kontrol ediyoruz
+        // if *counter > THRESHOLD_LEVEL {
+        //     alert(service);
+        // }
     }
 }
 
