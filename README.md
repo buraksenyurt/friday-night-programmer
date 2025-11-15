@@ -86,7 +86,6 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
-- [Rust'ı Ne Kadar iyi Biliyoruz?](./src/rust-unleashed/README.md)
 - [Rust, Blanket Traits Nedir?](./documents/BlanketTraits.md)
 - [Rust, PhantomData Nedir?](./documents/PhantomData.md)
 - [Outbox Pattern Demo](./documents/OutboxDemo.md)
