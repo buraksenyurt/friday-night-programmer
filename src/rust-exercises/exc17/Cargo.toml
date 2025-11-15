@@ -1,7 +1,0 @@
-[package]
-name = "exc17"
-description = "Rust Exercises - Exercise 17: Using &str instead of String"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]

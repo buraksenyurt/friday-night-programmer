@@ -1,7 +1,0 @@
-[package]
-name = "exc09"
-description = "Rust Exercises - Exercise 09: Lazy Evaluation vs Eager Evaluation in Log Analysis"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]

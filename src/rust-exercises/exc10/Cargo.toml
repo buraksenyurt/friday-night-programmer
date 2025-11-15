@@ -1,7 +1,0 @@
-[package]
-name = "exc10"
-description = "Rust Exercises - Exercise 10: Implementing Traits and Generics in Rust"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]

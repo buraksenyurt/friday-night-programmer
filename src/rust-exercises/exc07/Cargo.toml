@@ -1,7 +1,0 @@
-[package]
-name = "exc07"
-description = "Rust Exercises - Example 7: Wrapping Unsafe Code with Safe Abstractions"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]

@@ -1,7 +1,0 @@
-[package]
-name = "exc24"
-description = "Rust Exercises - Exercise 24: Send and Sync Traits for Concurrency Guarantees"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]

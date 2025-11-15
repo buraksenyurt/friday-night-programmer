@@ -1,7 +1,0 @@
-[package]
-name = "exc03"
-description = "Rust Exercises - Exercise 03: Dangling References and Lifetimes"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
