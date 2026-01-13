@@ -42,6 +42,11 @@ public class Part
 
 Yukarıdaki gibi bir kodlamayı kuvvetle muhtemel yapmayız. En azından Part isimli veri yapısının state'ini dışarıdan bir fonksiyon ile değiştirmeyi pek tercih etmeyiz. Ancak buradaki amaç için ele alabiliriz. Çalışma zamanındaki çıktı aşağıdaki gibi olacaktır.
 
+```bash
+# Program kodunu dotnet ile çalıştırabiliriz
+dotnet run
+```
+
 ![TryThis00_0](../images/TryThis00_0.png)
 
 Senaryoyu kısaca ele alalım. Main metodu içerisinde tanımladığımız Part isimli nesne örneğini, UpdateStockLevel metoduna parametre olarak gönderiyoruz. Bu bir sınıf olduğundan varsayılan olarak referans türü şeklinde iletiliyor. Dolayısıyla UpdateStockLevel metodu içerisinde yapılan değişiklikler, Main metodundaki orijinal nesneyi de doğrudan etkiliyor. Önceden de belirttiğim üzere bu şekilde state değiştirmeyi pek tercih etmem. En azından nesne örneğinin kendi üzerinden yapılmasının ya da değişiklik sonrası yeni bir Part nesnesinin geriye döndürülmesinden yanayım diyebilirim. Neyse neyse. Bunu bir kenara bıraklım. Şimdi aynı senaryoyu Rust dilinde ele almak istediğimizi düşünelim.
@@ -110,6 +115,11 @@ struct Part {
 
 id alanının hiç kullanmadığım için aldığım bir uyarı mesajı var ama onu şimdilik görmezden geliyorum. Programı tekrar çalıştırdığımızda beklediğimiz davranışın gerçekleştirildiğini görürüz.
 
+```bash
+# Program kodunu cargo ile çalıştırabiliriz
+cargo run
+```
+
 ![TryThis00_2](../images/TryThis00_2.png)
 
 > Burada ikinci kısımda ele almak üzere bir soru bırakayım; Ya birden fazla Thread bu parçanın stok seviyesini değiştirmek isterse? C# ne yapar, Rust ne kadar zorluk çıkartır, Zig'den ne haber?
@@ -119,4 +129,104 @@ id alanının hiç kullanmadığım için aldığım bir uyarı mesajı var ama 
 Gelelim yeni yeni öğrenmeye çalıştığım Zig diline. Zig dilinde Rust'ta olduğu gibi immutable/mutable ayrımları söz konusu ancak ifade edilme şekilleri biraz daha farklı. Özellikle değerlerinde değişiklik yapılmasını istediğimiz değişkenler **var** anahtar kelimesi ile birlikte tanımlanmak zorundalar. Bunların dışındakiler ise **const** anahtar kelimesi ile tanımlanıyorlar. Üstelik Zig dilinde fonksiyon parametreleri gerçekten de değiştirilemez *(immutable)* olarak kabul edilmekteler. Yine bir DotNetçi gibi düşünerek zig tarafı kodlarını da aşağıdaki gibi geliştirerek ilerleyelim.
 
 ```zig
+const std = @import("std");
+
+const Part = struct {
+    id: u32,
+    name: []const u8,
+    stock_level: i32,
+};
+
+pub fn main() void {
+    const part = Part{
+        .id = 1,
+        .name = "Widget",
+        .stock_level = 10,
+    };
+
+    std.debug.print("Initial stock level of {s}: {d}\n", .{ part.name, part.stock_level });
+    change_stock_level(part, 5);
+    std.debug.print("Stock level after adding 5: {d}\n", .{part.stock_level});
+}
+
+fn change_stock_level(part: Part, change: i32) void {
+    part.stock_level += change;
+}
 ```
+
+Yine aynı mantıkta part isimli değişkeni bodoslama change_stock_level fonksiyonuna aktarıyoruz. Programı derleyip çalıştırdığımızda az önce söylediğim **immutable/mutable** ayrımına dair bir hata mesajı ile karşılaşırız.
+
+![TryThis00_3](../images/TryThis00_3.png)
+
+Yani demem o ki ille değerini değiştireceğimiz bir değişken söz konusu ise, onu **var** ile bir **variable** olarak tanımamamız gerekir. Pekala, kodu bu hata mesajı doğrultusunda aşağıdaki gibi değiştirerek ilerleyelim.
+
+```zig
+const std = @import("std");
+
+const Part = struct {
+    id: u32,
+    name: []const u8,
+    stock_level: i32,
+};
+
+pub fn main() void {
+    var part = Part{
+        .id = 1,
+        .name = "Widget",
+        .stock_level = 10,
+    };
+
+    std.debug.print("Initial stock level of {s}: {d}\n", .{ part.name, part.stock_level });
+    change_stock_level(part, 5);
+    std.debug.print("Stock level after adding 5: {d}\n", .{part.stock_level});
+}
+
+fn change_stock_level(part: Part, change: i32) void {
+    part.stock_level += change;
+}
+```
+
+Her şeyin sorunsuz şekilde ilerleyeceğini düşünebilirsiniz ama bu sefer de şu kuralı hatırlamamız gerekir; Zig dilinde fonksiyon parametreleri varsayılan olarak immutable *(değiştirilemez)* kabul edilirler. main fonksiyonunun kapsama alanında yer alan part değişkenini var ile işaretlemiş olsak bile, metoda bu şekilde aktaramıyoruz. Sonuç olarak aşağıdaki gibi bir hata mesajı ile karşılaşırız.
+
+![TryThis00_4](../images/TryThis00_4.png)
+
+İşte bu noktada başka bir çözümümüz var. Değişkeni fonksiyona referans olarak aktarmak. Aslında referans olarak aktarmaktan kastımız değişkenin bellekteki adresini fonksiyona iletmek. Yani **pointer** kullanarak adresi fonksiyona almak, fonksiyon içerisinde de pointer üzerinden değere erişip değiştirmek. Buna göre zig tarafındaki kodları aşağıdaki gibi değiştirerek ilereyelim.
+
+```zig
+const std = @import("std");
+
+const Part = struct {
+    id: u32,
+    name: []const u8,
+    stock_level: i32,
+};
+
+pub fn main() void {
+    var part = Part{
+        .id = 1,
+        .name = "Widget",
+        .stock_level = 10,
+    };
+
+    std.debug.print("Initial stock level of {s}: {d}\n", .{ part.name, part.stock_level });
+    change_stock_level(&part, 5);
+    std.debug.print("Stock level after adding 5: {d}\n", .{part.stock_level});
+}
+
+fn change_stock_level(part: *Part, change: i32) void {
+    // part.*.stock_level += change; // Aşağıdaki kullanım ile aynı
+    part.stock_level += change;
+}    
+```
+
+Bu sefer beklediğimiz gibi fonksiyon içerisinde stok seviyesinde yapılan değişikliğin main fonksiyonundaki orijinal değişkeni de etkilediğini görürüz.
+
+![TryThis00_5](../images/TryThis00_5.png)
+
+## Peki Ya İdel Yollar Hangisi?
+
+Programcıdan programcıya veya senaryodan senaryoya değişmekle birlikte benim tercihim, eğer bir veri yapısına ait nesne örneğinin state'ini değiştirmek istiyorsak bunu o veri yapısına ait metotlar üzerinden yapmak yönünde. Tabii söz konusu değişiklikler bir takım kurallar barındıran dış bağımlılılar içerisindeki fonksiyonlarda yapılacaksa o nesne örneğinden yararlanarak yeni bir nesne örneği oluşturmak, yeni nesne örneği verisinde gerekli değişiklikleri yapıp geriye döndürmek şeklinde olacaktır. Bu ikinci durum için Rust ve Zig tarafındaki kodları aşağıdaki gibi güncelleyebiliriz.
+
+> TERCİH ETTİĞİM KULLANIM ÖRNEKLERİ EKLENECEK
+
+Unutmayın bu senaryolarda Single-Thread çalışan bir ortam üzerinden çok sorun yaşamadan ilerleyebiliyoruz. Ancak birden fazla Thread'in aynı veri yapısına ait nesne örneğinin state'ini değiştirmeye çalıştığı durumlarda işin rengi değişebilir. Bu tip senaryoları da ilerleyen zamanlarda ele almaya çalışacağım.
