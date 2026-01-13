@@ -225,8 +225,45 @@ Bu sefer beklediğimiz gibi fonksiyon içerisinde stok seviyesinde yapılan değ
 
 ## Peki Ya İdel Yollar Hangisi?
 
-Programcıdan programcıya veya senaryodan senaryoya değişmekle birlikte benim tercihim, eğer bir veri yapısına ait nesne örneğinin state'ini değiştirmek istiyorsak bunu o veri yapısına ait metotlar üzerinden yapmak yönünde. Tabii söz konusu değişiklikler bir takım kurallar barındıran dış bağımlılılar içerisindeki fonksiyonlarda yapılacaksa o nesne örneğinden yararlanarak yeni bir nesne örneği oluşturmak, yeni nesne örneği verisinde gerekli değişiklikleri yapıp geriye döndürmek şeklinde olacaktır. Bu ikinci durum için Rust ve Zig tarafındaki kodları aşağıdaki gibi güncelleyebiliriz.
+Programcıdan programcıya veya senaryodan senaryoya değişmekle birlikte benim tercihim, eğer bir veri yapısına ait nesne örneğinin state'ini değiştirmek istiyorsak bunu o veri yapısına ait metotlar üzerinden yapmak yönünde. Tabii söz konusu değişiklikler bir takım kurallar barındıran dış bağımlılıklar içerisindeki fonksiyonlarda yapılacaksa o nesne örneğinden yararlanarak yeni bir nesne örneği oluşturmak, yeni nesne örneği verisinde gerekli değişiklikleri yapıp geriye döndürmek de düşünülebilir. Her ikisinde de veri yapısının muhteviyatı önemli olabilir. Büyük bir nesne yapısında sadece ufak bir state değişikliği için yeni örnekleme ile geriye dönmek de çok mantıklı olmayabilir. Ama en azından senaryomuzdaki veri yapısını Rust ve Zig taraflarında belki yeni örnekler üretme yoluyla nasıl kullanabileceğimizi gösterebilirim.
 
-> TERCİH ETTİĞİM KULLANIM ÖRNEKLERİ EKLENECEK
+Yani, **change_stock_level** metodumuz yeni bir Part değişkeni oluşturup geriye döndürecek ve bunu main kapsamındaki var olan part değişkenine atayacağız. Hımm, oldukça makul görünüyor. Buna göre zig tarafındaki kodları aşağıdaki gibi değiştirsem sanırım kimsenin itirazı olmaz.
+
+```zig
+const std = @import("std");
+
+const Part = struct {
+    id: u32,
+    name: []const u8,
+    stock_level: i32,
+};
+
+pub fn main() void {
+    var part = Part{
+        .id = 1,
+        .name = "Widget",
+        .stock_level = 10,
+    };
+
+    std.debug.print("Initial stock level of {s}: {d}\n", .{ part.name, part.stock_level });
+    part = change_stock_level(part, 5);
+    std.debug.print("Stock level after adding 5: {d}\n", .{part.stock_level});
+}
+
+fn change_stock_level(part: Part, change: i32) Part {
+    const new_part = Part{
+        .id = part.id,
+        .name = part.name,
+        .stock_level = part.stock_level + change,
+    };
+    return new_part;
+}
+```
+
+Program sorunsuz şekilde çalışır ve beklediğimiz çıktıyı üretir. Dilerseniz birde Rust tarafında aynı yaklaşımı deneyelim.
+
+```rust
+// EKLENECEK
+```
 
 Unutmayın bu senaryolarda Single-Thread çalışan bir ortam üzerinden çok sorun yaşamadan ilerleyebiliyoruz. Ancak birden fazla Thread'in aynı veri yapısına ait nesne örneğinin state'ini değiştirmeye çalıştığı durumlarda işin rengi değişebilir. Bu tip senaryoları da ilerleyen zamanlarda ele almaya çalışacağım.
