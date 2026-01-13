@@ -263,7 +263,133 @@ fn change_stock_level(part: Part, change: i32) Part {
 Program sorunsuz şekilde çalışır ve beklediğimiz çıktıyı üretir. Dilerseniz birde Rust tarafında aynı yaklaşımı deneyelim.
 
 ```rust
-// EKLENECEK
+struct Part {
+    id: u32,
+    name: String,
+    stock_level: i32,
+}
+
+fn main() {
+    let mut part = Part {
+        id: 1,
+        name: String::from("Widget"),
+        stock_level: 10,
+    };
+
+    println!("Initial stock level of {}: {}", part.name, part.stock_level);
+    part = change_stock_level(part, 5);
+    println!("Stock level after adding 5: {}", part.stock_level);
+}
+
+fn change_stock_level(part: Part, change: i32) -> Part {
+    Part {
+        stock_level: part.stock_level + change,
+        ..part
+    }
+}
 ```
 
-Unutmayın bu senaryolarda Single-Thread çalışan bir ortam üzerinden çok sorun yaşamadan ilerleyebiliyoruz. Ancak birden fazla Thread'in aynı veri yapısına ait nesne örneğinin state'ini değiştirmeye çalıştığı durumlarda işin rengi değişebilir. Bu tip senaryoları da ilerleyen zamanlarda ele almaya çalışacağım.
+**Mutable** olarak tanımladığımız part değişkeninin sahipliği önce **change_stock_level** metoduna aktarılır, orada yeni bir **Part** nesnesi oluşturulur ve geriye döndürülür. **main** metodunun kapsamındaki part değişkeni de bu yeni nesne örneğini sahiplenir. Program bu haliyle sorunsuz şekilde çalışacaktır.
+
+Bunlar fena kodlar değil ama ideal yaklaşımlar da değil. Bir tilki misali kürkçü dükkanına mı döneceğiz yoksa. Aslında üç dilde de bu tip bir state değişikliğini nesne yapısının kendi içerisine sarmalanmış metotlar üzerinden yapmak en ideal olanı. Ancak bu çalışma kapsamında amacımızın bu olmadığını hatırlayalım. Ben yine de ideal yaklaşım da kodları nasıl inşa ederizi göstermek isterim.
+
+En şık kullanımlardan birisi C# tarafında aşağıdaki gibi olabilir. İdeal yaklaşıma göre bir nesnenin durumunu eğer dışarıdan bir bileşen bağımlılığı üzerinden değiştirmek gerekmiyorsa *(yani stok seviyesinin değiştirilme ilkeleri Part sınıfına dışarıdan öğretilecekse ki bu durumda Part sınıfı yerine StockLevelService gibi başka bir sınıf kullanılır)* nesnenin durumunu değiştiren metotları o nesnenin kendi içinde tanımlamaktır.
+
+```csharp
+namespace CSharpSample;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        Part part = new()
+        {
+            Id = 1,
+            Name = "Widget",
+        };
+
+        Console.WriteLine($"Before update: Part ID: {part.Id}, Name: {part.Name}, Stock Level: {part.StockLevel}");
+        part.UpdateStockLevel(150);
+        Console.WriteLine($"After update: Part ID: {part.Id}, Name: {part.Name}, Stock Level: {part.StockLevel}");
+    }
+}
+
+public class Part
+{
+    public uint Id { get; set; }
+    public string? Name { get; set; }
+    public int StockLevel { get; private set; }
+    public void UpdateStockLevel(int newStockLevel)
+    {
+        StockLevel = newStockLevel;
+    }
+}
+```
+
+Tabii Rust ve Zig tarafında da benzer yaklaşımlar mümkün. Örneğin Rust tarafında aynı yaklaşım aşağıdaki kodlarda olduğu gibi ele alınabilir.
+
+```rust
+struct Part {
+    id: u32,
+    name: String,
+    stock_level: i32,
+}
+
+impl Part {
+    fn change_stock_level(&mut self, change: i32) -> () {
+        self.stock_level += change;
+    }
+}
+
+// CASE03: Nesne içeriğine nesneye ait metot ile değiştirme
+fn main() {
+    let mut part = Part {
+        id: 1,
+        name: String::from("Widget"),
+        stock_level: 10,
+    };
+
+    println!("Initial stock level of {}: {}", part.name, part.stock_level);
+    part.change_stock_level(5);
+    println!("Stock level after adding 5: {}", part.stock_level);
+}
+```
+
+Zig programlama tarafı için de aşağıdaki gibi bir kodlama düşünülebilir.
+
+```zig
+const std = @import("std");
+
+const Part = struct {
+    id: u32,
+    name: []const u8,
+    stock_level: i32,
+    pub fn change_stock_level(self: *Part, change: i32) void {
+        self.stock_level += change;
+    }
+};
+
+// //CASE02 Nesne durumunu kendi metodu ile değiştirme
+pub fn main() void {
+    var part = Part{
+        .id = 1,
+        .name = "Widget",
+        .stock_level = 10,
+    };
+
+    std.debug.print("Initial stock level of {s}: {d}\n", .{ part.name, part.stock_level });
+    part.change_stock_level(5);
+    std.debug.print("Stock level after adding 5: {d}\n", .{part.stock_level});
+}
+```
+
+## Ne Öğrendim?
+
+Peki ya tüm bunlar bana ne öğretti *(neleri hatırlattı?)* Şöyle özetleyebilirim;
+
+- **C#** dilinde sınıf nesne örnekleri metotlara varsayılan olarak referans türü olarak taşınır. Bu nedenle metot içinde yapılan değişiklikler çağıran taraftaki orjinal nesneyi de doğrudan etkiler. Derleyici bu konuda herhangi bir uyarı vermez ya da alınmaz. Atıl kalan referanslar olsa bile bu sorun değildir zira **Garbage Collector** devrededir.
+- **Rust** tarafında değişkenler varsayılan olarak immutable *(değiştirilemez)* olarak kabul edilir. Bir değişkenin değerini değiştirmek istiyorsak onu **mutable** olarak tanımlamamız gerekir. Ancak bunu yapsak dahi o değişkenin sahip olduğu değerin başka bir metoda aktarılması durumunda taşındığı yerde de değiştirilebilir olarak kabul edileceği anlamına gelmez. Sahiplik *(ownership)* kavramı, bir değişkenin değerinin başka bir fonksiyona aktarılması durumunda orada yeni bir sahiplik oluşturulmasını gerektirir. Bu durumda, orijinal değişkenin sahipliği kaybolur ve artık orijinal değişkene de erişilemez hale gelir. Eğer bir değişkenin değerini başka bir fonksiyonda değiştirmek istiyorsak, o değişkeni referans olarak *(& operatörü ile ve hatta mut & şeklinde)* aktarması beklenir.
+- **Zig** dilinde fonksiyon parametreleri immutable *(değiştirilemez)* kabul edilirler. Eğer bir fonksiyonun parametresinde gelen değişken değerini/içeriğini değiştirmek istiyorsak, o parametreyi pointer *(işaretçi)* olarak tanımlamamız gerekir. Böylece fonksiyon, parametrenin bellekteki adresine erişebilir ve bu adres üzerinden gerekli değişikliği yapabilir.
+- Dil bağımsız düşünürsek bir veri yapısına ait nesne örneğinin muhteviyatını değiştirmek için söz konusu veri yapısına ait metotları kullanmak daha doğru bir yaklaşımdır *(Tartışmaya açık)*. Eğer değişiklikler bir takım kurallar barındıran dış bağımlılıklar içerisindeki metotlarda yapılacaksa o nesne örneğinden yararlanarak yeni bir nesne örneği oluşturmak, yeni nesne örneği verisinde gerekli değişiklikleri yapıp geriye döndürmek de düşünülebilir *(ki bu da tartışmaya açıktır)*. Ancak ideal olan yöntem kullanılan dilin amaçlarına göre değişir. Sevgili meslektaşımın dediği gibi Rust veya Zig içinde DotNetçi gibi düşünmemek gerekir ve tam tersi de geçerlidir.
+
+Böylece küçük bir merakla başlayan deneysel çalışmamın bir bölümünü tamamlamış oldum. Umarım faydalı olmuştur. Diğer yandan buradaki uygulama pratiklerinde **Single-Thread** çalışan bir ortamda çok sorun yaşamadan ilerledik. Ancak birden fazla iş parçacığının *(multi-thread)* aynı veri yapısına ait nesne örneğinde değişiklik yapmaya çalıştığı durumlarda işin rengi değişecektir. Bu tip senaryoları da ilerleyen zamanlarda ele almaya çalışacağım.
