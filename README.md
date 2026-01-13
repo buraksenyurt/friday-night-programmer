@@ -86,6 +86,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Bunu Bir Dene - 00](./documents/TryThis00.md)
 - [Rust, Blanket Traits Nedir?](./documents/BlanketTraits.md)
 - [Rust, PhantomData Nedir?](./documents/PhantomData.md)
 - [Outbox Pattern Demo](./documents/OutboxDemo.md)
@@ -269,3 +270,7 @@ Bu bölümde ele aldığımız konular.
 ### Chapter 09 - Gattaca _(15 Nisan 2025 Cuma, 21:30 - 22:30)_
 
 İptal edildi
+
+### Chapter 10 - 2025 Retro ve Final
+
+Bu bölümü izlemek için [şuraya](https://www.youtube.com/live/Fwsz3ikhNZs) bakabilirsiniz.
