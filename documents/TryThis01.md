@@ -265,7 +265,45 @@ fn main() {
 
 Tabii bu benim bakış açımdan bir ispat. Açılan her **handle scope**'u kopyalayarak aldığı **calculation_result** değişkeni üzerinde işlemler yapıyor ve kendi ara sonuçlarını yazdırıyor. Ama aynı şey **main thread** içindeki **calculation_result** değeri için geçerli değil. Burada **calculation_result** değişkeninin **f64** türünden olduğunu ve **Copy trait**'ini implemente ettiğini hatırlatayım. O halde bu işi **Rust** tarafında istediğimiz şekilde ele almak için de birşeyler yapmamız gerekiyor. Her şeyden önce ortak verinin iki thread içerisinde de kullanılabiliyor olması lazım. Bunun için genellikle **Atomic Reference Counting *(Arc)*** isimli akıllı işaretçi *(smart pointer)* kullanılmakta.
 
-**Arc** enstrümanı bir verinin birden fazla sahibi olmasına olanak tanır ve bunun için referans sayımı yaparak belleğin doğru şekilde yönetilmesini sağlar. Ancak **Arc** tek başına yeterli değildir çünkü aynı anda birden fazla thread'in veriyi değiştirmesine izin verilmez. Bu nedenle **Mutex *(Mutual Exclusion)*** yapısını da kullanmamız gerekir. **Mutex**, aynı anda sadece bir thread'in veriye erişmesine izin verir ve böylece **data race** durumu önlenir. Aynen .net tarafında Lock ile yaptığımız gibi. Bu kombinasyonun uygulanışı aşağıdaki kod parçasında olduğu gibidir.
+**Arc** enstrümanı bir verinin birden fazla sahibi olmasına olanak tanır ve bunun için referans sayımı yaparak belleğin doğru şekilde yönetilmesini sağlar. Ancak **Arc** tek başına yeterli değildir çünkü aynı anda birden fazla thread'in veriyi değiştirmesine izin verilmez. Bu nedenle **Mutex *(Mutual Exclusion)*** yapısını da kullanmamız gerekir. **Mutex**, aynı anda sadece bir thread'in veriye erişmesine izin verir ve böylece **data race** durumu önlenir. Aynen .net tarafında Lock ile yaptığımız gibi. Bu kombinasyonun uygulanışından önce söz konusu senaryoda Arc bileşenini Mutex olmadan kullanmayı deneyelim. Aynen aşağıdaki kod parçasında olduğu gibi.
+
+```rust
+use std::thread;
+
+// CASE02: Bu senaryoda Arc'ı tek başına Mutex olmadan kullanırsak.
+use std::sync::Arc;
+
+fn main(){
+    let calculation_result = Arc::new(0.0_f64);
+
+    let calc_res_clone_1 = Arc::clone(&calculation_result);
+    let handle_1 = thread::spawn(move || {
+        for i in 1..=100 {
+            *calc_res_clone_1 += (i as f64).sqrt();
+            thread::sleep(std::time::Duration::from_millis(50));
+        }
+    });
+
+    let calc_res_clone_2 = Arc::clone(&calculation_result);
+    let handle_2 = thread::spawn(move || {
+        for i in 1..=100 {
+            *calc_res_clone_2 += (i as f64 + 1.0).ln();
+            thread::sleep(std::time::Duration::from_millis(50));
+        }
+    });
+
+    handle_1.join().unwrap();
+    handle_2.join().unwrap();
+
+    println!("Calculation result {}", *calculation_result);
+}
+```
+
+Programı bu şekilde çalıştırdığımızda derleyicini kırıcı mesajları ile başbaşa kalırız.
+
+![TryThis02_06](../images/TryThis02_06.png)
+
+Bu mesajlar ilk etapta anlamsız gibi görünse de tam olarak konuyla ilgilidir. **cannot assign to data in an `Arc`** ifadesini takiben söylenen **trait `DerefMut` is required to modify through a dereference, but it is not implemented for `Arc<f64>`** mesajı Arc ile sarmalanmış bir veriyi değiştirmek için gerekli olan **DerefMut** trait'inin implemente edilmediğini söyler. Yani Arc tek başına ortak veriyi değiştirmek için yeterli değildir, zira o sadece **Deref trait**'ini implemente etmektedir. Bize gerekli olan şeyse DerefMut implementasyonu. Bunu da **Mutex** kullanarak sağlayabiliriz.
 
 ```rust
 use std::thread;
@@ -298,6 +336,8 @@ fn main(){
     println!("Calculation result {}", *calculation_result.lock().unwrap());
 }
 ```
+
+Tabii kilitleri açık bir şekilde serbest bırakmak için bir kod kullanmadık ancak scope sonları zaten bu işin otomatik yapılmasını sağlayacaktır.
 
 İşte çalışma zamanı çıktısı.
 
