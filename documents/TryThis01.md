@@ -402,5 +402,60 @@ Thread oluştururken aslında Rust kodunda olduğu gibi fonksiyonu bloğunu bir 
 Diğer örneklerdeki değerlere yakınsan sonuçlar elde etsem de kendi özelinde değerlendirdiğimizde her seferinde farklı sonuçlar elde etmemiz son derece normal. Zira her thread işletim sisteminin de desteğiyle farklı zamanlarda çalışarak aynı veri üzerinden işlem yapmakta. **Zig** dilinde de bu tip senaryolarda verinin tutarlığını sağlamak ve her seferinde aynı sonuçlara ulaşmak için yine bir senkronizasyonu mekanizmasına başvurmamız gerekiyor ve burada da tahmin edeceğiniz üzere **Mutex** devreye giriyor. Aynı kod parçasında bu sefer **Mutext** tabanlı kilitleme fonskiyonelliklerini kullanarak ilerleyelim.
 
 ```zig
+const std = @import("std");
 
+// CASE 01 : Mutext ile ortak veri üzerinde thread işlemi
+pub fn main() !void {
+    var guard = std.Thread.Mutex{};
+    var calculation_result: f64 = 0.0;
+
+    const handle_1 = try std.Thread.spawn(
+        .{},
+        calcSqrt,
+        .{ &calculation_result, &guard },
+    );
+
+    const handle_2 = try std.Thread.spawn(
+        .{},
+        calcLn,
+        .{ &calculation_result, &guard },
+    );
+
+    handle_1.join();
+    handle_2.join();
+
+    std.debug.print("Calculation result {d}\n", .{calculation_result});
+}
+
+fn calcSqrt(value: *f64, guard: *std.Thread.Mutex) void {
+    for (1..100) |i| {
+        guard.lock();
+        value.* += std.math.sqrt(@as(f64, @floatFromInt(i)));
+        std.time.sleep(50 * std.time.ns_per_ms);
+        guard.unlock();
+    }
+}
+
+fn calcLn(value: *f64, guard: *std.Thread.Mutex) void {
+    for (1..100) |i| {
+        guard.lock();
+        defer guard.unlock();
+        value.* += std.math.log2(@as(f64, @floatFromInt(i)) + 1.0);
+        std.time.sleep(50 * std.time.ns_per_ms);
+    }
+}
 ```
+
+Kodumuzu şöyle bir inceleyelim. Olay burada biraz daha kolay kurgulandı sanki. Bir **Mutex** değişkeni tanımladık, söz konusu değişkeni **spawn** metodu üzerinden ilgili fonksiyona referans olarak aktardır. İlgili fonksiyonlarda da değişken değerini değiştirmeden hemen önce ve sonra kilitleyip, serbest bırakma işlemini icra ettik. Aslında sembolik duraksatma sürelerini unlock'un hemen arkasına da alabilirdik ama Rust tarafındaki kod parçasında döngü kapsamı bittiği noktada unlock çalışacak şekilde kodlama yaptığım için burada da benzer şekilde ilerlemek istedim. Dikkat etmişsinizdir calcLn fonksiyonu içerisinde **unlock** işlemi için **defer** ifadesi kullanılıyor. Yani iterasyonda devam ederken kilit otomatik olarak **unlock** çağrısı yapılmadan serbest kalıyor. Bunu sadece bir örnek olsun diye ekledim. Bazen ayrı thread içerisindeki kod bloklarında satır sayısı fazla olabilir. En başta **defer** ile **unlock** bildiriminde bulunmak kodun okunabilirliği açısından faydalı olabilir. Gelelim çalışma zamanı çıktısına. Kendi sistemimde elde ettiğim sonuçlar aşağıdaki ekran görüntüsünde olduğu gidi.
+
+![TryThis02_08](../images/TryThis02_08.png)
+
+**Rust** tarafındaki kilitleme stratejisinde de benzer bir durum söz konusuydu. Küsüratlarda ara sıra sapmalar yaşanıyor. Ancak genel olarak Zig tarafındaki sonuçların Rust tarafındaki sonuçlara daha yakın olduğunu söyleyebilirim. Yine de her iki dilde de thread'lerin çalışma zamanlarındaki farklılıklardan ötürü tam olarak aynı sonuçları elde etmek mümkün olmayabilir.
+
+## Başka Nelere Bakmalı?
+
+Bu örnekte ele aldığım senaryo son derece basit, gerçekten kullanılabilir değil ve giriş niteliğinde. Yine de ortak verinin değiştirileceği durumlarda basit kilit mekanizmalarının **C#**, **Rut** ve **Zig** özelinde nasıl ele alındığını bir dokümanda birleştirmiş olduk. Bu senaryolarda belki çalışma zamanını ölçümleyen ve testleri tekrarlı olarak icra eden mekanikler kullanarak sonuçları istatistiki anlamda değerlendirmek de iyi olabilir. Performans/Maliyet açısından da hem birbirlerine göre hem de kendi içlerinde ne gibi çıktılar ürettiklerini değerlendirebiliriz. Zira fark ediliyor ki, kilit mekanizmalarını devreye aldığımız anda toplam işlem süreleri de uzuyor ki bu çok normal. Ancak öyle senaryolar olabilir ki, veri kaybını göze alabiliriz ve bu durumda kilitleme mekanizmalarını da kullanmayız.
+
+Ne yazık ki hayat böylesine toz pembe değil. Özellikle değiştirilebilir verilerin çevrim içi platformlardan erişildiği kullanımlarda çok daha ileri çözümler gerekiyor. Bu tip senaryolarda olay aynı makinedeki **thread**'ler arasındaki yarıştan çok, dağıtık ağ ortamındaki makinelerin de işin içerisine girdiği durumları düşünmemizi gerektiriyor. Ölçekleme işin bir başka boyutu. Çözüm noktasında genellikle dağıtık kilitleme mekanizmaları, veri tabanı tabanlı kilitleme stratejileri veya mesaj tabanlı senkronizasyon çözümleri ele alınıyor. *(Demem o ki Redis, RabbitMQ, Zookeeper, vb)*
+
+Örneğin, **Redis** gibi **in-memory** çalışan ve bunu dağıtık ölçekte performanslı bir şekilde ele alan ürünler sıklıkla tercih ediliyor. Diğer yandan, mikroservis mimarilerinde olay güdümlü *(event-driven)* iletişim için değerlendirilen mesaj kuyruğu sistemleri de *(RabbitMQ gibi)* veri tutarlılığını sağlamak için düşünülebilir. Bu tip senaryoları değerlendirmek için farklı bir labaratuvar ortamı tesis etmek lazım. Zira demin de değindiğim gibi olay thread'ler arası değil uygulamalar arası bir senkronizasyonu da gerektiriyor. Setup'ı çok kolay olmayabilir ama belki ilerleyen zamanlarda bu konulara da değinirim. Şimdilik bu kadar. Bir sonraki denemede görüşmek üzere!
