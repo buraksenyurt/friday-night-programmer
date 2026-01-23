@@ -223,7 +223,7 @@ Bu sefer beklediğimiz gibi fonksiyon içerisinde stok seviyesinde yapılan değ
 
 ![TryThis00_5](../images/TryThis00_5.png)
 
-## Peki Ya İdel Yollar Hangisi?
+## Peki Ya İdeal Yol Hangisi?
 
 Programcıdan programcıya veya senaryodan senaryoya değişmekle birlikte benim tercihim, eğer bir veri yapısına ait nesne örneğinin state'ini değiştirmek istiyorsak bunu o veri yapısına ait metotlar üzerinden yapmak yönünde. Tabii söz konusu değişiklikler bir takım kurallar barındıran dış bağımlılıklar içerisindeki fonksiyonlarda yapılacaksa o nesne örneğinden yararlanarak yeni bir nesne örneği oluşturmak, yeni nesne örneği verisinde gerekli değişiklikleri yapıp geriye döndürmek de düşünülebilir. Her ikisinde de veri yapısının muhteviyatı önemli olabilir. Büyük bir nesne yapısında sadece ufak bir state değişikliği için yeni örnekleme ile geriye dönmek de çok mantıklı olmayabilir. Ama en azından senaryomuzdaki veri yapısını Rust ve Zig taraflarında belki yeni örnekler üretme yoluyla nasıl kullanabileceğimizi gösterebilirim.
 

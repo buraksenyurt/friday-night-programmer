@@ -86,7 +86,8 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
-- [Bunu Bir Dene - 00](./documents/TryThis00.md)
+- [Bunu Bir Dene - 01 - Multi-Thread Ortamlarda Ortak Veriyi Değiştirmek](./documents/TryThis01.md)
+- [Bunu Bir Dene - 00 - Metot Argümanlarında Değişiklik](./documents/TryThis00.md)
 - [Rust, Blanket Traits Nedir?](./documents/BlanketTraits.md)
 - [Rust, PhantomData Nedir?](./documents/PhantomData.md)
 - [Outbox Pattern Demo](./documents/OutboxDemo.md)

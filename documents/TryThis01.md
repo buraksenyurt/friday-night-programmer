@@ -354,6 +354,53 @@ Ay now, ay now... Tuhaf bir durum söz konusu. Yüksek hassasiyetli **64 bit flo
 
 ## Zig Tarafı
 
-Gelelim yeni yeni öğrenemye çalıştığım Zig tarafına.
+Gelelim yeni yeni öğrenemye çalıştığım Zig tarafına. Zig tarafında thread açmak ve mutex kullanımı da oldukça basit. Rust dilindekine benzer şekilde bir **spawn** fonksiyonu var ve **Thread** modülü altında tanımlanmış durumda. Yukarıdaki senaryomuzun bir benzerini başlangıçta herhangibir **data race** tedbiri almadan aşağıdaki şekilde yazabiliriz.
 
-> DEVAM EDECEK AMA ÖNCE ZİG'DE THREAD KONUSUNU ÖĞRENMEM LAZIM :)
+```zig
+const std = @import("std");
+
+pub fn main() !void {
+    var calculation_result: f64 = 0.0;
+
+    const handle_1 = try std.Thread.spawn(
+        .{},
+        calcSqrt,
+        .{&calculation_result},
+    );
+
+    const handle_2 = try std.Thread.spawn(
+        .{},
+        calcLn,
+        .{&calculation_result},
+    );
+
+    handle_1.join();
+    handle_2.join();
+
+    std.debug.print("Calculation result {d}\n", .{calculation_result});
+}
+
+fn calcSqrt(value: *f64) void {
+    for (1..100) |i| {
+        value.* += std.math.sqrt(@as(f64, @floatFromInt(i)));
+        std.time.sleep(50 * std.time.ns_per_ms);
+    }
+}
+
+fn calcLn(value: *f64) void {
+    for (1..100) |i| {
+        value.* += std.math.log2(@as(f64, @floatFromInt(i)) + 1.0);
+        std.time.sleep(50 * std.time.ns_per_ms);
+    }
+}
+```
+
+Thread oluştururken aslında Rust kodunda olduğu gibi fonksiyonu bloğunu bir **closure** mantığında spawn metodunda kullanmak istememe rağmen bunu başaramadım. Zira **spawn** metodu ikinci parametre olarak fonksiyon referansı bekliyor. Bu nedenle karekök ve logaritma hesaplamalarını yapan fonksiyonları ayrı ayrı tanımladım. Her iki fonksiyon da kendilerine aktarılan **f64** türünden işaretçi üzerinden aynı değişken verisini değiştiriyor. Program kodu herhangi bir hata vermeden çalıştı ve kendi sistemimde aşağıdakine ekran görüntüsündekine benzer çıktılar elde ettim.
+
+![TryThis02_07](../images/TryThis02_07.png)
+
+Diğer örneklerdeki değerlere yakınsan sonuçlar elde etsem de kendi özelinde değerlendirdiğimizde her seferinde farklı sonuçlar elde etmemiz son derece normal. Zira her thread işletim sisteminin de desteğiyle farklı zamanlarda çalışarak aynı veri üzerinden işlem yapmakta. **Zig** dilinde de bu tip senaryolarda verinin tutarlığını sağlamak ve her seferinde aynı sonuçlara ulaşmak için yine bir senkronizasyonu mekanizmasına başvurmamız gerekiyor ve burada da tahmin edeceğiniz üzere **Mutex** devreye giriyor. Aynı kod parçasında bu sefer **Mutext** tabanlı kilitleme fonskiyonelliklerini kullanarak ilerleyelim.
+
+```zig
+
+```
