@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "text": "Yazılım mühendisliği, karmaşık sistemler tasarlama sanatıdır."
+    },
+    {
+        "id": 2,
+        "text": "Kod yazarken algoritmalar ve veri yapıları çok önemlidir."
+    },
+    {
+        "id": 3,
+        "text": "En iyi pizza İtalya'da yenir, hamuru incedir."
+    },
+    {
+        "id": 4,
+        "text": "Futbol maçında ofsayt kuralı bazen tartışma yaratır."
+    },
+    {
+        "id": 5,
+        "text": "Yapay zeka ve makine öğrenimi, geleceğin teknolojileri arasında yer alıyor."
+    },
+    {
+        "id": 6,
+        "text": "Seyahat etmek, farklı kültürleri tanımak için harika bir yoldur."
+    },
+    {
+        "id": 7,
+        "text": "Müzik dinlemek ruhu besler ve stresi azaltır."
+    },
+    {
+        "id": 8,
+        "text": "Sağlıklı beslenme, uzun ve kaliteli bir yaşamın anahtarıdır."
+    },
+    {
+        "id": 9,
+        "text": "Doğa yürüyüşleri, şehir hayatının stresinden uzaklaşmak için mükemmeldir."
+    },
+    {
+        "id": 10,
+        "text": "Kitap okumak, bilgi edinmenin ve hayal gücünü geliştirmenin en iyi yollarından biridir."
+    },
+    {
+        "id": 11,
+        "text": "Rust programlama dili, güvenlik ve performans odaklı bir dildir."
+    },
+    {
+        "id": 12,
+        "text": "Python, veri bilimi ve yapay zeka alanında popüler bir programlama dilidir."
+    },
+    {
+        "id": 13,
+        "text": "JavaScript, web geliştirme için vazgeçilmez bir dildir."
+    },
+    {
+        "id": 14,
+        "text": "Go dili, basit ve etkili bir şekilde yüksek performanslı uygulamalar geliştirmek için kullanılır."
+    },
+    {
+        "id": 15,
+        "text": "C++ dili, sistem programlama ve oyun geliştirme gibi alanlarda yaygın olarak kullanılır."
+    }
+]
