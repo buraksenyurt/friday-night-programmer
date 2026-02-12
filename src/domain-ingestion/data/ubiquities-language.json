@@ -1,22 +1,112 @@
 [
   {
     "term": "SKU (Stock Keeping Unit)",
-    "definition": "A unique identifier for each distinct product and service that can be purchased. Represents the specific variation (e.g., T-Shirt, Red, Large).",
+    "definition": "A unique identifier for each distinct product and service that can be purchased. Represents the specific variation (e.g., T-Shirt, Red, Large). SKUs are always stored in uppercase and limited to 20 characters.",
     "context": "Inventory & Catalog Context"
   },
   {
     "term": "Product Aggregate",
-    "definition": "The cluster of domain objects including Product, ProductVariants, and ProductAttributes that are treated as a single unit for data changes.",
+    "definition": "The cluster of domain objects including Product (aggregate root), ProductVariants, and ProductAttributes that are treated as a single unit for data changes. All mutations must go through the Product root entity.",
+    "context": "Catalog Context"
+  },
+  {
+    "term": "Product Variant",
+    "definition": "A specific version of a product defined by attributes such as color, size, and material. Each variant carries its own stock quantity and may have a distinct SKU. Variants are child entities of the Product aggregate.",
+    "context": "Catalog Context"
+  },
+  {
+    "term": "Money",
+    "definition": "A value object representing a monetary amount paired with its currency code (e.g., 29.99 USD). Arithmetic operations between different currencies are prohibited and raise a CurrencyMismatchException.",
+    "context": "Domain Core"
+  },
+  {
+    "term": "Strongly-Typed ID",
+    "definition": "A value object wrapping a primitive identifier (typically Guid) to provide compile-time type safety. Examples include ProductId, OrderId, and CustomerId. Prevents accidentally passing an OrderId where a ProductId is expected.",
     "context": "Domain Core"
   },
   {
     "term": "Backorder",
-    "definition": "A retailer order for a product that is temporarily out of stock. The customer can purchase it, but shipment is delayed.",
-    "context": "Sales & Inventory"
+    "definition": "A retailer order for a product that is temporarily out of stock. The customer can place the order, but shipment is delayed until inventory is replenished. A backorder is created only when all variants of a product have zero stock.",
+    "context": "Sales & Inventory Context"
   },
   {
     "term": "Dynamic Pricing Rule",
-    "definition": "Algorithm-based adjustments to product prices based on real-time supply and demand, competitor pricing, or customer segments.",
+    "definition": "Algorithm-based adjustments to product prices using strategies such as percentage discount, fixed markup, or demand-based multiplier. Rules have an active period and are only applied when the current date falls within that range.",
     "context": "Marketing Context"
+  },
+  {
+    "term": "Domain Event",
+    "definition": "A record of something meaningful that happened within a single module (e.g., ProductCreatedEvent, PriceAdjustedEvent). Domain events are raised inside aggregate methods and dispatched after the database transaction commits. They trigger intra-module side effects.",
+    "context": "Domain Core"
+  },
+  {
+    "term": "Integration Event",
+    "definition": "An event published across module boundaries via MassTransit to notify other modules of a state change (e.g., ProductCreatedIntegrationEvent). Integration events carry only serializable primitive data, never domain objects.",
+    "context": "Cross-Module Communication"
+  },
+  {
+    "term": "Aggregate Root",
+    "definition": "The top-level entity in an aggregate that controls access to all child entities and enforces business invariants. External code may only reference the aggregate root, never its children directly.",
+    "context": "Domain Core"
+  },
+  {
+    "term": "Unit of Work",
+    "definition": "A pattern that groups one or more repository operations into a single database transaction. CommitAsync() persists all tracked changes atomically. Each module has its own Unit of Work tied to its internal DbContext.",
+    "context": "Infrastructure"
+  },
+  {
+    "term": "Cursor-Based Pagination",
+    "definition": "A pagination strategy where the client passes the last seen item's identifier (cursor) instead of a page number. Provides stable results under concurrent writes and performs better than offset pagination on large tables.",
+    "context": "API & Query Context"
+  },
+  {
+    "term": "Command",
+    "definition": "A request object (MediatR IRequest<T>) that represents an intent to change state (e.g., CreateProductCommand). Commands are handled by a single handler and always return a result object indicating success or failure.",
+    "context": "Application Layer (CQRS)"
+  },
+  {
+    "term": "Query",
+    "definition": "A request object (MediatR IRequest<T>) that represents a read-only data retrieval operation (e.g., GetProductsByCursorQuery). Queries never modify state and may use optimized read models or projections.",
+    "context": "Application Layer (CQRS)"
+  },
+  {
+    "term": "Module",
+    "definition": "A self-contained vertical slice of the application owning its own domain, application, infrastructure, and API layers. Modules communicate only through public contracts and integration events. Each module registers its services independently (e.g., AddCatalogModule()).",
+    "context": "Architecture"
+  },
+  {
+    "term": "Catalog Context",
+    "definition": "The bounded context responsible for managing the product catalog including products, variants, pricing, and categories. Owns the Product aggregate and publishes events when products are created or updated.",
+    "context": "Bounded Context"
+  },
+  {
+    "term": "Inventory Context",
+    "definition": "The bounded context responsible for tracking stock levels, warehouse locations, and replenishment. Consumes ProductCreatedIntegrationEvent to initialize stock records for new products.",
+    "context": "Bounded Context"
+  },
+  {
+    "term": "Order",
+    "definition": "An aggregate representing a customer's intent to purchase one or more products. Contains OrderLines (child entities), shipping address (value object), and payment status. Transitions through states: Pending, Confirmed, Shipped, Delivered, Cancelled.",
+    "context": "Sales Context"
+  },
+  {
+    "term": "Shopping Cart",
+    "definition": "A temporary, pre-order aggregate that holds items a customer intends to purchase. Cart items reference product SKUs and quantities. The cart is converted into an Order upon checkout.",
+    "context": "Sales Context"
+  },
+  {
+    "term": "Fulfillment",
+    "definition": "The process of picking, packing, and shipping an order to the customer. Triggered when an order moves to Confirmed status. The Fulfillment context listens for OrderConfirmedIntegrationEvent.",
+    "context": "Fulfillment Context"
+  },
+  {
+    "term": "Customer Segment",
+    "definition": "A grouping of customers based on shared characteristics (purchase frequency, total spend, geography) used for targeted marketing and dynamic pricing. Examples: VIP, New Customer, Wholesale.",
+    "context": "Marketing Context"
+  },
+  {
+    "term": "ProblemDetails",
+    "definition": "A standardized error response format defined by RFC 9457. All API error responses must use this format, including fields: type, title, status, detail, and instance. Ensures consistent error handling across all modules.",
+    "context": "API & Infrastructure"
   }
 ]

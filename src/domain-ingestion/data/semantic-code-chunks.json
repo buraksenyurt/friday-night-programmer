@@ -1,20 +1,92 @@
 [
   {
     "file_name": "Product.cs",
-    "type": "Domain Entity",
-    "content": "public class Product : AggregateRoot<ProductId>\n{\n    public string Name { get; private set; }\n    public Money Price { get; private set; }\n    private readonly List<ProductVariant> _variants = new();\n    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();\n\n    // .NET 9 / C# 12 Primary Constructor usage in static factory\n    public static Product Create(string name, Money price)\n    {\n        var product = new Product { Id = new ProductId(Guid.NewGuid()), Name = name, Price = price };\n        product.AddDomainEvent(new ProductCreatedEvent(product.Id));\n        return product;\n    }\n}",
-    "tags": ["ddd", "aggregate", "entity-framework"]
+    "content": "public class Product : AggregateRoot<ProductId>\n{\n    public string Name { get; private set; }\n    public Money Price { get; private set; }\n    public SKU Sku { get; private set; }\n    private readonly List<ProductVariant> _variants = new();\n    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();\n\n    public static Product Create(string name, Money price, SKU sku)\n    {\n        var product = new Product { Id = new ProductId(Guid.NewGuid()), Name = name, Price = price, Sku = sku };\n        product.AddDomainEvent(new ProductCreatedEvent(product.Id, sku));\n        return product;\n    }\n\n    public void AddVariant(string color, string size, int stockQuantity)\n    {\n        var variant = new ProductVariant(color, size, stockQuantity);\n        _variants.Add(variant);\n        AddDomainEvent(new VariantAddedEvent(Id, variant.VariantId));\n    }\n\n    public void ApplyDynamicPricing(DynamicPricingRule rule)\n    {\n        Price = rule.Calculate(Price);\n        AddDomainEvent(new PriceAdjustedEvent(Id, Price));\n    }\n}",
+    "tags": ["ddd", "aggregate-root", "domain-entity", "catalog-module", "value-object", "domain-event"]
   },
   {
-    "file_name": "GetProductDetails.razor.cs",
-    "type": "Razor Page Model",
-    "content": "public class GetProductDetailsModel(IProductService productService) : PageModel\n{\n    [BindProperty(SupportsGet = true)]\n    public Guid Id { get; set; }\n    public ProductDto Product { get; set; }\n\n    public async Task OnGetAsync()\n    {\n        Product = await productService.GetByIdAsync(Id);\n    }\n}",
-    "tags": ["frontend", "razor-pages", "primary-constructor"]
+    "file_name": "Money.cs",
+    "content": "public sealed record Money(decimal Amount, string Currency)\n{\n    public static Money Zero(string currency = \"USD\") => new(0m, currency);\n\n    public Money Add(Money other)\n    {\n        if (Currency != other.Currency)\n            throw new CurrencyMismatchException(Currency, other.Currency);\n        return this with { Amount = Amount + other.Amount };\n    }\n\n    public Money Multiply(decimal factor) => this with { Amount = Amount * factor };\n\n    public static implicit operator decimal(Money money) => money.Amount;\n}",
+    "tags": ["ddd", "value-object", "domain-core", "record-type"]
+  },
+  {
+    "file_name": "SKU.cs",
+    "content": "public sealed record SKU\n{\n    public string Value { get; }\n\n    public SKU(string value)\n    {\n        if (string.IsNullOrWhiteSpace(value) || value.Length > 20)\n            throw new InvalidSkuException(value);\n        Value = value.ToUpperInvariant();\n    }\n\n    public static implicit operator string(SKU sku) => sku.Value;\n    public override string ToString() => Value;\n}",
+    "tags": ["ddd", "value-object", "domain-core", "inventory-module", "validation"]
+  },
+  {
+    "file_name": "ProductCreatedEvent.cs",
+    "content": "public sealed record ProductCreatedEvent(ProductId ProductId, SKU Sku) : IDomainEvent\n{\n    public DateTime OccurredOn { get; } = DateTime.UtcNow;\n}",
+    "tags": ["ddd", "domain-event", "catalog-module", "event-driven"]
+  },
+  {
+    "file_name": "ProductCreatedIntegrationEvent.cs",
+    "content": "/// <summary>\n/// Published via MassTransit when a new product is created.\n/// Consumed by Inventory and Marketing modules.\n/// </summary>\npublic sealed record ProductCreatedIntegrationEvent(\n    Guid ProductId,\n    string Sku,\n    string Name,\n    decimal Price,\n    string Currency,\n    DateTime CreatedAt) : IIntegrationEvent;",
+    "tags": ["integration-event", "masstransit", "cross-module", "event-driven", "modular-monolith"]
+  },
+  {
+    "file_name": "CreateProductCommand.cs",
+    "content": "public sealed record CreateProductCommand(\n    string Name,\n    decimal Price,\n    string Currency,\n    string Sku) : IRequest<CreateProductResult>;\n\npublic sealed record CreateProductResult(Guid ProductId, bool Success, string? Error = null);",
+    "tags": ["cqrs", "command", "mediatr", "application-layer", "catalog-module"]
+  },
+  {
+    "file_name": "CreateProductHandler.cs",
+    "content": "internal sealed class CreateProductHandler(\n    IProductRepository repository,\n    IUnitOfWork unitOfWork,\n    ILogger<CreateProductHandler> logger) : IRequestHandler<CreateProductCommand, CreateProductResult>\n{\n    public async Task<CreateProductResult> Handle(CreateProductCommand request, CancellationToken ct)\n    {\n        logger.LogInformation(\"Creating product {Name} with SKU {Sku}\", request.Name, request.Sku);\n\n        var price = new Money(request.Price, request.Currency);\n        var sku = new SKU(request.Sku);\n        var product = Product.Create(request.Name, price, sku);\n\n        await repository.AddAsync(product, ct);\n        await unitOfWork.CommitAsync(ct);\n\n        return new CreateProductResult(product.Id.Value, true);\n    }\n}",
+    "tags": ["cqrs", "command-handler", "mediatr", "primary-constructor", "application-layer", "catalog-module"]
+  },
+  {
+    "file_name": "GetProductsByCursorQuery.cs",
+    "content": "public sealed record GetProductsByCursorQuery(\n    Guid? Cursor,\n    int PageSize = 20,\n    string? Category = null) : IRequest<CursorPagedResult<ProductListDto>>;\n\npublic sealed record CursorPagedResult<T>(\n    IReadOnlyList<T> Items,\n    Guid? NextCursor,\n    bool HasMore);",
+    "tags": ["cqrs", "query", "mediatr", "cursor-pagination", "application-layer", "rest-api"]
+  },
+  {
+    "file_name": "GetProductsByCursorHandler.cs",
+    "content": "internal sealed class GetProductsByCursorHandler(\n    IProductReadRepository readRepository) : IRequestHandler<GetProductsByCursorQuery, CursorPagedResult<ProductListDto>>\n{\n    public async Task<CursorPagedResult<ProductListDto>> Handle(GetProductsByCursorQuery request, CancellationToken ct)\n    {\n        var items = await readRepository.GetPagedAsync(request.Cursor, request.PageSize + 1, request.Category, ct);\n\n        var hasMore = items.Count > request.PageSize;\n        var page = hasMore ? items.Take(request.PageSize).ToList() : items;\n        var nextCursor = hasMore ? page.Last().Id : (Guid?)null;\n\n        return new CursorPagedResult<ProductListDto>(page, nextCursor, hasMore);\n    }\n}",
+    "tags": ["cqrs", "query-handler", "mediatr", "primary-constructor", "cursor-pagination", "catalog-module"]
   },
   {
     "file_name": "ProductConfiguration.cs",
-    "type": "EF Core Config",
-    "content": "public class ProductConfiguration : IEntityTypeConfiguration<Product>\n{\n    public void Configure(EntityTypeBuilder<Product> builder)\n    {\n        builder.HasKey(p => p.Id);\n        builder.Property(p => p.Id).HasConversion(id => id.Value, value => new ProductId(value));\n        builder.OwnsOne(p => p.Price, price => \n        {\n            price.Property(m => m.Amount).HasColumnName(\"PriceAmount\");\n            price.Property(m => m.Currency).HasColumnName(\"PriceCurrency\").HasMaxLength(3);\n        });\n    }\n}",
-    "tags": ["database", "ef-core", "value-object"]
+    "content": "internal class ProductConfiguration : IEntityTypeConfiguration<Product>\n{\n    public void Configure(EntityTypeBuilder<Product> builder)\n    {\n        builder.HasKey(p => p.Id);\n        builder.Property(p => p.Id)\n            .HasConversion(id => id.Value, value => new ProductId(value));\n        builder.OwnsOne(p => p.Price, price =>\n        {\n            price.Property(m => m.Amount).HasColumnName(\"PriceAmount\").HasPrecision(18, 2);\n            price.Property(m => m.Currency).HasColumnName(\"PriceCurrency\").HasMaxLength(3);\n        });\n        builder.OwnsOne(p => p.Sku, sku =>\n        {\n            sku.Property(s => s.Value).HasColumnName(\"SKU\").HasMaxLength(20);\n            sku.HasIndex(s => s.Value).IsUnique();\n        });\n        builder.HasMany(p => p.Variants).WithOne().HasForeignKey(\"ProductId\");\n    }\n}",
+    "tags": ["ef-core", "persistence", "value-object-mapping", "infrastructure", "catalog-module"]
+  },
+  {
+    "file_name": "CatalogDbContext.cs",
+    "content": "/// <summary>\n/// Internal to the Catalog module. No other module may reference this DbContext.\n/// See ARCH Rule DATA-002.\n/// </summary>\ninternal sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options)\n    : DbContext(options)\n{\n    public DbSet<Product> Products => Set<Product>();\n    public DbSet<ProductVariant> Variants => Set<ProductVariant>();\n\n    protected override void OnModelCreating(ModelBuilder modelBuilder)\n    {\n        modelBuilder.HasDefaultSchema(\"catalog\");\n        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);\n    }\n}",
+    "tags": ["ef-core", "dbcontext", "modular-monolith", "internal-scope", "primary-constructor", "catalog-module"]
+  },
+  {
+    "file_name": "IProductRepository.cs",
+    "content": "public interface IProductRepository\n{\n    Task<Product?> GetByIdAsync(ProductId id, CancellationToken ct = default);\n    Task<Product?> GetBySkuAsync(SKU sku, CancellationToken ct = default);\n    Task AddAsync(Product product, CancellationToken ct = default);\n    Task<bool> ExistsAsync(SKU sku, CancellationToken ct = default);\n}",
+    "tags": ["ddd", "repository-interface", "domain-core", "catalog-module"]
+  },
+  {
+    "file_name": "ProductRepository.cs",
+    "content": "internal sealed class ProductRepository(\n    CatalogDbContext dbContext) : IProductRepository\n{\n    public async Task<Product?> GetByIdAsync(ProductId id, CancellationToken ct)\n        => await dbContext.Products\n            .Include(p => p.Variants)\n            .FirstOrDefaultAsync(p => p.Id == id, ct);\n\n    public async Task<Product?> GetBySkuAsync(SKU sku, CancellationToken ct)\n        => await dbContext.Products\n            .FirstOrDefaultAsync(p => p.Sku == sku, ct);\n\n    public async Task AddAsync(Product product, CancellationToken ct)\n        => await dbContext.Products.AddAsync(product, ct);\n\n    public async Task<bool> ExistsAsync(SKU sku, CancellationToken ct)\n        => await dbContext.Products.AnyAsync(p => p.Sku == sku, ct);\n}",
+    "tags": ["repository", "ef-core", "infrastructure", "primary-constructor", "internal-scope", "catalog-module"]
+  },
+  {
+    "file_name": "ProductsController.cs",
+    "content": "[ApiController]\n[Route(\"api/catalog/products\")]\ninternal sealed class ProductsController(ISender sender) : ControllerBase\n{\n    [HttpPost]\n    [ProducesResponseType(typeof(CreateProductResult), StatusCodes.Status201Created)]\n    public async Task<IActionResult> Create([FromBody] CreateProductCommand command, CancellationToken ct)\n    {\n        var result = await sender.Send(command, ct);\n        return result.Success\n            ? CreatedAtAction(nameof(GetById), new { id = result.ProductId }, result)\n            : BadRequest(result);\n    }\n\n    [HttpGet(\"{id:guid}\")]\n    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)\n        => Ok(await sender.Send(new GetProductByIdQuery(id), ct));\n\n    [HttpGet]\n    public async Task<IActionResult> List([FromQuery] Guid? cursor, [FromQuery] int pageSize = 20, CancellationToken ct = default)\n        => Ok(await sender.Send(new GetProductsByCursorQuery(cursor, pageSize), ct));\n}",
+    "tags": ["rest-api", "controller", "mediatr", "primary-constructor", "cursor-pagination", "catalog-module"]
+  },
+  {
+    "file_name": "DomainEventDispatcher.cs",
+    "content": "internal sealed class DomainEventDispatcher(\n    IPublisher publisher,\n    ILogger<DomainEventDispatcher> logger) : IDomainEventDispatcher\n{\n    public async Task DispatchEventsAsync(DbContext context, CancellationToken ct)\n    {\n        var aggregates = context.ChangeTracker\n            .Entries<IAggregateRoot>()\n            .Where(e => e.Entity.DomainEvents.Any())\n            .Select(e => e.Entity)\n            .ToList();\n\n        var events = aggregates.SelectMany(a => a.DomainEvents).ToList();\n        aggregates.ForEach(a => a.ClearDomainEvents());\n\n        foreach (var domainEvent in events)\n        {\n            logger.LogDebug(\"Dispatching domain event {EventType}\", domainEvent.GetType().Name);\n            await publisher.Publish(domainEvent, ct);\n        }\n    }\n}",
+    "tags": ["ddd", "domain-event", "mediatr", "infrastructure", "primary-constructor", "cross-cutting"]
+  },
+  {
+    "file_name": "BackorderService.cs",
+    "content": "internal sealed class BackorderService(\n    IProductRepository productRepository,\n    IBackorderRepository backorderRepository,\n    IUnitOfWork unitOfWork,\n    ILogger<BackorderService> logger) : IBackorderService\n{\n    public async Task<BackorderResult> PlaceBackorderAsync(ProductId productId, int quantity, CustomerId customerId, CancellationToken ct)\n    {\n        var product = await productRepository.GetByIdAsync(productId, ct)\n            ?? throw new ProductNotFoundException(productId);\n\n        if (product.Variants.Any(v => v.StockQuantity > 0))\n            return BackorderResult.NotNeeded();\n\n        var backorder = Backorder.Create(productId, customerId, quantity);\n        await backorderRepository.AddAsync(backorder, ct);\n        await unitOfWork.CommitAsync(ct);\n\n        logger.LogInformation(\"Backorder {BackorderId} placed for product {ProductId}\", backorder.Id, productId);\n        return BackorderResult.Placed(backorder.Id);\n    }\n}",
+    "tags": ["domain-service", "backorder", "primary-constructor", "inventory-module", "logging"]
+  },
+  {
+    "file_name": "DynamicPricingRule.cs",
+    "content": "public sealed class DynamicPricingRule\n{\n    public PricingStrategy Strategy { get; init; }\n    public decimal Factor { get; init; }\n    public DateRange ActivePeriod { get; init; } = null!;\n\n    public Money Calculate(Money currentPrice) => Strategy switch\n    {\n        PricingStrategy.PercentageDiscount => currentPrice.Multiply(1 - Factor / 100),\n        PricingStrategy.FixedMarkup => currentPrice.Add(new Money(Factor, currentPrice.Currency)),\n        PricingStrategy.DemandBased => currentPrice.Multiply(Factor),\n        _ => currentPrice\n    };\n\n    public bool IsActive() => ActivePeriod.Contains(DateTime.UtcNow);\n}\n\npublic enum PricingStrategy { PercentageDiscount, FixedMarkup, DemandBased }",
+    "tags": ["domain-logic", "pricing", "strategy-pattern", "marketing-module", "value-object"]
+  },
+  {
+    "file_name": "GetProductDetailsModel.razor.cs",
+    "content": "public sealed class GetProductDetailsModel(\n    ISender sender,\n    ILogger<GetProductDetailsModel> logger) : PageModel\n{\n    [BindProperty(SupportsGet = true)]\n    public Guid Id { get; set; }\n    public ProductDetailDto? Product { get; set; }\n\n    public async Task<IActionResult> OnGetAsync(CancellationToken ct)\n    {\n        Product = await sender.Send(new GetProductByIdQuery(Id), ct);\n        if (Product is null)\n        {\n            logger.LogWarning(\"Product {Id} not found\", Id);\n            return NotFound();\n        }\n        return Page();\n    }\n}",
+    "tags": ["frontend", "razor-pages", "primary-constructor", "mediatr", "catalog-module"]
   }
 ]

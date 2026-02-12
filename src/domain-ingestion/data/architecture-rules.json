@@ -2,25 +2,133 @@
   {
     "rule_id": "ARCH-001",
     "category": "Modular Monolith",
-    "description": "Modules must be loosely coupled. Cross-module communication must occur only via public contracts or domain events/integration events using MassTransit.",
+    "description": "Modules must be loosely coupled. Cross-module communication must occur only via public contracts or domain events/integration events using MassTransit. Direct class references across module boundaries are forbidden.",
     "enforcement": "Strict"
+  },
+  {
+    "rule_id": "ARCH-002",
+    "category": "Modular Monolith",
+    "description": "Each module must have its own independent dependency injection registration (e.g., AddCatalogModule()). Module internals must be encapsulated via 'internal' access modifier and exposed only through public interfaces.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "ARCH-003",
+    "category": "Modular Monolith",
+    "description": "Module folder structure must follow: Module/Application (commands, queries, handlers), Module/Domain (entities, value objects, events), Module/Infrastructure (repositories, EF config), Module/Api (controllers, endpoints).",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "DDD-001",
+    "category": "Domain-Driven Design",
+    "description": "All domain mutations must go through aggregate root methods. Direct property setters are prohibited; use private setters and factory methods (e.g., Product.Create()) to enforce invariants.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "DDD-002",
+    "category": "Domain-Driven Design",
+    "description": "Value objects (Money, SKU, DateRange, etc.) must be implemented as C# records or record structs. They must be immutable and include self-validation in their constructors.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "DDD-003",
+    "category": "Domain-Driven Design",
+    "description": "Domain events must be raised within aggregate methods and dispatched after SaveChanges via a DomainEventDispatcher. Domain events are for intra-module side effects; integration events are for cross-module communication.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "DDD-004",
+    "category": "Domain-Driven Design",
+    "description": "Repositories must operate on aggregate roots only. There must be no repository for child entities. Use navigation properties and cascade operations through the aggregate root.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "CQRS-001",
+    "category": "CQRS",
+    "description": "Commands and queries must be separated using MediatR IRequest<T> pattern. Commands mutate state and return result objects. Queries are read-only and may use optimized read models or projections.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "CQRS-002",
+    "category": "CQRS",
+    "description": "Command and query handlers must be internal sealed classes using primary constructors for dependency injection. One handler per file. Handler classes must not contain business logic; delegate to domain objects.",
+    "enforcement": "Recommended"
   },
   {
     "rule_id": "NET-009",
     "category": "Language Features",
-    "description": "Use C# 12/13 Primary Constructors for all Dependency Injection in Controllers and Services to reduce boilerplate code.",
+    "description": "Use C# 12/13 Primary Constructors for all dependency injection in controllers, services, and handlers to reduce boilerplate. Field-backed properties may be used for mutable state.",
     "enforcement": "Recommended"
+  },
+  {
+    "rule_id": "NET-010",
+    "category": "Language Features",
+    "description": "Prefer pattern matching (switch expressions, is patterns) over if-else chains and type casting. Use exhaustive switch expressions for enum-based dispatch to ensure compile-time safety.",
+    "enforcement": "Recommended"
+  },
+  {
+    "rule_id": "DATA-001",
+    "category": "Persistence",
+    "description": "All EF Core entity configurations must use IEntityTypeConfiguration<T> in separate files. No Fluent API or data annotations in entity classes. Value objects must be configured with OwnsOne/OwnsMany.",
+    "enforcement": "Mandatory"
   },
   {
     "rule_id": "DATA-002",
     "category": "Persistence",
-    "description": "Entity Framework Core DbContexts must be internal to their specific module. No shared DbContext is allowed across modules.",
+    "description": "Entity Framework Core DbContexts must be internal to their specific module. No shared DbContext is allowed across modules. Each module defines its own schema (e.g., HasDefaultSchema).",
     "enforcement": "Strict"
+  },
+  {
+    "rule_id": "DATA-003",
+    "category": "Persistence",
+    "description": "Strongly-typed IDs (e.g., ProductId, OrderId) must be used for all aggregate root identifiers. EF Core value converters must handle the mapping between the strongly-typed ID and the database column.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "API-001",
+    "category": "REST API",
+    "description": "Controllers must be thin. They receive a request, send a MediatR command/query, and return the result. No business logic, validation, or data access in controllers.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "API-002",
+    "category": "REST API",
+    "description": "All endpoints must use CancellationToken for cooperative cancellation. Async methods must propagate the token to all downstream calls (repositories, HTTP clients, MediatR).",
+    "enforcement": "Mandatory"
   },
   {
     "rule_id": "API-005",
     "category": "REST API",
-    "description": "All list endpoints must support cursor-based pagination to handle large datasets efficiently.",
+    "description": "All list endpoints must support cursor-based pagination to handle large datasets efficiently. Offset-based pagination is not allowed due to performance degradation on large tables.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "API-006",
+    "category": "REST API",
+    "description": "API responses must use consistent result wrappers. Success responses return the DTO directly. Error responses must use ProblemDetails (RFC 9457) with appropriate HTTP status codes.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "TEST-001",
+    "category": "Testing",
+    "description": "Domain entities and value objects must have unit tests covering invariant enforcement, factory methods, and business rules. Test names must follow the Given_When_Then convention.",
+    "enforcement": "Mandatory"
+  },
+  {
+    "rule_id": "TEST-002",
+    "category": "Testing",
+    "description": "Integration tests for command/query handlers must use Testcontainers for PostgreSQL. No in-memory database provider is allowed for integration testing as it does not represent real behavior.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "SEC-001",
+    "category": "Security",
+    "description": "All endpoints must be protected with authorization policies. Public endpoints must be explicitly marked with [AllowAnonymous]. Use policy-based authorization over role-based where possible.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "OBS-001",
+    "category": "Observability",
+    "description": "Structured logging via ILogger<T> is mandatory in all handlers and services. Log messages must use message templates with named parameters (no string interpolation). Critical paths must include correlation IDs.",
     "enforcement": "Mandatory"
   }
 ]
