@@ -1,0 +1,22 @@
+[
+  {
+    "term": "SKU (Stock Keeping Unit)",
+    "definition": "A unique identifier for each distinct product and service that can be purchased. Represents the specific variation (e.g., T-Shirt, Red, Large).",
+    "context": "Inventory & Catalog Context"
+  },
+  {
+    "term": "Product Aggregate",
+    "definition": "The cluster of domain objects including Product, ProductVariants, and ProductAttributes that are treated as a single unit for data changes.",
+    "context": "Domain Core"
+  },
+  {
+    "term": "Backorder",
+    "definition": "A retailer order for a product that is temporarily out of stock. The customer can purchase it, but shipment is delayed.",
+    "context": "Sales & Inventory"
+  },
+  {
+    "term": "Dynamic Pricing Rule",
+    "definition": "Algorithm-based adjustments to product prices based on real-time supply and demand, competitor pricing, or customer segments.",
+    "context": "Marketing Context"
+  }
+]

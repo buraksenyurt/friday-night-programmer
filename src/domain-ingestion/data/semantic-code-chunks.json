@@ -1,0 +1,20 @@
+[
+  {
+    "file_name": "Product.cs",
+    "type": "Domain Entity",
+    "content": "public class Product : AggregateRoot<ProductId>\n{\n    public string Name { get; private set; }\n    public Money Price { get; private set; }\n    private readonly List<ProductVariant> _variants = new();\n    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();\n\n    // .NET 9 / C# 12 Primary Constructor usage in static factory\n    public static Product Create(string name, Money price)\n    {\n        var product = new Product { Id = new ProductId(Guid.NewGuid()), Name = name, Price = price };\n        product.AddDomainEvent(new ProductCreatedEvent(product.Id));\n        return product;\n    }\n}",
+    "tags": ["ddd", "aggregate", "entity-framework"]
+  },
+  {
+    "file_name": "GetProductDetails.razor.cs",
+    "type": "Razor Page Model",
+    "content": "public class GetProductDetailsModel(IProductService productService) : PageModel\n{\n    [BindProperty(SupportsGet = true)]\n    public Guid Id { get; set; }\n    public ProductDto Product { get; set; }\n\n    public async Task OnGetAsync()\n    {\n        Product = await productService.GetByIdAsync(Id);\n    }\n}",
+    "tags": ["frontend", "razor-pages", "primary-constructor"]
+  },
+  {
+    "file_name": "ProductConfiguration.cs",
+    "type": "EF Core Config",
+    "content": "public class ProductConfiguration : IEntityTypeConfiguration<Product>\n{\n    public void Configure(EntityTypeBuilder<Product> builder)\n    {\n        builder.HasKey(p => p.Id);\n        builder.Property(p => p.Id).HasConversion(id => id.Value, value => new ProductId(value));\n        builder.OwnsOne(p => p.Price, price => \n        {\n            price.Property(m => m.Amount).HasColumnName(\"PriceAmount\");\n            price.Property(m => m.Currency).HasColumnName(\"PriceCurrency\").HasMaxLength(3);\n        });\n    }\n}",
+    "tags": ["database", "ef-core", "value-object"]
+  }
+]

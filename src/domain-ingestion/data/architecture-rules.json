@@ -1,0 +1,26 @@
+[
+  {
+    "rule_id": "ARCH-001",
+    "category": "Modular Monolith",
+    "description": "Modules must be loosely coupled. Cross-module communication must occur only via public contracts or domain events/integration events using MassTransit.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "NET-009",
+    "category": "Language Features",
+    "description": "Use C# 12/13 Primary Constructors for all Dependency Injection in Controllers and Services to reduce boilerplate code.",
+    "enforcement": "Recommended"
+  },
+  {
+    "rule_id": "DATA-002",
+    "category": "Persistence",
+    "description": "Entity Framework Core DbContexts must be internal to their specific module. No shared DbContext is allowed across modules.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "API-005",
+    "category": "REST API",
+    "description": "All list endpoints must support cursor-based pagination to handle large datasets efficiently.",
+    "enforcement": "Mandatory"
+  }
+]

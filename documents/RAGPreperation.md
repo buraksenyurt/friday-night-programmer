@@ -48,8 +48,107 @@ Normal şartlarda büyük dil modelleri ile çalışırken API'ler üzerinden il
 
 Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine bir AI modelinden yararlanarak embedding için gerekli girdiye dönüştürülebilir. Yani, Claude Sonnet'den Opus'tan veya Gemini'dan ya da muadillerinden yararlarank dokümanları taraması ve mimari, domain dili ve diğer semantik bağlamlara göre bölümlere ayırarak embedding için hazır hale getirilmesi istenebilir. Ben bu öğreti çerçevesinde örnek üç json dokümanı ile ilerleyeceğim.
 
-ubiquities-language.json: Projede kullanılan terimlerin tanımlarını ve birbirleriyle ilişkilerini içeren bir json dosyası. Aşağıdaki gibi basit bir içerik düşünebiliriz.
+Örnekte bir e-ticaret sitesini baz alıyorum. Elbette kocaman domain'i ele almak çok zor. Küçük bir alanı değerlendirmek öğretinin sağlıklı yürümesi açısından kritik. Sadece ürün yönetim sürecini göz önüne alabiliriz mesela. Buna bağlı olarak üç doküman hazırlayacağız. Domain jargonu için büyük önem arz eden [ubiquities-language](../src/domain-ingestion/data/ubiquities-language.json), yazılım mimarisinin temellerini tarifleyen [architecture-rules](../src/domain-ingestion/data/architecture-rules.json) ve kod tarafındaki semantik ilişkilerin tanımlandığı [semantic-code-chunks](../src/domain-ingestion/data/semantic-code-chunks.json).
+
+**ubiquities-language.json:** Projede kullanılan terimlerin tanımlarını ve birbirleriyle ilişkilerini içeren bir json dosyası. Aşağıdaki gibi basit bir içerik düşünebiliriz. Burada terim, terimin açıklaması ve dahil olduğu kapsam belirtilir. Gerçek dünya senaryolarında bu içerik daha da geniş olabilir. İlişkiler detaylandırılabilir ve iş kuralları işlenebilir. Buradan hareketle vektör veritabanına alınacak olan domain bilgisi, AI vekillerinin çizilen çerçeve sınırları içerisinde analizler hazırlayabilmesine de olanak sağlar.
 
 ```json
+[
+  {
+    "term": "SKU (Stock Keeping Unit)",
+    "definition": "A unique identifier for each distinct product and service that can be purchased. Represents the specific variation (e.g., T-Shirt, Red, Large).",
+    "context": "Inventory & Catalog Context"
+  },
+  {
+    "term": "Product Aggregate",
+    "definition": "The cluster of domain objects including Product, ProductVariants, and ProductAttributes that are treated as a single unit for data changes.",
+    "context": "Domain Core"
+  },
+  {
+    "term": "Backorder",
+    "definition": "A retailer order for a product that is temporarily out of stock. The customer can purchase it, but shipment is delayed.",
+    "context": "Sales & Inventory"
+  },
+  {
+    "term": "Dynamic Pricing Rule",
+    "definition": "Algorithm-based adjustments to product prices based on real-time supply and demand, competitor pricing, or customer segments.",
+    "context": "Marketing Context"
+  }
+]
+```
+
+**architecture-rules.json:** Bu veri setinde ise projenin mimari tasarımı ile ilgili bir bağlam işlenir. Mimari model, kullanılan dil, verinin hangi strateji ile depolanacağı, servis haberleşme türleri, domain nesne kurguları gibi AI vekillerinin işini olabildiğince kolaylaştıracak detaylar verilir. Örneğin;
+
+```json
+[
+  {
+    "rule_id": "ARCH-001",
+    "category": "Modular Monolith",
+    "description": "Modules must be loosely coupled. Cross-module communication must occur only via public contracts or domain events/integration events using MassTransit.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "NET-009",
+    "category": "Language Features",
+    "description": "Use C# 12/13 Primary Constructors for all Dependency Injection in Controllers and Services to reduce boilerplate code.",
+    "enforcement": "Recommended"
+  },
+  {
+    "rule_id": "DATA-002",
+    "category": "Persistence",
+    "description": "Entity Framework Core DbContexts must be internal to their specific module. No shared DbContext is allowed across modules.",
+    "enforcement": "Strict"
+  },
+  {
+    "rule_id": "API-005",
+    "category": "REST API",
+    "description": "All list endpoints must support cursor-based pagination to handle large datasets efficiently.",
+    "enforcement": "Mandatory"
+  }
+]
+```
+
+**semantic-code-chunks:** Burası tamamen kod tabanı ile ilgilidir. Metotların imzaları, servis tanımları, enstrümanların türleri ve onları tanımlayan tag'lara yer verilebilir. Örneğin;
+
+```json
+[
+  {
+    "file_name": "Product.cs",
+    "type": "Domain Entity",
+    "content": "public class Product : AggregateRoot<ProductId>\n{\n    public string Name { get; private set; }\n    public Money Price { get; private set; }\n    private readonly List<ProductVariant> _variants = new();\n    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();\n\n    // .NET 9 / C# 12 Primary Constructor usage in static factory\n    public static Product Create(string name, Money price)\n    {\n        var product = new Product { Id = new ProductId(Guid.NewGuid()), Name = name, Price = price };\n        product.AddDomainEvent(new ProductCreatedEvent(product.Id));\n        return product;\n    }\n}",
+    "tags": ["ddd", "aggregate", "entity-framework"]
+  },
+  {
+    "file_name": "GetProductDetails.razor.cs",
+    "type": "Razor Page Model",
+    "content": "public class GetProductDetailsModel(IProductService productService) : PageModel\n{\n    [BindProperty(SupportsGet = true)]\n    public Guid Id { get; set; }\n    public ProductDto Product { get; set; }\n\n    public async Task OnGetAsync()\n    {\n        Product = await productService.GetByIdAsync(Id);\n    }\n}",
+    "tags": ["frontend", "razor-pages", "primary-constructor"]
+  },
+  {
+    "file_name": "ProductConfiguration.cs",
+    "type": "EF Core Config",
+    "content": "public class ProductConfiguration : IEntityTypeConfiguration<Product>\n{\n    public void Configure(EntityTypeBuilder<Product> builder)\n    {\n        builder.HasKey(p => p.Id);\n        builder.Property(p => p.Id).HasConversion(id => id.Value, value => new ProductId(value));\n        builder.OwnsOne(p => p.Price, price => \n        {\n            price.Property(m => m.Amount).HasColumnName(\"PriceAmount\");\n            price.Property(m => m.Currency).HasColumnName(\"PriceCurrency\").HasMaxLength(3);\n        });\n    }\n}",
+    "tags": ["database", "ef-core", "value-object"]
+  }
+]
+```
+
+### Aktarım Uygulaması
+
+Bu JSON veri setleri JSON veri seti olmak zorunda değil elbette :D Ancak içerideki tanımlamalar kritik. Bağlamları anlamlı şekilde ifade etmenin bir yolu olarak her parçanın kendi içinde farklı nitelikleri *(attribute)* var. Bunlar vektör enstrümanları ile inşa edilen hafifsiklet sinir ağındaki boğumlar arası ilişkilerin kurgulanmasında rol oynayacak. Şimdi bu veri setlerini işleyip, **QDrant** veritabanına alacak uygulamayı yazmaya başlayabiliriz. Ben bunun için **Rust** ile ilerlemeyi düşünüyorum zira oldukça iyi **crate**'lere sahip. Dolayısıyla Rust uygulamasının **toml** içeriği aşağıdaki bağımlılıkları içermeli.
+
+```toml
+[dependencies]
+anyhow = "1.0.101"
+qdrant-client = "1.16.0"
+reqwest = { version = "0.13.2", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.49.0", features = ["full"] }
+```
+
+Hata yönetimini etkili şekilde yapmak için **anyhow**'u, **Qdrant** veritabanı ile iletişim için **qdrant-client**'i, **JSON** verilerini işlemek için **serde** ve **serde_json**'u, asenkron operasyon desteği sağlamak için de **tokio** küfelerini kullanacağız. Ayrıca **embedding** hesaplamaları için de LM Studio'nun API'sine istek atmamız gerekiyor ki bunun amaçla **reqwest** küfesini kullanacağız. Uygulama kodlarımızı da aşağıdaki gibi geliştirebiliriz.
+
+```rust
 
 ```
