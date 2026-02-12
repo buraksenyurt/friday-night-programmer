@@ -105,10 +105,22 @@ services:
       MINIO_ROOT_PASSWORD: password
     command: server --console-address ":9001" /data
 
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333" # REST API Portu
+      - "6334:6334" # GRPC Portu
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: always
+    networks:
+      - fnp-network
+
 volumes:
   postgres_data:
   ftp_data:
   minio_data:
+  qdrant_storage:
 
 networks:
   fnp-network:
