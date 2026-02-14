@@ -86,6 +86,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [C# Tarafında Langchain Kullanımı](./documents/LangchainWithCSharp.md)
 - [RAG içib Hazırlıklar](./documents/RAGPreparation.md)
 - [Embedding Denilen Kavram](./documents/Embedding.md)
 - [Bunu Bir Dene - 01 - Multi-Thread Ortamlarda Ortak Veriyi Değiştirmek](./documents/TryThis01.md)
