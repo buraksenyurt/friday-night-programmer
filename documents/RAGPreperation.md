@@ -1,12 +1,14 @@
 # RAG - Retrieval Augmented Generation İçin Hazırlıklar
 
-Senaryom şöyle; Mimari tasarımı, domain yapısı belli olan bir çözümde Copilot ajanlarını kullanırken yapılan geliştirme/analiz taleplerinde genel dil modelinin RAG ile çizilen çerçeve içerisinde kalmasını sağlamak ve beklentilere en yakın sonuçları yakalamak. Örneğin github üzerinde geliştirdiğimiz büyük çaplı DDD *(Domain Driven Design)* ile uyumlu bir projeye Senior Software Developer/Business Analyst gibi rolleri tanımlanmış vekil botlar tanımladığımızı düşünelim. Bu botlardan Copilot yardımıyla bir şeyler yapmasını istediğimizde bizim belirlediğimiz kapsam içerisinde hareket etmesini sağlamak için bir RAG düzeneğine ihtiyacımız olacak. Bu düzenek içinse bazı ön hazırlıklara ihtiyacımız var.
+Senaryom şöyle; Mimari tasarımı, domain yapısı belli olan bir çözümde **Copilot** ajanlarını kullanırken yapılan geliştirme/analiz taleplerinde genel dil modelinin **RAG** ile çizilen çerçeve içerisinde kalmasını sağlamak ve beklentilere en yakın sonuçları elde etmek. Örneğin **github** üzerinde geliştirdiğimiz büyük çaplı **DDD *(Domain Driven Design)*** ile uyumlu bir projeye **Senior Software Developer**, **Business Analyst** gibi rolleri üstlenen vekil botlar eklediğimizi düşünelim. Bu botlardan **Copilot** yardımıyla bir şeyler yapmasını istediğimizde bizim belirlediğimiz kapsam içerisinde hareket etmesini sağlamak için bir bir **RAG** düzeneği kullanabiliriz. Ancak bu **pipeline**'i kurmadan önce bazı hazırlıkların yapılması gerekiyor. Bu yazıda bu hazırlık sürecini ele almaya çalışıyorum.
 
-En önemli kısımlardan birisi terimler arası ilişkilerin tespiti, matematiksel olarak ifade edilebilmesi ve yakınlıklarının tespiti. Özellikle markdown tabanlı içeriklerin olduğu *spec-oriented* temelli içeriklerde Text Embedding mekanizması ile - [ki şurada bir girizgah yapmıştım](Embedding.md) bu ilişkiler kolayca hesaplanabiliyor. Bu çalışmadaki amacım mimari tasarım, domain dili ve semantik bağlamların bulunduğu JSON tabanlı veri içeriklerini embedding hesaplamalarını da yaptırarak vektörel bir veritabanına almak. Bu RAG tesisatı için ilk adım olarak da düşünülebilir.
+En önemli kısımlardan birisi terimler arası ilişkilerin matematiksel olarak ifade edilebilmesi ve yakınlıklarının ya da bir başka deyişle birbirleriyle alakalarının tespiti. Özellikle **markdown** tabanlı içeriklerin olduğu *spec-oriented* temelli yaklaşımlarda **Text Embedding** mekanizması ile - [ki şurada bir girizgah yapmıştım](Embedding.md) bu ilişkiler kolayca hesaplanabiliyor. Bu çalışmadaki amacım mimari tasarım, domain dili ve semantik bağlamların bulunduğu **JSON** tabanlı veri içeriklerini embedding hesaplamalarını da yaptırarak vektörel bir veritabanına almak. Bu RAG tesisatı için ilk adım olarak da düşünülebilir.
+
+Tabii normalde bu detayların olduğu **JSON** kaynakları yerine **markdown** formatlı anlatımlar girdi olarak tercih edilebilir. Böyle bir senaryoda **Lagnchain** ile dokümanları taramak, bölümleyerek parçalamak ve embedding için hazır hale getirmek daha sık kullanılan bir yöntem gördüğüm kadarı ile. Ancak ben bu çalışmada doğrudan **JSON** veri setleri ile ilerleyeceğim. Böylece daha kontrollü bir deney yapabilirim diye düşünüyorum. Ayrıca **JSON** formatında verilerle çalışmak embedding hesaplamaları ve vektör veritabanına yükleme süreçlerini kolaylaştırır.
 
 ## Qdrant Veritabanı
 
-Vektör tabanlı veritabanı olarak **Rust** ile yazılmış [Qdrant](https://qdrant.tech/documentation/overview/)'ı tercih ediyorum *(Github reposu da [şurada](https://github.com/qdrant/qdrant)* Rust ile yazılmış olması yüksek performans ve güvenilir bir bellek kullanımı getiriyor. Ayrıca **REST** ve **gRPC** protokollerini destekleyen API hizmeti ve kullanışlı bir arayüzü var. *(Alternatif olarak **Memcached** veritabanı da tercih edilebilir)* Pek tabii sistemimi kirletmek istemediğimden bir docker imajı kullanacağım. Bu yüzden hali hazırda bu repoya tahsis ettiğim [docker-compose](../docker-compose.yml) dosyasına aşağıdaki servis tanımını ekledim.
+Vektör tabanlı veritabanı olarak **Rust** ile yazılmış [Qdrant](https://qdrant.tech/documentation/overview/)'ı tercih ediyorum *(Github reposu da [şurada](https://github.com/qdrant/qdrant)* **Rust** ile yazılmış olması yüksek performans ve güvenilir bellek kullanımı avantajlarını beraberinde getirmekte. Ayrıca **REST** ve **gRPC** protokollerini destekleyen **API** hizmeti ve kullanışlı bir arayüzü var. *(Alternatif olarak **Memcached** veritabanı da tercih edilebilir)* Pek tabii sistemimi kirletmek istemediğimden bir docker imajı kullanacağım. Bu yüzden hali hazırda bu repoya tahsis ettiğim [docker-compose](../docker-compose.yml) dosyasına aşağıdaki servis tanımını ekledim.
 
 ```yaml
 services:
@@ -32,7 +34,7 @@ networks:
     driver: bridge
 ```
 
-Hemen kendime bir not düşeyim. FNP docker dosyasyında birçok servis tanımlı ama şu anda sadece qdrant servisini çalıştırmak istiyorum. Bunun için aşağıdaki terminal koutunu kullanabiliriz.
+Hemen kendime bir not düşeyim. [FNP docker](../docker-compose.yml) dosyasında birçok servis tanımlı ama şu anda sadece **qdrant** servisini çalıştırmak istiyorum. Bunun için aşağıdaki terminal koutunu kullanabiliriz.
 
 ```bash
 docker compose up -d qdrant
@@ -40,17 +42,17 @@ docker compose up -d qdrant
 
 ## Text Embedding için Local Dil Modeli
 
-Normal şartlarda büyük dil modelleri ile çalışırken API'ler üzerinden ilerliyoruz. Ücretli modellerde API key'leri kullanarak hareket ediyoruz. Ancak bu deneysel ve öğrenme amaçlı çalışmada ücretsiz dil modellerini yerel bilgisayarda çalıştırarak da ilereleyebiliriz. Senaryoda bize **text embedding** için kullanabileceğimiz bir dil modeli lazım. Ben kişisel bilgisayarımda [LM Studio](https://lmstudio.ai/) arabirimini kullanıyorum. Model olarak da **Nomic Embed Text** dil modelini tercih ettim. 85 Megabyte'tan küçük bir dil modeli. Tabii bunu kullanabilmek için LM Studio'da Local Server'ı başlatmak ve Nomic dil modelini yüklemek gerekiyor. Kabaca aşağıdaki gibi bir arabirime ulaşmamız lazım.
+Normal şartlarda büyük dil modelleri ile çalışırken API'ler üzerinden ilerleniyor. Ücretli modellerde API key'leri kullanarak hareket ediliyor. Söz gelimi [şuradaki](./LangchainWithCSharp.md) örnekte OpenAI API'sini kullandım. Ancak deneysel ve öğrenme amaçlı çalışmalarda ücretsiz dil modellerini yerel bilgisayarda çalıştırarak da ilerlemek daha uygun bana kalırsa. API call demek tahsilat edemek :D Senaryoda bize **text embedding** için kullanabileceğimiz bir dil modeli lazım. Ben kişisel bilgisayarımda [LM Studio](https://lmstudio.ai/) arabirimini kullanıyorum. Model olarak da **Nomic Embed Text** dil modelini tercih ettim. **85 Megabyte**'tan biraz daha küçük bir dil modeli. Tabii bunu kullanabilmek için **LM Studio**'da **Local Server**'ı başlatmak ve **Nomic Embed Text** dil modelini yüklemek gerekiyor. Kabaca aşağıdaki gibi bir arabirime ulaşmamız lazım.
 
 ![LM Studio IDE](../images/LM-studio.png)
 
 ## Örnek Veriler
 
-Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine bir AI modelinden yararlanarak embedding için gerekli girdiye dönüştürülebilir. Yani, Claude Sonnet'den Opus'tan veya Gemini'dan ya da muadillerinden yararlarank dokümanları taraması ve mimari, domain dili ve diğer semantik bağlamlara göre bölümlere ayırarak embedding için hazır hale getirilmesi istenebilir. Ben bu öğreti çerçevesinde örnek üç json dokümanı ile ilerleyeceğim.
+Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine bir AI modelinden yararlanarak embedding için gerekli girdiye dönüştürülebilir. Yani, Claude Sonnet'den Opus'tan veya Gemini'dan ya da muadillerinden yararlarank dokümanları taraması ve mimari, domain dili ve diğer semantik bağlamlara göre bölümlere ayırarak embedding için hazır hale getirilmesi istenebilir. Ya da az öncede belirttiğim gibi **Langchain**'in bazı fonksiyonları değerlendirilebilir. Ben bu öğreti çerçevesinde örnek üç basit **json** dokümanı ile ilerleyeceğim.
 
-Örnekte bir e-ticaret sitesini baz alıyorum. Elbette kocaman domain'i ele almak çok zor. Küçük bir alanı değerlendirmek öğretinin sağlıklı yürümesi açısından kritik. Sadece ürün yönetim sürecini göz önüne alabiliriz mesela. Buna bağlı olarak üç doküman hazırlayacağız. Domain jargonu için büyük önem arz eden [ubiquities-language](../src/domain-ingestion/data/ubiquities-language.json), yazılım mimarisinin temellerini tarifleyen [architecture-rules](../src/domain-ingestion/data/architecture-rules.json) ve kod tarafındaki semantik ilişkilerin tanımlandığı [semantic-code-chunks](../src/domain-ingestion/data/semantic-code-chunks.json).
+Örnekte bir e-ticaret sitesini baz alıyorum. Elbette senaryonun o kocaman dünyasını ele almak çok zor. Küçük bir alanı değerlendirmek öğretinin sağlıklı yürümesi açısından kritik. Sadece ürün yönetim sürecini göz önüne alabiliriz mesela. Buna bağlı olarak üç doküman söz konusu. Domain jargonu için büyük önem arz eden [ubiquities-language](../src/domain-ingestion/data/ubiquities-language.json), yazılım mimarisinin temellerini tarifleyen [architecture-rules](../src/domain-ingestion/data/architecture-rules.json) ve kod tarafındaki semantik ilişkilerin tanımlandığı [semantic-code-chunks](../src/domain-ingestion/data/semantic-code-chunks.json).
 
-**ubiquities-language.json:** Projede kullanılan terimlerin tanımlarını ve birbirleriyle ilişkilerini içeren bir json dosyası. Aşağıdaki gibi basit bir içerik düşünebiliriz. Burada terim, terimin açıklaması ve dahil olduğu kapsam belirtilir. Gerçek dünya senaryolarında bu içerik daha da geniş olabilir. İlişkiler detaylandırılabilir ve iş kuralları işlenebilir. Buradan hareketle vektör veritabanına alınacak olan domain bilgisi, AI vekillerinin çizilen çerçeve sınırları içerisinde analizler hazırlayabilmesine de olanak sağlar.
+**ubiquities-language.json:** Projede kullanılan terimlerin tanımlarını ve birbirleriyle ilişkilerini içeren bir veri dosyası. Aşağıdaki gibi basit bir içerik düşünebiliriz. Burada terim, terimin açıklaması ve dahil olduğu kapsam yer alıyor. Gerçek dünya senaryolarında bu içerik daha da genişletilebilir, aradaki ilişkiler detaylandırılabilir ve iş kuralları tariflenebilir. Buradan hareketle vektör veritabanına alınacak olan domain bilgisi, AI vekillerinin çizilen çerçeve sınırları içerisinde analizler hazırlayabilmesine de olanak sağlar.
 
 ```json
 [
@@ -77,7 +79,7 @@ Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine
 ]
 ```
 
-**architecture-rules.json:** Bu veri setinde ise projenin mimari tasarımı ile ilgili bir bağlam işlenir. Mimari model, kullanılan dil, verinin hangi strateji ile depolanacağı, servis haberleşme türleri, domain nesne kurguları gibi AI vekillerinin işini olabildiğince kolaylaştıracak detaylar verilir. Örneğin;
+**architecture-rules.json:** Bu veri setinde ise projenin mimari tasarımı ile ilgili bir bağlam işlenir. Mimari model, kullanılan dil, verinin hangi strateji ile depolanacağı, servis haberleşme türleri, domain nesne kurguları gibi vekil yapay zeka fonksiyonlarının işini olabildiğince kolaylaştıracak detaylar verilir. Örneğin;
 
 ```json
 [
@@ -108,7 +110,7 @@ Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine
 ]
 ```
 
-**semantic-code-chunks:** Burası tamamen kod tabanı ile ilgilidir. Metotların imzaları, servis tanımları, enstrümanların türleri ve onları tanımlayan tag'lara yer verilebilir. Örneğin;
+**semantic-code-chunks:** Burası tamamen kod tabanı ile ilgili verileri içermektedir. Metotların imzaları *(İçerikleri değil girdi ve çıktı şemaları)*, servis tanımları, enstrümanların türleri ve onları tanımlayan tag'lara yer verilebilir. Örneğin;
 
 ```json
 [
@@ -135,7 +137,9 @@ Normal şartlarda projenin daha önceden yazılmış markdown dokümanları yine
 
 ### Aktarım Uygulaması
 
-Bu JSON veri setleri JSON veri seti olmak zorunda değil elbette :D Ancak içerideki tanımlamalar kritik. Bağlamları anlamlı şekilde ifade etmenin bir yolu olarak her parçanın kendi içinde farklı nitelikleri *(attribute)* var. Bunlar vektör enstrümanları ile inşa edilen hafifsiklet sinir ağındaki boğumlar arası ilişkilerin kurgulanmasında rol oynayacak. Şimdi bu veri setlerini işleyip, **QDrant** veritabanına alacak uygulamayı yazmaya başlayabiliriz. Ben bunun için **Rust** ile ilerlemeyi düşünüyorum zira oldukça iyi **crate**'lere sahip. Dolayısıyla Rust uygulamasının **toml** içeriği aşağıdaki bağımlılıkları içermeli.
+Bu JSON veri setleri JSON veri seti olmak zorunda değil elbette :D Ancak içerideki tanımlamalar kritik. Bağlamları anlamlı şekilde ifade etmenin bir yolu olarak her parçanın kendi içinde farklı nitelikleri *(attribute)* var. Bunlar vektör enstrümanları ile inşa edilen hafifsiklet sinir ağındaki boğumlar arası ilişkilerin kurgulanmasında rol oynar diye yorumluyorum.
+
+Şimdi bu veri setlerini işleyip, **QDrant** veritabanına alacak uygulamayı yazmaya başlayabiliriz. Ben bunun için **Rust** ile ilerlemeyi düşünüyorum zira oldukça iyi **crate**'lere sahip. Dolayısıyla Rust uygulamasının **toml** içeriği aşağıdaki bağımlılıkları içermeli.
 
 ```toml
 [dependencies]
@@ -436,25 +440,25 @@ Her şey yolunda giderse terminalde aşağıdaki gibi bir çıktı görmeliyiz.
 
 ![Çalışma zamanı çıktısı](../images/RagPrepRuntime_00.png)
 
-Bu işlemlerin ardından [Qdrant web arayüzüne](http://localhost:6334/dashboard) geçebiliriz. Ben sistemde aşağıdaki sonuçlara ulaştım.
+Bu işlemlerin ardından [Qdrant web arayüzüne](http://localhost:6334/dashboard) geçebiliriz. Ben kendi sistemimde aşağıdaki sonuçlara ulaştım.
 
-Koleksiyonun başarılı şekilde oluştuğunu gözlemleyebiliriz.
+Koleksiyonun başarılı şekilde oluştuğunu gözlemledim.
 
 ![Koleksiyon...](../images/RagPrepRuntime_01.png)
 
-Detayına girip eklenen vektörlerin detaylarına bakabiliriz. Bizim eklediğimiz içerikler yer alacaktır.
+Detayına girip eklenen vektörlerin detaylarına baktığımda, eklenen noktaların her birinin embedding vektörünün yanı sıra, o noktaya ait metadata'nın da *(payload)* kaydedildiğini gördüm. Böylece her vektör noktasının ne tür bir bilgi içerdiği *(terim, kural, kod)* ve detayları *(tanım, açıklama, kod içeriği)* gibi bilgilerin de saklandığını gözlemledim.
 
 ![Örnek bir bağlam](../images/RagPrepRuntime_02.png)
 
-İşin güzel ve etkileyici kısmı ise bu vektörlerin birbirleriyle olan ilişkilerinin de ortaya çıkmasıdır. Böylece birbirlerine yakın ilişkide olan kavramların domain, kod ve mimari bağlamda daha net görebiliriz.
+İşin güzel ve etkileyici kısmı ise bu vektörlerin birbirleriyle olan ilişkilerinin ortaya çıkması. Böylece birbirlerine yakın ilişkide olan kavramları domain, kod veya mimari bağlamda daha net görme şansımız var.
 
 ![Örnek bağlamın detayı](../images/RagPrepRuntime_03.png)
 
-Artık elimizde çok ilkel de olsa AI vekilleri tarafından kullanılabilecek bir vektör veritabanı bulunuyor. Sonraki süreçte bu veritabanını da işin içerisine katıp bir RAG düzeniği kurarak AI vekillerinin bu veritabanından yararlanarak analizler yapmasını sağlayabiliriz. Ama önce o kısımları öğrenmem gerekiyor.
+Artık elimizde çok ilkel de olsa AI vekilleri tarafından kullanılabilecek bir vektör veritabanı bulunuyor. Sonraki süreçte bu veritabanını da işin içerisine katıp bir **RAG** düzeniği kurarak AI vekillerinin bu veritabanından yararlanarak analizler yapmasını sağlayabiliriz. Ama önce o kısımları öğrenmek gerekiyor.
 
 ## Notlar
 
-Denemeler sırasında var olan koleksiyonu silmem icap etti. QDrant bir API noktası sağladı için bu oldukça kolay. Aşağıdaki **curl** komutu ile yapabiliriz.
+Denemeler sırasında yer yer var olan koleksiyonu silmem icap etti. **QDrant** aynı zamanda birçok API noktası da sağlıyor ki bunlardan birisi de silme işlemi için. Bunu aşağıdaki **curl** komutu ile yapabiliriz.
 
 ```bash
 curl -X DELETE http://localhost:6333/collections/e_commerce_alpha_v1
