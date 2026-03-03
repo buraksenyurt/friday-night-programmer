@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using GitHub.Copilot.SDK;
+﻿using GitHub.Copilot.SDK;
 
 await using var client = new CopilotClient();
 
@@ -21,11 +19,15 @@ await using var session = await client.CreateSessionAsync(
 
 session.On(e =>
 {
-    if (e is AssistantMessageDeltaEvent deltaEvent)
+    switch (e)
     {
-        Console.Write(deltaEvent.Data.DeltaContent);
+        case AssistantMessageDeltaEvent messageEvent:
+            Console.Write(messageEvent.Data.DeltaContent);
+            break;
+        case SessionIdleEvent messageEvent:
+            Console.WriteLine("");
+            break;
     }
-    if (e is SessionIdleEvent) Console.WriteLine();
 });
 
 await session.SendAndWaitAsync(
