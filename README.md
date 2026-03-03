@@ -86,6 +86,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Merhaba Copilot SDK](./documents/HowToCopilotSDK.md)
 - [C# Tarafında Langchain Kullanımı](./documents/LangchainWithCSharp.md)
 - [RAG içib Hazırlıklar](./documents/RAGPreperation.md)
 - [Embedding Denilen Kavram](./documents/Embedding.md)
