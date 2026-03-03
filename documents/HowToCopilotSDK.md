@@ -33,8 +33,6 @@ dotnet add package GitHub.Copilot.Sdk
 Resmi kaynaktaki ilk örnekte 2+2 işlemi OpenAI'ın gpt-4.1 modeline yaptırılmış. Hiç olmazsa daha farklı bir hello world uygulaması yapalım. Bu amaçla program kodlarını aşağıdaki gibi değiştirelim.
 
 ```csharp
-using System.Net.Http.Headers;
-using System.Runtime.Serialization;
 using GitHub.Copilot.SDK;
 
 await using var client = new CopilotClient();
@@ -56,11 +54,15 @@ await using var session = await client.CreateSessionAsync(
 
 session.On(e =>
 {
-    if (e is AssistantMessageDeltaEvent deltaEvent)
+    switch (e)
     {
-        Console.Write(deltaEvent.Data.DeltaContent);
+        case AssistantMessageDeltaEvent messageEvent:
+            Console.Write(messageEvent.Data.DeltaContent);
+            break;
+        case SessionIdleEvent messageEvent:
+            Console.WriteLine("");
+            break;
     }
-    if (e is SessionIdleEvent) Console.WriteLine();
 });
 
 await session.SendAndWaitAsync(
@@ -82,3 +84,67 @@ Devam eden kısımda ise oturum sırasında gerçekleşen olayları *(events)* d
 Son olarak da **SendAndWaitAsync** metodu yardımıyla modele sormak istediğimiz soruyu gönderiyoruz. Bu metodun asenkron olduğunu ve oturumun sonlanmasını beklediğini de belirtelim. Bir başka deyişle cevap gelene kadar uygulama sonlanmayacaktır. İşte ilk örneğimizin çalışma zamanına ait bir çıktı.
 
 ![First Run](../images/HelloCopilotSDK_01.png)
+
+## Örnek 2, Tool Kullanımı
+
+SDK'nin sunduğun güçlü fonksiyonelliklerden birisi de model ile başlatılan oturuma bir araç dahil edebilmek. Resmi dokümanda bir şehir için rastgele hava sıcaklığı üreten bir fonksiyon kullanılmış. Yine basit ama farklı bir örnekle gidelim. Örneğin bilgisayar sarf malzemeleri ile ilgili stok bilgisi veren bir araç ekleyelim. Bu araç bize stokta bulunan ürünlerin isimlerini ve adetlerini verecek. Hatta bunu bayii bazlı yapalım. Şuna benzer sorular sorabiliriz:
+
+- "Ankara bayimizde stokta kalan ürünler hangileri?"
+- "Şişli bayisinde Envidya GTX 2000 ekran kartlarından kaç adet kaldı?"
+- "Hangi bayilerde 32 GB RAM var?"
+
+Burada senaryoyu renklendirmek adına bayi istatistiklerini yine .Net ile yazacağımız basit bir Web API üzerinden çekelim. Örneğin aşağıdaki koda sahip minimal bir Web API kullanabiliriz.
+
+```csharp
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Text.Json.Serialization;
+
+var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+});
+
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+Dealer[] data = StockStatsApi.SeedData.GetDealers();
+
+var dataApi = app.MapGroup("/dealers");
+dataApi.MapGet("/", () => data)
+        .WithName("GetAllStats");
+
+dataApi.MapGet("/{id}", Results<Ok<Dealer>, NotFound> (int id) =>
+    data.FirstOrDefault(a => a.Id == id) is { } dealer
+        ? TypedResults.Ok(dealer)
+        : TypedResults.NotFound())
+    .WithName("GetDealerById");
+
+app.Run();
+
+public record Dealer(int Id, string Title, string City, List<Stats> Stats);
+public record Stats(int Id, string Product, int Quantity);
+
+[JsonSerializable(typeof(Dealer[]))]
+internal partial class AppJsonSerializerContext : JsonSerializerContext
+{
+
+}
+```
+
+Servisimiz localhost, 5101 nolu porttan ulaşılabilir durumda. Aşağıdaki ekran görüntüsünde örnek bir çıktıyı görebilirsiniz.
+
+![API Tarafı](../images/HelloCopilotSDK_02.png)
+
+Şimdi gelelim **Copilot SDK** kullanan istemci uygulama tarafına. Bu API'yi çağıran başka bir metodu **tool** olarak oturuma dahil edeceğiz.
+
+```csharp
+
+```
