@@ -89,9 +89,11 @@ Son olarak da **SendAndWaitAsync** metodu yardımıyla modele sormak istediğimi
 
 SDK'nin sunduğun güçlü fonksiyonelliklerden birisi de model ile başlatılan oturuma bir araç dahil edebilmek. Resmi dokümanda bir şehir için rastgele hava sıcaklığı üreten bir fonksiyon kullanılmış. Yine basit ama farklı bir örnekle gidelim. Örneğin bilgisayar sarf malzemeleri ile ilgili stok bilgisi veren bir araç ekleyelim. Bu araç bize stokta bulunan ürünlerin isimlerini ve adetlerini verecek. Hatta bunu bayii bazlı yapalım. Şuna benzer sorular sorabiliriz:
 
-- "Ankara bayimizde stokta kalan ürünler hangileri?"
+- "Ankara Merkez stoğunda hangi ürünlerden kaç adet var?"
 - "Şişli bayisinde Envidya GTX 2000 ekran kartlarından kaç adet kaldı?"
 - "Hangi bayilerde 32 GB RAM var?"
+- "Stoğuna RAM bulunmayan bayiler hangileri?"
+- "24 inç ve üstü monitör bulunduran bayiler hangileri?"
 
 Burada senaryoyu renklendirmek adına bayi istatistiklerini yine .Net ile yazacağımız basit bir Web API üzerinden çekelim. Örneğin aşağıdaki koda sahip minimal bir Web API kullanabiliriz.
 
@@ -146,5 +148,73 @@ Servisimiz localhost, 5101 nolu porttan ulaşılabilir durumda. Aşağıdaki ekr
 Şimdi gelelim **Copilot SDK** kullanan istemci uygulama tarafına. Bu API'yi çağıran başka bir metodu **tool** olarak oturuma dahil edeceğiz.
 
 ```csharp
+using GitHub.Copilot.SDK;
+using Microsoft.Extensions.AI;
+using System.ComponentModel;
 
+await using var client = new CopilotClient();
+
+var getAllDealerStats = AIFunctionFactory.Create(
+    () =>
+    {
+        // Optimizasyon için istemci tarafında servis çıktısı cache'lenebilir.
+        var httpClient = new HttpClient();
+        var response = httpClient.GetAsync("http://localhost:5101/dealers").Result;
+        var content = response.Content.ReadAsStringAsync().Result;
+        return content;
+    },
+    "get_all_dealer_stats",
+    "Get the full dealer stats"
+);
+
+await using var session = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "claude-sonnet-4.5",
+    Streaming = true,
+    Tools = [getAllDealerStats],
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+});
+
+session.On(e =>
+{
+    switch (e)
+    {
+        case AssistantMessageDeltaEvent messageEvent:
+            Console.Write(messageEvent.Data.DeltaContent);
+            break;
+        case SessionIdleEvent messageEvent:
+            Console.WriteLine("");
+            break;
+    }
+});
+
+Console.WriteLine("📊  Dealer Stats Assistant (type 'exit' to quit)");
+Console.WriteLine("   Try: 'Ankara Merkez stoğunda hangi ürünlerden kaç adet var?' or 'Şişli bayisinde Envidya GTX 2000 ekran kartlarından kaç adet kaldı?'\n");
+
+while (true)
+{
+    Console.Write("--> ");
+    var input = Console.ReadLine();
+
+    if (string.IsNullOrEmpty(input) || input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+    {
+        break;
+    }
+
+    Console.Write("Thinking...");
+    await session.SendAndWaitAsync(new MessageOptions { Prompt = input });
+    Console.WriteLine("\n");
+}
 ```
+
+Kısaca kodda neler olduğuna bir bakalım. İşin belki de en can alıcı kısmı **AIFunctionFactory.Create** metodu ile **AIFunction** türünden bir nesne oluşturulması. Bu nesne aslında model tarafından kullanılacak olan fonksiyonelliği işaret ediyor. Beraberinde bu araçla ilgili açıklama ve kısa tanım gibi bilgileri de veriyoruz. Model, gelen soruya istinaden çağrıyı hangi araca delege edeceğine karar verebiliyor ki bunu **Session** ayarlarında **Tools** özelliğindeki listede belirtiyoruz. Dolayısıyla modelimiz, söz konusu oturum sırasında birden fazla aracı da ele alabilir. Örneğin bayi adına göre istatistik çeken bir servis metodumuz daha var. Bunu çağıran bir başka araç da senaryoya dahil edilebilir. Bir deneyim derim.
+
+Kodun akan kısmında sonsuz bir **while** döngüsü kullandığımız da dikkatlerden kaçmamış olsa gerek. Tipik bir chatbot deneyimi yaratmak istediğimiz için kullanıcıdan sürekli olarak girdi alıp modele gönderiyoruz taa ki kullanıcı "exit" komutu verene ya da CTRL+C ile uygulamayı sonlandırana kadar.
+
+Pek tabii çalışma zamanında bayi istatitik bilgilerini getiren servisimizin ayakta olması gerektiğini hatırlatalım. Aksi durumda çalışma zamanı hatası alırız demek isterdim ama işin içerisinde artık bir yapay zeka modeli var. Dolayısıyla sonuç aşağıdaki gibi olabilir.
+
+![Servis Ayakta Değilse](../images/HelloCopilotSDK_04.png)
+
+Servisimizi ayağa kaldırdıktan sonra ise aşağıdaki ekran görüntüsündekine benzer bir deneyim yaşamamız olasıdır.
+
+![Tool Kullanımı](../images/HelloCopilotSDK_03.png)
