@@ -1,11 +1,11 @@
 @StockStatsApi_HostAddress = http://localhost:5101
 
-GET {{StockStatsApi_HostAddress}}/todos/
+GET {{StockStatsApi_HostAddress}}/dealers/
 Accept: application/json
 
 ###
 
-GET {{StockStatsApi_HostAddress}}/todos/1
+GET {{StockStatsApi_HostAddress}}/dealers/1001
 Accept: application/json
 
 ###
