@@ -44,8 +44,60 @@ Kobay olarak bir **todo** listesi ile ilintili API servisi kullanan bir **MCP se
   - "Yapılacaklar listemdeki 'çalışma odasını temizle' görevini yapıldı olarak güncelle."
   - "'MCP Server Nasıl Çalışır?' başlıklı makale yazma görevimi inprogress olarak güncelle."
 
-## Önce Arka Planı Yazalım
+## Önce Arka Plan Hazırlıkları
 
-Veriyi bir JSON içeriğinde tutacağız ve en azından CRUD operasyonlarını yapabileceğimiz bir REST API hizmeti yazacağız. Bu kısmı rust ile yazalım. Eğlence olsun :D
+Veritabanı tarafı ile olan iletişim **rust** ile yazılmış bir api servisi ile karşılayacağız. Postgresql için aşağıdaki içeriğe sahip bir **docker-compose** kullanılabilir.
+
+```yaml
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: fnp-postgres
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: somew0rds
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    networks:
+      - fnp-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fnp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: scoth@tiger.com
+      PGADMIN_DEFAULT_PASSWORD: 123456
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - fnp-network
+
+volumes:
+  postgres_data:
+
+networks:
+    fnp-network:
+        driver: bridge
+```
+
+Bu servisleri ayağa kaldırmak komut satırından aşağıdaki gibi ilerleyebiliriz.
+
+```bash
+docker compose up -d
+# Eğer docker compose dosyası benimki gibi kalabalık ve sadece bu servisleri ayağa kaldırmak isterseniz
+docker compose up -d postgres pgadmin
+```
+
+Bu yazımızla çok alakalı olmadığı ve konuyu dağıtacağı için Rust ile yazılmış servis kodlarına burada girmeye gerek yok ancak [şuradan](https://github.com/buraksenyurt/friday-night-programmer/tree/main/src/todo-api) kaynak kodlarını inceleyebilirsiniz.
+
+## MCP Server Tarafı
+
+Gelelim ana mevzuya. Derme çatma da olsa todo listesini yönetebildiğimiz basit bir rest servisimi bulunuyor. Bu servis en azından yukarıdaki senaryoda belirtilen işlevleri sağlamakta *(Gerçek bir saha kurgusunu hazırlarken ilk olarak soruları ve görevleri içerecek bir metin çalışması yapmak, mcp araç setinden sunulacak fonksiyonellikleri doğru şekilde tasarlamak adına önemli olacaktır)*
 
 DEVAM EDECEK...
