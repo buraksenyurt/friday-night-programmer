@@ -1,0 +1,13 @@
+{
+    "servers": {
+        "todo-mcp-server": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/src/TodoMCPServer"
+            ]
+        }
+    }
+}
