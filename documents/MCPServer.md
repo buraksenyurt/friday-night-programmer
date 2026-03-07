@@ -100,4 +100,255 @@ Bu yazımızla çok alakalı olmadığı ve konuyu dağıtacağı için Rust ile
 
 Gelelim ana mevzuya. Derme çatma da olsa todo listesini yönetebildiğimiz basit bir rest servisimi bulunuyor. Bu servis en azından yukarıdaki senaryoda belirtilen işlevleri sağlamakta *(Gerçek bir saha kurgusunu hazırlarken ilk olarak soruları ve görevleri içerecek bir metin çalışması yapmak, mcp araç setinden sunulacak fonksiyonellikleri doğru şekilde tasarlamak adına önemli olacaktır)*
 
+Şimdi bir dotnet projesi oluşturarak işe başlayalım. Bu bir **console** uygulaması olacak ve bazı yardımcı **nuget** paketlerine ihtiyacımız olacak.
+
+```bash
+dotnet new console -n TodoMCPServer
+cd TodoMCPServer
+# Gerekli paketlerin eklenmesi
+dotnet add package Microsoft.Extensions.Hosting
+dotnet add package Microsoft.Extensions.Http
+dotnet add package ModelContextProtocol
+```
+
+Console uygulamasının **Rust** ile yazılmış API servisini çağrıması gerekiyor. Bu çağrı ile ilişkili olarak farklı endpoint adreslerine de gidebilmeli. Genel bir yaklaşım olarak api servisi, api key vb bilgilerin appsettings dosyasında tutulup, build sonrasında da exe'nin yanına kopyalanması iyi olabilir. Bu sayede uygulama çalışırken bu bilgilere erişebiliriz. Bizim örneğimizde **appsettings** içeriği oldukça sade.
+
+```json
+{
+    "TodoApiUrl":"http://localhost:3000/"
+}
+```
+
+Buna bağlı olarak todo servis çağrılarını gerçekleştirecek olan **TodoApiService** isimli sınıf kodlarını aşağıdaki gibi geliştirebiliriz.
+
+```csharp
+using System.Net.Http.Json;
+
+public class TodoApiService(IHttpClientFactory httpClientFactory, string baseUrl)
+{
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly string _baseUrl = baseUrl.TrimEnd('/');
+
+    public async Task<string> GetAllTodosAsync()
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync($"{_baseUrl}/api/todos");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<string> GetCompletedTodosAsync()
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync($"{_baseUrl}/api/todos/completed");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<string> GetIncompleteTodosAsync()
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync($"{_baseUrl}/api/todos/incomplete");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<string> GetTodoByIdAsync(string id)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync($"{_baseUrl}/api/todos/{id}");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<string> CreateTodoAsync(string title, string? difficulty = null, string? deadline = null)
+    {
+        var payload = new Dictionary<string, object?> { ["title"] = title };
+        if (difficulty is not null) payload["difficulty"] = difficulty;
+        if (deadline is not null) payload["deadline"] = deadline;
+
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.PostAsJsonAsync($"{_baseUrl}/api/todos", payload);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<string> UpdateTodoAsync(string id, string? title = null, string? status = null, string? difficulty = null, string? deadline = null)
+    {
+        var payload = new Dictionary<string, object?>();
+        if (title is not null) payload["title"] = title;
+        if (status is not null) payload["status"] = status;
+        if (difficulty is not null) payload["difficulty"] = difficulty;
+        if (deadline is not null) payload["deadline"] = deadline;
+
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.PutAsJsonAsync($"{_baseUrl}/api/todos/{id}", payload);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task DeleteTodoAsync(string id)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.DeleteAsync($"{_baseUrl}/api/todos/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<string> UpdateOverdueTodosAsync()
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.PatchAsync($"{_baseUrl}/api/todos/overdue", content: null);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+}
+```
+
+Tahmin edeceğiniz üzere bu sınıf, **todo API**'sine gidecek olan tüm çağrıları yönetmekle sorumlu. Her bir fonksiyon, API'nin farklı bir **endpoint**'ine karşılık geliyor. Bu sınıfı kullanarak **todo** listemizle ilgili çeşitli sorgulamalar yapabilir, yeni görevler ekleyebilir, var olan görevleri güncelleyebilir veya silebiliriz. Sıradaki adım, bu servisin sunduğu fonksiyonellikleri yapay zeka araçlarının da anlayabilmesi için gerekli araç setinin oluşturulması. Bunun için projeye **TodoTools** isimli yeni bir sınıf ekleyip içeriğini aşağıdaki metotlarla donatabiliriz.
+
+```csharp
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+
+[McpServerToolType]
+public class TodoTools
+{
+    [McpServerTool, Description("Returns all todo items in the list regardless of their status. Use this to get a full overview of all tasks.")]
+    public static async Task<string> GetAllTodos(TodoApiService todoApiService)
+    {
+        return await todoApiService.GetAllTodosAsync();
+    }
+
+    [McpServerTool, Description("Returns only the completed (done) todo items. Use this when the user asks which tasks have been finished or marked as done.")]
+    public static async Task<string> GetCompletedTodos(TodoApiService todoApiService)
+    {
+        return await todoApiService.GetCompletedTodosAsync();
+    }
+
+    [McpServerTool, Description("Returns only the incomplete (undone) todo items. Use this when the user asks which tasks are still pending or not yet started.")]
+    public static async Task<string> GetIncompleteTodos(TodoApiService todoApiService)
+    {
+        return await todoApiService.GetIncompleteTodosAsync();
+    }
+
+    [McpServerTool, Description("Returns a single todo item by its unique ID. Use this when the user asks about a specific task and you already know its ID.")]
+    public static async Task<string> GetTodoById(
+        TodoApiService todoApiService,
+        [Description("The unique UUID of the todo item to retrieve.")] string id)
+    {
+        return await todoApiService.GetTodoByIdAsync(id);
+    }
+
+    [McpServerTool, Description("Creates a new todo item. Use this when the user wants to add a task to the todo list. Difficulty must be one of: easy, medium, hard. Deadline must be an ISO 8601 UTC datetime string (e.g. '2025-06-20T00:00:00Z').")]
+    public static async Task<string> CreateTodo(
+        TodoApiService todoApiService,
+        [Description("The title or description of the task to create.")] string title,
+        [Description("Difficulty level of the task. Accepted values: easy, medium, hard. Defaults to medium if omitted.")] string? difficulty = null,
+        [Description("Optional deadline for the task in ISO 8601 UTC format, e.g. '2025-06-20T00:00:00Z'.")] string? deadline = null)
+    {
+        return await todoApiService.CreateTodoAsync(title, difficulty, deadline);
+    }
+
+    [McpServerTool, Description("Updates an existing todo item. Only the fields that are provided will be changed; omitted fields keep their current values. Status must be one of: done, undone, inprogress. Difficulty must be one of: easy, medium, hard. Deadline must be an ISO 8601 UTC datetime string.")]
+    public static async Task<string> UpdateTodo(
+        TodoApiService todoApiService,
+        [Description("The unique UUID of the todo item to update.")] string id,
+        [Description("New title for the task. Leave null to keep the current title.")] string? title = null,
+        [Description("New status for the task. Accepted values: done, undone, inprogress. Leave null to keep the current status.")] string? status = null,
+        [Description("New difficulty level. Accepted values: easy, medium, hard. Leave null to keep the current value.")] string? difficulty = null,
+        [Description("New deadline in ISO 8601 UTC format, e.g. '2025-06-20T00:00:00Z'. Leave null to keep the current deadline.")] string? deadline = null)
+    {
+        return await todoApiService.UpdateTodoAsync(id, title, status, difficulty, deadline);
+    }
+
+    [McpServerTool, Description("Permanently deletes a todo item by its ID. Use this when the user explicitly asks to remove or delete a specific task. This action is irreversible.")]
+    public static async Task DeleteTodo(
+        TodoApiService todoApiService,
+        [Description("The unique UUID of the todo item to delete.")] string id)
+    {
+        await todoApiService.DeleteTodoAsync(id);
+    }
+
+    [McpServerTool, Description("Finds all tasks whose deadline has passed and are not yet marked as done, then sets their status to 'undone'. Use this when the user asks to reset or flag overdue tasks. Returns the list of affected todo items.")]
+    public static async Task<string> UpdateOverdueTodos(TodoApiService todoApiService)
+    {
+        return await todoApiService.UpdateOverdueTodosAsync();
+    }
+}
+```
+
+Dikkat edileceği üzere her bir metot bazı nitelikler *(attribute)* kullanıyor. Sınıfın kendisi **McpServerTooType** niteliğ ile donatıldı. Dolayısıyla çalışma zamanı bu sınıfın yapay zeka araçlarının keşfedeceği araç setini içereceğini bilecek. Metotlarda ise **McpServerTool** ve **Description** nitelikleri yer alıyor. Aracın adı ve ne işe yaradığının burada tariflendiğini belirtelim. Yapay zeka istemcilerinin kullanacağı **context** yapılarında bu açıklamaların kalitesi de öne çıkıyor. Bazı metot parametrelerinde de **Description** niteliğinin kullanıldığına dikkat edelim. Bu sayede yine yapay zeka araçlarına bu argümanlar hakkında detay bilgi vermiş oluyoruz.
+
+> **Hatırlayalım;** Nitelikler *(Attributes)* çalışma zamanına ekstra bilgi *(metadata)* taşımak için biçilmiş kaftandır. Bu sayede çalışma zamanı, niteliğin kazandırıldığı enstrümanla ilgili olarak ne yapacağına karar verebilir.
+
+Artık program.cs tarafındaki kodları tamamlayabiliriz. Burada çalışma zamanı için gerekli olan bağımlılıkların yüklenmesi ve MCP ortamının ayağa kaldırılması ile ilgili işlemler yer alır.
+
+```csharp
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ModelContextProtocol;
+using Microsoft.Extensions.Configuration;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Logging.AddConsole(options =>
+{
+    options.LogToStandardErrorThreshold = LogLevel.Trace;
+});
+
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+var todoApiBaseUrl = builder.Configuration["TodoApiUrl"];
+
+if (string.IsNullOrEmpty(todoApiBaseUrl))
+{
+    Console.WriteLine("TodoApiUrl is missing in configuration.");
+    return;
+}
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    return new TodoApiService(httpClientFactory, todoApiBaseUrl);
+});
+
+builder.Services
+    .AddMcpServer()
+    .WithStdioServerTransport()
+    .WithToolsFromAssembly();
+
+await builder.Build().RunAsync();
+```
+
+Eğer her şey yolunda gitmişse projenin başarılı şekilde derleniyor olması gerekir.
+
+## MCP Sunucusunu Yayına Alma
+
+Artık bir **MCP** sunucumuz var fakat bunu ortamdaki yapay zeka araçları nasıl keşfedecek. Örneğin şu anda editör olarak kullandığım **Visual Studio Code**'un **Copilot** penceresinde **Todo** hizmetini nasıl kullanabilirim? Genellikle MCP sunuculara ait bilgiler en azından VS Code yüklü sistemlerde **mcp.json** isimli bir dosya içerisinde yer alır. Bu sayede Visual Studio Code'a ilgili MCP Server bir **extension** olarak eklenebilir. İlk olarak bu şekilde ilerlemeye çalışalım. Şimdilik çalıştığımız Workspace'te **.vscode** isimli bir klasör oluşturup buraya aşağıdaki içeriğe sahip bir **mcp.json** dosyası ekleyerek ilerleyebiliriz.
+
+```json
+{
+    "servers": {
+        "todo-mcp-server": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/src/TodoMCPServer"
+            ]
+        }
+    }
+}
+```
+
+Bu durumda **VS Code Extension** kısmında mcp server'ımız otomatik olarak görünecektir. Tabii **MCP Server**'ın başlatılmasından önce **todo-api** isimli api servisinin çalıştırılması gerektiğini de hatırlatalım :D Sonuçta kendi sistemimde aşağıdaki ekran görüntüsünde yer alan sonuçlara ulaştım.
+
+![MCP Extension Görünümü](../images/MCPServer_01.png)
+
 DEVAM EDECEK...
