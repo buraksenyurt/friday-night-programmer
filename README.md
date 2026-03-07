@@ -76,6 +76,10 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | 29 | **book-form**| Nuxt.js framework ile ilk bebek adımları| javascript, typescript, vue, nuxt, web-framework |
 | 30 | **issue-app**| Yine Nuext.js kullanılarak yapılan bir uygulama. Amaç bir yazılım destek talebi açılışında formlar arası veri taşıma senaryosunu işletmek. | javascript, typescript, vue, nuxt, web-framework |
 | 31 | **rust-exercises**| Rust programlama dili bilgilerimizi tazelemek için çeşitli kaynaklardan özet çalışmaları ve örnek kodları içeren çalışma alanıdır | rust, exercises |
+| 32 | **embedding-demo**| Embedding tekniği ile ilgili Rust tarafında bir deneme çalışması. [Embedding.md](./documents/Embedding.md) dokümanında detaylı anlatım mevcuttur. | rust, embedding, fastembed |
+| 33 | **HelloCopilotSDK**| Microsoft Copilot SDK'sinin C# tarafında nasıl kullanılabileceğine dair basit bir örnek. [HowToCopilotSDK.md](./documents/HowToCopilotSDK.md) dokümanında detaylı anlatım mevcuttur. | c#, copilot-sdk, gen-ai |
+| 34 | **todo-api**| Rust ile yazılmış bir REST Api hizmeti. TodoMCPServer uygulamasına hizmet etmek üzere geliştirilmiştir. [Detaylı bilgi için](./documents/MCPServer.md) | rust, rest-api, actix-web, dummy-service |
+| 35 | **ToDoMCPServer** | DotNet tarafında yazılmış bir MCP Server uygulamasıdır. todo-api servisine yapay zeka araçları için araç seti sağlar. [Detaylı bilgi için](./documents/MCPServer.md) | c#, mcp-server, vs-code-extension, model-context-protocol |
 
 ## Yardımcı Dokümanlar
 
@@ -86,10 +90,11 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Bir MCP Server Yazmak](./documents/MCPServer.md)
 - [Spec-kit ile ilk deneyim](./documents/SpecKitTutorial.md)
 - [Merhaba Copilot SDK](./documents/HowToCopilotSDK.md)
 - [C# Tarafında Langchain Kullanımı](./documents/LangchainWithCSharp.md)
-- [RAG içib Hazırlıklar](./documents/RAGPreperation.md)
+- [RAG için Hazırlıklar](./documents/RAGPreperation.md)
 - [Embedding Denilen Kavram](./documents/Embedding.md)
 - [Bunu Bir Dene - 01 - Multi-Thread Ortamlarda Ortak Veriyi Değiştirmek](./documents/TryThis01.md)
 - [Bunu Bir Dene - 00 - Metot Argümanlarında Değişiklik](./documents/TryThis00.md)
