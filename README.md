@@ -80,6 +80,7 @@ src klasöründe yer alan uygulamalar ne ile ilgili olduklarına dair aşağıda
 | 33 | **HelloCopilotSDK**| Microsoft Copilot SDK'sinin C# tarafında nasıl kullanılabileceğine dair basit bir örnek. [HowToCopilotSDK.md](./documents/HowToCopilotSDK.md) dokümanında detaylı anlatım mevcuttur. | c#, copilot-sdk, gen-ai |
 | 34 | **todo-api**| Rust ile yazılmış bir REST Api hizmeti. TodoMCPServer uygulamasına hizmet etmek üzere geliştirilmiştir. [Detaylı bilgi için](./documents/MCPServer.md) | rust, rest-api, actix-web, dummy-service |
 | 35 | **ToDoMCPServer** | DotNet tarafında yazılmış bir MCP Server uygulamasıdır. todo-api servisine yapay zeka araçları için araç seti sağlar. [Detaylı bilgi için](./documents/MCPServer.md) | c#, mcp-server, vs-code-extension, model-context-protocol |
+| 36 | **SSEApi** | .Net 10 ile yazılmış ve Server-Sent Events tekniğini kullanan bir örnek uygulamadır. Basit bir oyun senaryosu üzerinden oyuncuların skor bilgilerini gerçek zamanlı olarak istemcilere ileten bir servis olarak tasarlanmıştır. [Detaylı bilgi için](./documents/ServerSentEvents.md) | c#, dotnet-10, server-sent-events, real-time, rest-api |
 
 ## Yardımcı Dokümanlar
 
@@ -90,6 +91,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [.Net 10 ile Server-Sent Events Kullanımı](./documents/ServerSentEvents.md)
 - [Bir MCP Server Yazmak](./documents/MCPServer.md)
 - [Spec-kit ile ilk deneyim](./documents/SpecKitTutorial.md)
 - [Merhaba Copilot SDK](./documents/HowToCopilotSDK.md)
