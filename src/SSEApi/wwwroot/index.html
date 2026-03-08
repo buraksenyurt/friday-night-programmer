@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Friday Night Programmer - Server Sent Events</title>
+    </head>
+    <body>
+        <h1>Friday Night Programmer - Server Sent Events</h1>
+        <div id="gamers"></div>
+
+        <script>
+            const gamersDiv = document.getElementById('gamers');
+
+            // Server Sent Events (SSE) bağlantısı oluşturulur
+            const eventSource = new EventSource('/gamers/top/stream');
+
+            // SSE üzerinden gelen "top-gamers" olaylarını dinlemek için addEventListener kullandık
+            eventSource.addEventListener('top-gamers', function(event) {
+                const gamers = JSON.parse(event.data);
+                gamersDiv.innerHTML = '';
+                gamers.forEach(gamer => {
+                    const gamerInfo = document.createElement('div');
+                    gamerInfo.textContent = `${gamer.name}: ${gamer.score}`;
+                    gamersDiv.appendChild(gamerInfo);
+                });
+            });
+
+            // Hata durumunda SSE bağlantısını kapatır
+            eventSource.onerror = function() {
+                console.error('SSE connection error');
+                eventSource.close();
+            };
+        </script>
+    </body>
+</html>
