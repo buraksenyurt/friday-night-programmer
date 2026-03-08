@@ -1,8 +1,18 @@
-﻿using SSEApi;
+﻿using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
+using SSEApi;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}  {Message:lj}{NewLine}{Exception}",
+        theme: AnsiConsoleTheme.Code)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 builder.Services.AddSingleton<GamerService>();
-builder.Services.AddHostedService<GamerServiceWorker>();
+builder.Services.AddHostedService<GamerServiceWorker>(); 
 
 var app = builder.Build();
 app.UseDefaultFiles().UseStaticFiles();

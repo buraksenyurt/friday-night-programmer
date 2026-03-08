@@ -4,28 +4,23 @@ using System.Threading.Channels;
 namespace SSEApi;
 
 // Asıl işin yapıldığı servis bileşenimiz.
-public class GamerService
+public class GamerService(ILogger<GamerService> logger)
 {
     private readonly Random random = new();
-    private readonly List<Gamer> gamers;
+    // Bunlar kobay oyuncularımız :D
+    private readonly List<Gamer> gamers =
+    [
+        new Gamer { Name = "Alicya", Score = 100 },
+        new Gamer { Name = "Bobby", Score = 150 },
+        new Gamer { Name = "Charles", Score = 120 },
+        new Gamer { Name = "Dayana", Score = 130 },
+        new Gamer { Name = "Evie", Score = 110 },
+    ];
     // Abone olan istemcilere güncellemeleri iletmek için kullandığımız kanal listesi 
     private readonly List<Channel<List<Gamer>>> _subscribers = [];
     // Eş zamanlı erişimlerde oluşabilecek sorunları önlemek için basit bir thread kilit mekanizması kullanıyoruz.
     // Bu nedenle bir Lock nesnemiz var.
     private readonly Lock _lock = new();
-
-    public GamerService()
-    {
-        // Bunlar kobay oyuncularımız :D
-        gamers =
-        [
-            new Gamer { Name = "Alicya", Score = 100 },
-            new Gamer { Name = "Bobby", Score = 150 },
-            new Gamer { Name = "Charles", Score = 120 },
-            new Gamer { Name = "Dayana", Score = 130 },
-            new Gamer { Name = "Evie", Score = 110 },
-        ];
-    }
 
     /*
         Belkide en kritik metodumuz burası olabilir.
@@ -40,13 +35,13 @@ public class GamerService
         // Abone olan istemci için yeni bir kanal oluşturur.
         var channel = Channel.CreateUnbounded<List<Gamer>>();
 
-        // thread safe olması için kilit açılır
         lock (_lock)
         {
-            // abone eklenir ve mevcut oyuncu listesi iletilir
             _subscribers.Add(channel);
             channel.Writer.TryWrite([.. gamers]);
         }
+
+        logger.LogInformation("Yeni istemci bağlandı. Aktif abone sayısı: {Count}", _subscribers.Count);
 
         try
         {
@@ -60,6 +55,7 @@ public class GamerService
         {
             lock (_lock) _subscribers.Remove(channel);
             channel.Writer.Complete();
+            logger.LogInformation("İstemci bağlantısı kesildi. Aktif abone sayısı: {Count}", _subscribers.Count);
         }
     }
 
@@ -75,14 +71,16 @@ public class GamerService
 
         var snapshot = gamers.ToList();
 
-        // thread-safe bir kod bloğu açılır
         lock (_lock)
         {
-            // tüm abonelere güncellenmiş skor listesi iletilir
             foreach (var subscriber in _subscribers)
             {
                 subscriber.Writer.TryWrite(snapshot);
             }
         }
+
+        logger.LogInformation("Skorlar güncellendi → {Count} aboneye iletildi | {Scores}",
+            _subscribers.Count,
+            string.Join(", ", snapshot.Select(g => $"{g.Name}:{g.Score}")));
     }
 }
