@@ -1,19 +1,29 @@
 # Pi Sayısını Hesaplama Yolunda
 
-Matematiksel yöntemlerden bazıları ele alarak belli bir basamağa kadar pi sayısını hesaplamaya çalışacağım. Doğru bir basamak değerine ulaşmak ve burada yüksek sürate çıkmak hedeflerim arasında. Önce en amele yöntemlerden başlayarak daha sonra daha karmaşık yöntemlere geçmek niyetindeyim.
+Matematiksel yöntemlerden bazılarını ele alarak belli bir basamağa kadar **pi *(π)*** sayısını hesaplamaya çalışacağım. Doğru bir basamak değerine ulaşmak ve burada yüksek sürate çıkmak hedeflerim arasında. Önce en amele yöntemlerden başlayarak daha sonra daha karmaşık yöntemlere geçmek niyetindeyim ama yol beni farklı bir rotaya sürükledi diye de özet geçeyim :D Diğer modellere geçemeden kendimi diller arasında performans hesaplamaları, optimizasyonlar ve senkronizasyon sorunlarıyla uğraşırken buldum. O yüzden bu yazıda sadece Monte Carlo yöntemini ele alacağım.
 
 Kapsam
 
-- Dart oynamayı severiz. Monte Carlo ile başlayalım.
-- Chudnovsky algoritması ve ardından Gauss-Legendre algoritmasını deneyelim.
-- Paralel hesaplama yöntemlerini kullanarak performansı artırmaya çalışalım.
-- Race Condition'ları ve diğer senkronizasyon sorunlarını ele alarak kodumuzu optimize edelim.
+- [x] Dart oynamayı severiz. Monte Carlo ile başlayalım.
+- [x] Paralel hesaplama yöntemlerini kullanarak performansı artırmaya çalışalım.
+- [x] Race Condition'ları ve diğer senkronizasyon sorunlarını ele alarak kodumuzu optimize edelim.
+- [ ] Chudnovsky algoritması ve ardından Gauss-Legendre algoritmasını deneyelim.
+
+## Sistem
+
+Çalışmadaki deneyleri aşağıdaki özelliklere sahip bir sistemde gerçekleştirdim.
+
+| Donanım | Detaylar |
+| ------- | ------- |
+| İşlemci | 12th Gen Intel(R) Core(TM) i7-1255U, 1700 Mhz, 10 Core(s), 12 Logical Processor(s) |
+| Bellek | 32 GB |
+| İşletim Sistemi | Windows 11 Pro |
 
 ## Önce Kısa bir Matematika ve Monte Carlo Seyahati
 
-**Pi *(π)***, bir dairenin çevresinin çapına oranı olarak ifade edilebilir. Yaklaşık olarak ve genelde ezberlediğim değeri *3.14159* olarak bilinir ancak aslında sonsuz bir ondalık dizisine sahiptir ve tam değeri bilinmemektedir. *Pi (π)* sayısını kutlamak için özel bir gün bile vardır: 14 Mart, yani 3/14...
+**Pi *(π)***, bir dairenin çevresinin çapına oranı olarak ifade edilebilir. Yaklaşık olarak ve genelde ezberlediğim değeri *3.14159* olarak bilinir ancak aslında sonsuz bir ondalık dizisine sahiptir ve tam değeri bilinmemektedir. **Pi *(π)*** sayısını kutlamak için özel bir gün bile vardır: 14 Mart, yani 3/14...
 
-Bir çılgınlık yaparak kodlarımızı deterministik olmayan bir matematikle yazabiliriz. **Monte Carlo** yöntemine göre pi sayısının hesaplanması için bir çembere ve rastgele iki double değere ihtiyacımız vardır. Rastgele değerlerimiz çemberin içine düşerse, **pi *(π)*** sayısının yaklaşık değeri için bir tahmin yapabiliriz. Tabii burada kullanmamız gereken bir formül ve iterasyon sayısı var. Öyleyse vakit kaybeden kodlamaya başlayalım.
+Bir çılgınlık yaparak kodlarımızı deterministik olmayan bir metodoloji ile yazabiliriz. **Monte Carlo** yöntemine göre pi sayısının hesaplanması için bir çembere ve rastgele iki double değere ihtiyacımız var. Rastgele değerlerin bir bileşimi çemberin içine düşerse, **pi *(π)*** sayısının yaklaşık değeri için bir tahmin yapılabilir. Tabii burada kullanmamız gereken bir formül ve iterasyon sayısı var. Öyleyse vakit kaybeden kodlamaya başlayalım.
 
 ## Temiz, Sequential Versiyon
 
@@ -55,11 +65,11 @@ public class Program
 }
 ```
 
-Kendi sistemimde normal **dotnet run** koşusuyla elde ettiğim sonuçlar şöyle.
+Kendi sistemimde normal **dotnet run** koşusuyla elde ettiğim sonuçlar şöyle *(Özellikle dotnet run komutuna dikkat çekmek isterim. İlerleyen bölümlerde release modun nasıl farklar yarattığını göreceğiz)*:
 
 ![CalculatePi_00](../images/CalculatePi_00.png)
 
-Yaklaşık 1000 milisaniye civarında bir sürede 3.14 etrafında dolandığımızı söyleyebilirim. Burada gayet senkron bir şekilde tek bir thread kullanarak hesaplama yapıyoruz. Devam etmeden önce rastgele değerlerin çember içerisinde kalıp kalmama formüllerini daha şık yazabilirmiyim diye düşündüm ve **Math** sınıfının **Pow** metodunu kullanarak kodu biraz daha okunabilir hale getirdim.
+Yaklaşık **1000 milisaniye** civarında bir sürede **3.14** etrafında dolandığımızı söyleyebilirim. Burada gayet senkron bir şekilde tek thread kullanarak hesaplama yapıyoruz. Devam etmeden önce rastgele değerlerin çember içerisinde kalıp kalmama formüllerini daha şık yazabilirmiyim diye düşündüm ve **Math** sınıfının **Pow** metodunu kullanarak kodu biraz daha okunabilir hale getirdim.
 
 ```csharp
 if (Math.Pow(x, 2) + Math.Pow(y, 2) <= 1.0)
@@ -74,11 +84,11 @@ Biraz göreceli de olsa **Math** sınıfının statik **Pow** metodunu kullanmak
 
 ### Iterasyon Sayısı Artıyor, Paralel Çalışma Geliyor
 
-İlk metodolojimize göre 100 milyon iterasyon bu sistemde kabul edilebilir bir ortalama çalışma süresi yakaladı ancak daha yüksek ve tutarlı bir hesaplama için iterasyon sayısını artırmak gerekir. Bunun üzerine 1 milyar iterasyonu denemeye karar verdim. İşte sonuçlar.
+İlk metodolojimize göre 100 milyon iterasyon bu sistemde kabul edilebilir bir ortalama çalışma süresi yakaladı ancak daha yüksek ve tutarlı bir hesaplama için iterasyon sayısını artırmak yerinde olur. Bu yüzden 1 milyar iterasyonu deneyebiliriz. İşte sonuçlar.
 
 ![CalculatePi_02](../images/CalculatePi_02.png)
 
-"Gerçekten bu kadar süre bekledin mi?" diye sorabilirsiniz. Evet, bekledim :D İterasyon sayısının büyümesi hesaplama süresini çok daha dramatik olarak artırdı. Dolayısıyla bir şeyleri paralel hale getirmenin ve pek tabii bunu da güvenli *(thread-safe)* ve *race condition* sorunlarından kaçınarak yapmanın zamanı geldi. Aslında **for** döngüsünü paralel hale getirebiliriz ve tahminen oluşabilecek **race condition** sorununu da **Interlocked** sınıfını kullanarak çözebiliriz. İşte paralel hale getirilmiş ve güvenli bir şekilde sayaç artırdığını düşündüğüm kod parçası.
+"Gerçekten bu kadar süre bekledin mi?" diye sorabilirsiniz. Evet, bekledim :D İterasyon sayısının büyümesi hesaplama süresini çok daha dramatik olarak artırdı(ama hala dotnet'i debug modda işletiyoruz onu da belirtelim)* Dolayısıyla bir şeyleri paralel hale getirmenin ve pek tabii bunu da güvenli *(thread-safe)* ve *race condition* sorunlarından kaçınarak yapmanın zamanı geldi. Aslında **for** döngüsünü paralel hale getirebiliriz ve tahminen oluşabilecek **race condition** sorununu da **Interlocked** sınıfını kullanarak çözebiliriz. İşte paralel hale getirilmiş ve güvenli bir şekilde sayaç artırdığını düşündüğüm kod parçası.
 
 ```csharp
 public static long PiEstimatorV2(long iterations)
@@ -127,13 +137,13 @@ public static long PiEstimatorV3(long iterations)
 }
 ```
 
-Şaşılacak şey ama sadece **Interlocked** sınıfını kullanarak sayaç artırmaya çalışmak daha iyi sonuçlar verdi. Fakat bu sefer de paralel çalışmanın avantajını tam olarak kullanamdık.
+Şaşılacak şey ama sadece **Interlocked** sınıfını kullanarak sayaç artırmaya çalışmak daha iyi sonuçlar verdi. Fakat bu sefer de paralel çalışmanın avantajını tam olarak kullanmadık/kullanamdık.
 
 ![CalculatePi_04](../images/CalculatePi_04.png)
 
 ### Thread-Local Random ve Daha İyi Paralel Çalışma
 
-Sanki doğru yolda ilerliyor gibiyim ama tam olarak değil. **Interlocked** sınıfı thread'ler arası güvenli bir şekilde sayacı artırmamızı sağlasa da, paralel çalışacak her bir iterasyonda bu işlemi yapmak ciddi bir performans kaybına neden oluyor gibi duruyor. Çünkü her bir thread'in sayaç değerini güncellemesi gerektiğinde, diğer thread'lerin de bu değere erişmeye çalışması bir tür bekleme durumunu tetikliyor. Dolayısıyla her bir thread'in kendi sayaç değerini tutması ve en sonunda bu değerleri birleştirmek daha doğru olacak. O zaman birde aşağıdaki kod parçasını deneyelim.
+Sanki doğru yolda ilerliyor gibiyim ama tam olarak değil. **Interlocked** sınıfı thread'ler arası güvenli bir şekilde sayacı artırmamızı sağlasa da, paralel çalışacak her bir iterasyonda bu işlemi yapmak ciddi bir performans kaybına neden oluyor gibi. Çünkü her bir thread'in sayaç değerini güncellemesi gerektiğinde diğer thread'lerin de bu değere erişmeye çalışması bir tür beklemeye sebep oluyor. Dolayısıyla her bir thread'in kendi sayaç değerini tutması ve en sonunda bu değerleri birleştirmek daha doğru olacak. O zaman birde aşağıdaki kod parçasını deneyelim.
 
 ```csharp
 public static long PiEstimatorV4(long iterations)
@@ -159,7 +169,9 @@ public static long PiEstimatorV4(long iterations)
 }
 ```
 
-**tlRandom** isimli **ThreadLocal** sınıfını kullanarak her bir thread'in kendi rastgele sayı üreteci örneğine sahip olmasını sağlıyoruz. Bu sayede her bir thread'in kendi sayaç değerini tutması ve sonunda bu değerleri güvenli bir şekilde birleştirmesi mümkün hale geliyor. **Paralel for** döngüsü bu örnekte tam beş parametre almakta. Dile kolay tam beş, iki tane daha alsa **Sonarqube**'e takılır herhalde :D İlk iki parametre iterasyon aralığını tanımlarken *(0'dan maksimum iterasyon değerine kadar)*, üçüncü parametre her bir thread için hesaplama değerinin başlangıç değerini belirliyor. Dördüncü parametre her bir iterasyonda çalışacak olan fonksiyonu temsil ediyor ki burada Monte Carlo simülasyonu yapılmakta ve bu fonksiyon, her bir thread'in kendi sayaç değerini güncelliyor. Son parametre ise tüm thread'lerin sayaç değerlerini güvenli bir şekilde birleştirmek için kullanılan fonksiyonu işaret ediyor.
+**tlRandom** isimli **ThreadLocal** sınıfını kullanarak her bir thread'in kendi rastgele sayı üreteci örneğine sahip olmasını sağlıyoruz. Bu sayede her bir thread'in kendi sayaç değerini tutması ve sonunda bu değerleri güvenli bir şekilde birleştirmesi mümkün hale geliyor. **Paralel for** döngüsü bu örnekte tam beş parametre almakta. Dile kolay tam beş, iki tane daha alsa **Sonarqube**'e takılır herhalde :D
+
+İlk iki parametre iterasyon aralığını tanımlarken *(0'dan maksimum iterasyon değerine kadar)*, üçüncü parametre her bir thread için hesaplama değerinin başlangıç değerini belirliyor. Dördüncü parametre her bir iterasyonda çalışacak olan metodu temsil ediyor ki burada **Monte Carlo** simülasyonu yapılmakta ve bu metod her bir thread'in kendi sayaç değerini güncelliyor. Son parametre ise tüm thread'lerin sayaç değerlerini güvenli *(thread-safe)* bir şekilde birleştirmek için kullanılan metodu işaret ediyor.
 
 Peki ya çalışma zamanı çıktısı...
 
@@ -167,7 +179,7 @@ Peki ya çalışma zamanı çıktısı...
 
 ### Gerçek Çekirdek Sayısına Göre Bölme
 
-Not bad, not bad! Hesaplama süreleri daha makul bir noktaya geldi. Ancak daha şık bir tasarıma veya modele gidebilir miyim diye de düşünüyorum. Paralel for döngüsünde kalacağım ama makinedeki çekirdek sayısını da hesaba katarak ilerlemek mantıklı olabilir. Yani her çekirdeğin kendi sayaç değerini tutması ve sonunda bu değerlerin birleştirilmesi gibi bir yaklaşım daha verimli olabilir. Bu amaçla aşağıdaki kod parçasını ele alabiliriz.
+Not bad, not bad! Hesaplama süreleri daha makul bir noktaya geldi. Ancak daha şık bir tasarıma veya modele gidebilir miyiz diye de düşünüyorum. Paralel for döngüsünde kalıp makinedeki çekirdek sayısını da hesaba katarak ilerlemek mantıklı olabilir. Yani her çekirdeğin kendi sayaç değerini tutması ve sonunda bu değerlerin birleştirilmesi gibi bir yaklaşım daha verimli olabilir. Bu amaçla aşağıdaki kod parçasını ele alabiliriz.
 
 ```csharp
 public static long PiEstimatorV5(long iterations)
@@ -199,17 +211,17 @@ public static long PiEstimatorV5(long iterations)
 }
 ```
 
-Bu sefer işlemcideki çekirdek sayısına göre iterasyonları bölüyor ve her çekirdek için ayrı bir görev oluşturuyoruz. Her görev kendi rastgele sayı üretecine sahip ve kendi sayaç değerini tutuyor. Görevler tamamlandığında, sayaç değerleri güvenli bir şekilde toplanıyor. Bu, bir önceki versiyona göre performansı biraz daha artırdı diyebilirim. İşte sonuçlar.
+Bu sefer işlemcideki çekirdek sayısına göre iterasyonları bölüyor ve her çekirdek için ayrı bir görev nesnesi *(Task)* oluşturuyoruz. Her görev kendi rastgele sayı üretecine sahip ve kendi sayaç değerini tutuyor. Görevler tamamlandığında sayaç değerleri güvenli bir şekilde toplanıyor. Bu, bir önceki versiyona göre performansı biraz daha artırdı diyebilirim. İşte sonuçlar,
 
 ![CalculatePi_06](../images/CalculatePi_06.png)
 
-Tabii burada "attığımız taş ürküttüğümüz kurbaya değdi mi?" atasözünü hatırlamakta fayda var. En başta senkron olarak çalışan versiyonu bu son iterasyon sayısı ile tekrar denediğimde aşağıdaki sonuçlara ulaştım. Evet paralel çalışmada sonuçlar daha iyi ama yüksek iterasyon sayıları için geçerli bir durum. Düşük aralıklarda bu maliyete girmeyebiliriz de ve hatta daha yavaş çalışmalar da ortaya çıkabilir.
+Tabii burada **"attığımız taş ürküttüğümüz kurbaya değdi mi?"** özlü sözünü hatırlamakta fayda var. En başta senkron olarak çalışan versiyonu bu son iterasyon sayısı ile tekrar denediğimde aşağıdaki sonuçlara ulaştım. Evet paralel çalışmada sonuçlar daha iyi ama bu sanki yüksek iterasyon sayıları için geçerli bir durum. Düşük aralıklarda bu maliyete girmeyebiliriz de ve hatta daha kısa sürmesi gerekirken daha uzun çalışma süreleri de ortaya çıkabilir.
 
 ![CalculatePi_07](../images/CalculatePi_07.png)
 
 ## Monte Carlo C# Turunun Değerlendirmesi
 
-Buraya kadarki örnek kod versiyonlarını daha iyi değerlendirmek için aşağıdaki tabloyu ele alabiliriz.
+Buraya kadarki örnek kod versiyonlarını daha iyi karşılaştırmak için aşağıdaki tabloyu ele alabiliriz.
 
 | Kriter | V0 | V1 | V2 | V3 | V4 | V5 |
 | ------- | ---- | ---- | ---- | ---- | ---- | ---- |
@@ -231,15 +243,15 @@ ve şu ana kadar ki Monte Carlo uyarlamaları için şunları da söyleyebiliriz
 
 ## Peki Ya Aynı Paralel Çalışmayı Rust Dili ile Yapsaydık?
 
-Pek tabii bu tip yüksek performans gerektiren hesaplamalar söz konusu olunca aklıma ilk gelen **Garbage Collector** mekanizmasını aradan çıkarmak hatta **managed environment** in de olmadığı bir dilde ilerlemek oluyor. Birkaç yıl olsa da ilgilenme fırsatı bulduğum **Rust** ve çok kısa bir süre baktığım **Zig** ile aynı senaryoyu denemek istiyorum. Önce **rust** tarafı ile başlayalım.
+Pek tabii bu tip yüksek performans gerektiren hesaplamalar söz konusu olunca aklıma ilk gelen **Garbage Collector** mekanizmasını aradan çıkarmak hatta **managed environment** kullanmayan bir dilde ilerlemek oluyor. Birkaç yıl olsa da ilgilenme fırsatı bulduğum **rust** ve çok kısa bir süre baktığım **zig** ile aynı senaryoyu deneyebiliriz. Önce **rust** tarafı ile başlayalım.
 
-İşlemci çekirdeklerinden maksimum fayda sağlamak adına **rayon** küfesi biçilmiş kaftan. Tabii rastgele sayı üretimi için de **rand** kütüphanesini kullanmayı tercih edeceğim. Bunları projeye **cargo** ile ekleyebiliriz.
+İşlemci çekirdeklerinden maksimum fayda sağlamak adına **rayon** küfesi biçilmiş kaftan. Tabii rastgele sayı üretimi için de **rand** küfesini *(crate)* kullanmayı tercih edeceğim. Bunları projeye **cargo** ile ekleyebiliriz.
 
 ```bash
 cargo add rayon rand
 ```
 
-main.rs dosyasına da aşağıdaki kod parçasını ekleyerek devam edebiliriz.
+main.rs dosyasına da aşağıdaki kod parçasını ekleyerek devam edelim.
 
 ```rust
 use rand::rngs::SmallRng;
@@ -278,11 +290,11 @@ fn calculate_pi(total_iterations: u64) -> f64 {
 }
 ```
 
-**calculate_pi** metodumuzu yine 10 kez çalıştırıp süre ölçümlemesi yapmaktayız. **into_par_iter()** ile paralel bir iterator ve devamında kullanılan **map_init** ile her bir **thread** için ayrı bir rastgele sayı üreteci oluşturuyoruz. map_init kod bloğunda f64 türünden rastgele x ve y değerleri üretiliyor ve çember içinde olup olmadıkları kontrol ediliyor. En sonunda da **sum** yardımıyla **in_circle** sayısı toplanarak **pi** tahmini yapılıyor ve bulunan sonuç döndürülüyor. Öncelikle bu kodu derleme modunda çalıştırarak süreleri gözlemleyelim.
+**calculate_pi** metodunu 10 kez çalıştırıp süre ölçümlemesi yaptırmaktayız. **into_par_iter()** ile paralel bir iterasyon ve devamında kullanılan **map_init** ile her bir **thread** için ayrı bir rastgele sayı üreteci oluşturuluyor. **map_init** kod bloğunda **f64** türünden rastgele x ve y değerleri üretiliyor ve çember içinde olup olmadıkları kontrol ediliyor. En sonunda da **sum** yardımıyla **in_circle** sayısı toplanarak **pi** değer tahmini yapılıyor ve bulunan sonuç döndürülüyor. Öncelikle bu kodu derleme modunda çalıştırarak süreleri gözlemleyelim.
 
 ![CalculatePi_08](../images/CalculatePi_08.png)
 
-C# programımıza göre çok daha kötü bir performans sergiliyor gibi duruyor. Aslında bu sonucu normal karşılamak gerekir zira **cargo run** komutu varsayılan olarak **debug** modunda çalışır. Yani **release** modda çalıştırıp bir kıyaslama yapmak daha doğru olur.
+**C#** programımıza göre çok daha kötü bir performans sergileniyor. Aslında bu sonucu normal karşılamak gerekir zira **cargo run** komutu varsayılan olarak **debug** modunda çalışır ve bu mod cidden yavaş çalışır. Yani **release** modda çalıştırıp bir kıyaslama yapmak daha doğru olur *(Evet kabul ediyorum nitro modunu açtık ve bir hile yaptık)*
 
 ```bash
 cargo run --release
@@ -290,7 +302,7 @@ cargo run --release
 
 ![CalculatePi_09](../images/CalculatePi_09.png)
 
-"Hımmm... Ama hile yapıyorsun hocam oldu mu şimdi?"" :D .Net tarafında da **release** modda çalıştırarak bir kıyaslama yapmamız gerekir esasında. Birde öyle deneyelim.
+"Hımmm... Ama hile yapıyorsun hocam oldu mu şimdi?"" :D .Net tarafında yazdığımız son paralel kodu da **release** modda çalıştırarak bir kıyaslama yapmak şimdi çok daha doğru olacak. Öyleyse...
 
 ```bash
 dotnet run -c Release
@@ -298,7 +310,7 @@ dotnet run -c Release
 
 ![CalculatePi_10](../images/CalculatePi_10.png)
 
-dotnet run ile doğrudan çalıştırdığımıza göre daha iyi sonuçlar aldık ama Rust tarafına nazaran çok kötü. Şartlar yine eşit değil ama. Burada Just-in Time derleyicisinin optimizasyonları devreye girdi ve bu nedenle performans artışı sağlandı. Aslında .Net 8 sonrası gelen **Native AOT** desteği ile Rust tarafına daha yakın sonuçlar elde etmek mümkün olabilir. O zaman birde **Native AOT** ile deneyelim. Bu amaçla ben aşağıdaki komutu denedim. Hem işlemci mimarisi hem de işletim sistemine uygun bir **release** çıktısı hazırlıyoruz. Sonrasında tabii bu exe'yi çalıştırmamız gerekiyor.
+**dotnet run** ile doğrudan çalıştırdığımıza göre daha iyi sonuçlar aldık ama **rust** tarafına nazaran yine kötü ve epeyce kötü. Fakat şartlar yine eşit değil! Burada **Just-in Time** derleyicisinin optimizasyonları ile bir performans artışı sağlandı. Lakin .Net 8 sonrası gelen **Native AOT** desteği ile **rust** tarafına daha yakın sonuçlar elde etmek mümkün olabilir. O zaman programımızı birde **Native AOT** ile çalıştıralım. Bu amaçla ben aşağıdaki komutu denedim. Hem işlemci mimarisi hem de işletim sistemine uygun bir **release** çıktısı hazırlanıyor. Sonrasında tabii bu exe'yi çalıştırmamız gerekiyor.
 
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishAot=true
@@ -308,11 +320,11 @@ cd .\bin\release\net10.0\win-x64\publish\
 
 ![CalculatePi_11](../images/CalculatePi_11.png)
 
-Yani o kadar büyük bir iyileşme olmadı gibi. Hele rust ile release modda çalıştırılan kodun çalışma zamanı süreleri düşünülünce. Atladığım kesin bir şey var ve emin olmak adına C# uygulamasını belki de  **SIMD *(Single Instruction, Multiple Data)*** desteği ekleyerek denemek gerekir. Tabii burada SIMD konusunu kısaca izah etmek lazım. Uzmanı değilim ama okuduğum kadarıyla hikayeyi şöyle ele almak gerekiyor;
+Yani o kadar büyük bir iyileşme olmadı gibi. Hele rust ile release modda çalıştırılan kodun çalışma zamanı süreleri düşünülünce. Atladığım kesin bir şey var ve emin olmak adına **C#** uygulamasını belki de **SIMD *(Single Instruction, Multiple Data)*** desteği ekleyerek denemek gerekiyor. Tabii burada **SIMD** konusunu kısaca izah etmek lazım. Uzmanı değilim ama okuduğum kadarıyla hikayeyi şöyle özetleyebilirim;
 
-Monte Carlo yöntemimizde çembere isabet etme durumunu tespit edereken bir formül kullanıyoruz. `x*x + y*y <= 1.0` şeklinde. İşlemcinin her bir sayı çifti için tek tek bu işlemi yaptığını düşünelim. Ancak SIMD desteği ile işlemcinin bazı register'larını kullanarak aynı anda 4 double veya 8 float işlemin tek bir saat vuruşunda *(clock cycle)* yapılması sağlanabilir. Yani tek bir işlemle 4 veya 8 sayı çifti için `x*x + y*y <= 1.0` kontrolü yapılabilir. İşin matematiği beni şu an için aşıyor ancak .Net'in System.Runtime.Intrinsics kütüphanesinde yer alan `Vector256`, `Vector<T>` gibi türler ile bu tür bir optimizasyonu deneyebiliriz. Tür adlarından da anlaşılacağı üzere burada hesaplamaların vektör karşılıklarının bulunduğu bir senaryo var.
+> Monte Carlo yönteminde çembere isabet etme durumunu tespit edereken bir formül kullanıyoruz. `x*x + y*y <= 1.0` şeklinde. İşlemcinin her bir sayı çifti için tek tek bu işlemi yaptığını düşünelim. Ancak SIMD desteği ile işlemcinin bazı register'larını kullanıp aynı anda 4 double veya 8 float işlemin tek bir saat vuruşunda *(clock cycle)* yapılması sağlanabilir. Yani tek bir işlemle 4 veya 8 sayı çifti için `x*x + y*y <= 1.0` kontrolü yapılabilir. İşin matematiği beni şu an için aşıyor ancak .Net'in **System.Runtime.Intrinsics** kütüphanesinde yer alan `Vector256`, `Vector<T>` gibi türler ile bu tür bir optimizasyonu deneyebiliriz. Tür adlarından da anlaşılacağı üzere burada hesaplamaların vektör karşılıklarının bulunduğu bir senaryo var. Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı iddia ediliyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına gelmekte. Genellikle **XorShift**, **PCG *(Permuted Congruential Generator)*** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler öneriliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam şart ki repoda denemesini yapacağım.
 
-Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı görülüyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına geliyor. Genellikle **XorShift**, **PCG(Permuted Congruential Generator)** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler tercih ediliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam lazım. Tekrardan rust tarafına dönelim ve uygulama kodumuzu aşağıdaki gibi değiştirelim.
+Tekrardan rust tarafına dönelim ve uygulama kodumuzu aşağıdaki gibi değiştirelim.s
 
 ```rust
 use rand::rngs::SmallRng;
@@ -370,11 +382,11 @@ pub fn get_circle_value(x_values: &[f64; 4], y_values: &[f64; 4]) -> u64 {
 
 ![CalculatePi_12](../images/CalculatePi_12.png)
 
-Haydaaa! :D SIMD dedik daha hızlı çalışır dedik ancak bir önceki rust kodumuza göre neredeyse 3.5 kat daha yavaş çalışma zamanı süreleri görüyoruz. Aslında elde ettiğimiz süreler iki uygulama biçimi içinde oldukça iyi. Milisaniyeler mertebesinde 1 milyarlık iterasyonları tamamladık. Hatta ilk rust kodumuz gayet sade ve anlaşılır. Yine de SIMD beklediğimiz şekilde çalışmadı. Burada kritik nokta maliyetin nerede olduğunu tespit edebilmek. Büyük ihtmalle rastgele sayı üretimi işi beklenenden uzun sürüyor ve doğru şekilde bir vektörleme gerçekleşmiyor. SIMD için "veriler zaten devasa bir dizide ve bellekte hazır bekliyorsa" gibi bir durum olduğu ifade ediliyor. Yani böyle bir hazırlık sonrası daha çok işe yarar deniyor. Lakin bizim örneğimizde veriyi her adımda sıfırdan üretiyoruz ve üretim maliyeti hesaplama maliyetinin üzerine çıkıyor. Dikkat edelim rastgele sayı üretiminden 4 elemanlık bir dizi çıkartmayı kolaylaştırdık kolaylaştırmasına ama 4 lü gruplama için altına girdiğimiz bu maliyet hesaplama süresini ciddi şekilde artırdı. Ciddi şekilde dediğime bakmayın, .Net kodumuza nazaran burada milisaniyeler mertebesinde konuşabiliyoruz *(Tabii C# program kodumuzu da SIMD ile çalışır hale getirip bir değerlendirme yapmamız lazım)*
+Haydaaa! :D SIMD dedik daha hızlı çalışır dedik ancak bir önceki rust kodumuza göre neredeyse 3.5 kat daha yavaş çalışma zamanı süreleri gördük, oldu mu şimdi! Aslında elde ettiğimiz süreler iki uygulama biçimi içinde oldukça iyi. Milisaniyeler mertebesinde 1 milyarlık iterasyonları tamamladık. Hatta ilk rust kodumuz gayet sade ve anlaşılır. Yine de SIMD beklediğimiz şekilde çalışmadı. Buradaki kritik nokta maliyetin nerede olduğunu tespit edebilmek. Büyük ihtmalle rastgele sayı üretimi işi beklenenden uzun sürüyor ve doğru şekilde bir vektörleme gerçekleşmiyor. SIMD için **"veriler zaten devasa bir dizide ve bellekte hazır bekliyorsa"** gibi bir durum olduğu ifade ediliyor *(Yani böyle bir hazırlık sonrası daha çok işe yarar deniyor)* Lakin bizim örneğimizde veriyi her adımda sıfırdan üretiyoruz ve üretim maliyeti hesaplama maliyetinin üzerine çıkıyor. Dikkat edelim rastgele sayı üretiminden 4 elemanlık bir dizi çıkartmayı kolaylaştırdık kolaylaştırmasına ama 4erli gruplama için altına girdiğimiz bu maliyet hesaplama süresini ciddi şekilde artırdı. Ciddi şekilde dediğime bakmayın, .Net kodumuza nazaran burada milisaniyeler mertebesinde konuşabiliyoruz *(Tabii C# program kodumuzu da SIMD ile çalışır hale getirip bir değerlendirme yapmamız lazım)*
 
 ## O Zaman Kontrolü Biraz Daha Elimize Alalım. Zig ile Deneyelim
 
-Zig programlama dili, gizli ya da bilinçsiz kontrol akışlarına müsama göstermiyor. Yani bildiğim kadarı ile hazır bir Paralle.For elimizde yok, threar'leri ve bellek tahsislerini doğrudan bizim yapmamız lazım ki allocation konusunda da çok hassas bir dil olduğunu söyleyebiliriz. Buna göre her thread'in lendi yere sayacını artıracağı, iş bitince bu değerleri ana sayaca ekleyeceği bir yapıyı kurgulamamız gerekiyor gibi. Şöyle bir kod parçası ile başlayalım öyleyse. Eğer çok iyi süreler elde edersek belki de daha da iyileştirmeye çalışmayız :D
+Zig programlama dili, gizli ya da bilinçsiz kontrol akışlarına müsama göstermiyor. Yani bildiğim kadarı ile hazır bir Paralle.For elimizde yok, threar'leri ve bellek tahsislerini doğrudan bizim yapmamız lazım ki bellek tahsisi *(allocation)* konusunda da çok hassas bir dil. Buna göre her thread'in kendi yerel sayacını artıracağı, işi bitince bu değerleri ana sayaca ekleyeceği bir akış kurgulamak gerekiyor. Aşağıdaki kod parçası ile başlayalım öyleyse. Eğer çok iyi süreler elde edersek belki de daha da iyileştirmeye çalışmayız :P
 
 ```zig
 const std = @import("std");
@@ -468,18 +480,18 @@ zig run .\program.zig -O ReleaseFast -mcpu=native
 
 ![CalculatePi_13](../images/CalculatePi_13.png)
 
-**Rust**'ın ilk versiyonundaki release moddaki sürelere ulaşamadık belki ama yine de hızlı çalıştı diyebiliriz. Dikkat çekici noktalardan birisi ilk başlangıçtaki sürenin sonradan yükselmesi, belli bir ortalamada devam etmesi ve en sonda iki katında tamamlanması. Son süre ölçümünün bu kadar yüksek çıkmasının bir sebebi kuvvetle muhtemele paralel çalışan thread'lerin tamamının bitmesini bekleyen **join** çağrıları olsa gerek.
+**Rust**'ın ilk versiyonundaki **release** moddaki sürelere ulaşamadık belki ama yine de hızlı çalıştı diyebiliriz. Dikkat çekici noktalardan birisi ilk başlangıçtaki sürenin sonradan yükselmesi, belli bir ortalamada devam etmesi ve en sonda neredeyse iki katı kadar yavaş tamamlanması. Son süre ölçümünün bu kadar yüksek çıkmasının bir sebebi kuvvetle muhtemele paralel çalışan thread'lerin tamamının bitmesini bekleyen **join** çağrıları olsa gerek.
 
-Diğer yandan for döngümüz her adımda işletim sisteminden yeni thread'ler talep edip sonrasında bunları yok etmekte. İşletim sistemi bu talep ve yok etme sürecinden yorulabilir ve bellek üzerinde parçalanmalar *(fragmentation)* oluşabilir. Bu parçalanmalar yeni thread'ler için alan tahsislerini geciktirebilir. Aslında burada bir **thread-pool** yapısı kurgulamadığımız için de böyle bir durum oluşuyor diye düşünüyorum.
+Diğer yandan **for** döngümüz her adımda işletim sisteminden yeni thread'ler talep edip sonrasında bunları yok etmekte. İşletim sistemi bu **talep et-yürüt-yok et** sürecinde yorulabilir ve bellek üzerinde parçalanmalar *(fragmentation)* oluşabilir. Bu parçalanmalar yeni thread'ler için alan tahsislerini geciktirebilir. Aslında burada bir **thread-pool** yapısı kurgulamadığımız için de böyle bir durum oluşuyor diye düşünüyorum.
 
-Zig kodu çok daha iyi yazılabilir belki de ancak kaynaklardan öğrenebildiğim bu kadar.
+Zig kodu çok daha iyi yazılabilir belki de ancak kaynaklardan öğrenebildiğim şimdilik bu kadar.
 
 ## Sonuç Değerlendirmesi
 
-Aslında bu çalışmada amacım pi sayısını hesaplarken **monte carlo** yöntemi ile ilerlemek, tutarlı sonuçlara ulaşmak için diğer matematik yöntemlere geçmekti. Bunu yaparken en çok aşina olduğum programlama dili C# ile işe başlamak istedim. Küçük iterasyonlarda hızlı sonuçlar aldım ama yüksek iterasyonlara gelince süreler ciddi anlamda şaşmaya başladı. Dolayısıyla yöntem değişikliklerine gitmem yeni şeyler keşfetmem gerekti.
+Aslında bu çalışmada amacım **Pi *(π)*** sayısını hesaplarken **monte carlo** yöntemi ile ilerlemek ve sonrasında daha tutarlı sonuçlara ulaşmak için farklı matematik yöntemlere geçmekti. Bunu yaparken en çok aşina olduğum programlama dili **C#** ile işe başlamak istedim. Küçük iterasyonlarda hızlı sonuçlar aldım ama yüksek iterasyonlara gelince hesaplama süreleri ciddi anlamda uzamaya başladı. Dolayısıyla yöntem değişikliklerine gitmem yeni şeyler keşfetmem gerekti.
 
-Özellikle çok yüksek iterasyonlarda paralel çalışmanın fark yarattığını gözlemedim. Derken **rust** ve **zig** dillerini işin içerisine katmak istedim. Release modda rust'ın epey iyi sonuçlar aldığını belirtmemiz lazım ki fark bu kadar açılınca release derlemelerini ve hatta AOT eklemeleri ile .net kodumuzu daha da hızlandırmaya çalıştım. Burada tek açık kapı .Net kodunu SIMD desteği ile işletip süre hesaplaması yapmak.
+Özellikle çok yüksek iterasyonlarda paralel çalışmanın fark yarattığını gözlemedim. Derken **rust** ve **zig** dillerini işin içerisine katmak istedim. Release modda rust'ın epey iyi sonuçlar aldığını belirtmem lazım ki fark bu kadar açılınca release derlemeleri ve hatta AOT *(Ahead-Of-Time)* eklemeleri ile .net kodumuzu daha da hızlandırmaya çalıştım. Burada tek açık kapı .Net kodunu **SIMD *(Single Instruction, Multiple Data)*** desteği ile işletip süre hesaplaması yapmamış olmam.
 
-İşte bir yerden sonra çok yüksek iterasyonlarda en iyi pi tahminlerine ulaşmaya geldi. **Monte carlo** doğru pi rakamlarına ulaşmak için iyi bir tercih değil. Bunu değiştirip farklı bir matematik model ile ilerleyeceğim ama tüm kodlarımız için şu anda aynı yöntem söz konusu. Dolayısıyla çalışma sürelerinin kıyaslamak ve bir özet tablo hazırlamak iyi olabilir.
+**Monte carlo** doğru pi rakamlarına ulaşmak için iyi bir tercih değil. Bunu değiştirip farklı bir matematik model ile ilerlemek lazım ama tüm kodlarımız için şu anda aynı yöntem söz konusu. Dolayısıyla çalışma sürelerini kıyaslamak ve bir özet tablo hazırlamak iyi olabilir.
 
 DEVAM EDECEK...
