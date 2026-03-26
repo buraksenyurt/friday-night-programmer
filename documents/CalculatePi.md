@@ -312,6 +312,174 @@ Yani o kadar büyük bir iyileşme olmadı gibi. Hele rust ile release modda ça
 
 Monte Carlo yöntemimizde çembere isabet etme durumunu tespit edereken bir formül kullanıyoruz. `x*x + y*y <= 1.0` şeklinde. İşlemcinin her bir sayı çifti için tek tek bu işlemi yaptığını düşünelim. Ancak SIMD desteği ile işlemcinin bazı register'larını kullanarak aynı anda 4 double veya 8 float işlemin tek bir saat vuruşunda *(clock cycle)* yapılması sağlanabilir. Yani tek bir işlemle 4 veya 8 sayı çifti için `x*x + y*y <= 1.0` kontrolü yapılabilir. İşin matematiği beni şu an için aşıyor ancak .Net'in System.Runtime.Intrinsics kütüphanesinde yer alan `Vector256`, `Vector<T>` gibi türler ile bu tür bir optimizasyonu deneyebiliriz. Tür adlarından da anlaşılacağı üzere burada hesaplamaların vektör karşılıklarının bulunduğu bir senaryo var.
 
-Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı görülüyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına geliyor. Genellikle **XorShift**, **PCG(Permuted Congruential Generator)** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler tercih ediliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam lazım. Tekrardan rust tarafına dönelim.
+Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı görülüyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına geliyor. Genellikle **XorShift**, **PCG(Permuted Congruential Generator)** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler tercih ediliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam lazım. Tekrardan rust tarafına dönelim ve uygulama kodumuzu aşağıdaki gibi değiştirelim.
+
+```rust
+use rand::rngs::SmallRng;
+use rand::RngExt;
+use rayon::prelude::*;
+
+fn main() {
+    let total_iterations = 1_000_000_000;
+
+    for _ in 0..10 {
+        let start_time = std::time::Instant::now();
+        let pi_estimate = calculate_pi(total_iterations);
+        let elapsed = start_time.elapsed();
+        println!("Estimated Pi: {} in {:?}", pi_estimate, elapsed);
+    }
+}
+
+fn calculate_pi(total_iterations: u64) -> f64 {
+    let chunk_size = 4; // SIMD için 4'lü gruplar halinde işlem yapacağız
+                        // çünkü AVX2 256-bit genişliğinde ve 4 adet f64 (64-bit) değeri aynı anda işleyebilir.
+    let loop_count = total_iterations / chunk_size;
+
+    let in_circle: u64 = (0..loop_count)
+        .into_par_iter()
+        .map_init(
+            || rand::make_rng::<SmallRng>(),
+            |rng, _| {
+                let x_values: [f64; 4] = rng.random(); // random'un güzel yanlarından birisi. Tek çağrıda arka arkaya 4 sayı üretip diziye atar.
+                let y_values: [f64; 4] = rng.random();
+
+                get_circle_value(&x_values, &y_values)
+            },
+        )
+        .sum();
+
+    4.0 * (in_circle as f64) / (total_iterations as f64)
+}
+
+// x_values ve y_values elemanları 4 boyutlu dizi olduğunda derleyici bunların kesinlikle sabit boyutlu olduğunu bilecek.
+// Buna göre kod doğrudan AVX2 SIMD komutuna çevrilebilir.
+#[inline(always)]
+// Bunu eklediğimiz için derleyici bu fonksiyonu çağırmak yerine doğrudan kodun içerisine gömer.
+pub fn get_circle_value(x_values: &[f64; 4], y_values: &[f64; 4]) -> u64 {
+    let mut count = 0;
+
+    for i in 0..4 {
+        if x_values[i] * x_values[i] + y_values[i] * y_values[i] <= 1.0 {
+            count += 1;
+        }
+    }
+
+    count
+}
+```
+
+![CalculatePi_12](../images/CalculatePi_12.png)
+
+Haydaaa! :D SIMD dedik daha hızlı çalışır dedik ancak bir önceki rust kodumuza göre neredeyse 3.5 kat daha yavaş çalışma zamanı süreleri görüyoruz. Aslında elde ettiğimiz süreler iki uygulama biçimi içinde oldukça iyi. Milisaniyeler mertebesinde 1 milyarlık iterasyonları tamamladık. Hatta ilk rust kodumuz gayet sade ve anlaşılır. Yine de SIMD beklediğimiz şekilde çalışmadı. Burada kritik nokta maliyetin nerede olduğunu tespit edebilmek. Büyük ihtmalle rastgele sayı üretimi işi beklenenden uzun sürüyor ve doğru şekilde bir vektörleme gerçekleşmiyor. SIMD için "veriler zaten devasa bir dizide ve bellekte hazır bekliyorsa" gibi bir durum olduğu ifade ediliyor. Yani böyle bir hazırlık sonrası daha çok işe yarar deniyor. Lakin bizim örneğimizde veriyi her adımda sıfırdan üretiyoruz ve üretim maliyeti hesaplama maliyetinin üzerine çıkıyor. Dikkat edelim rastgele sayı üretiminden 4 elemanlık bir dizi çıkartmayı kolaylaştırdık kolaylaştırmasına ama 4 lü gruplama için altına girdiğimiz bu maliyet hesaplama süresini ciddi şekilde artırdı. Ciddi şekilde dediğime bakmayın, .Net kodumuza nazaran burada milisaniyeler mertebesinde konuşabiliyoruz *(Tabii C# program kodumuzu da SIMD ile çalışır hale getirip bir değerlendirme yapmamız lazım)*
+
+## O Zaman Kontrolü Biraz Daha Elimize Alalım. Zig ile Deneyelim
+
+Zig programlama dili, gizli ya da bilinçsiz kontrol akışlarına müsama göstermiyor. Yani bildiğim kadarı ile hazır bir Paralle.For elimizde yok, threar'leri ve bellek tahsislerini doğrudan bizim yapmamız lazım ki allocation konusunda da çok hassas bir dil olduğunu söyleyebiliriz. Buna göre her thread'in lendi yere sayacını artıracağı, iş bitince bu değerleri ana sayaca ekleyeceği bir yapıyı kurgulamamız gerekiyor gibi. Şöyle bir kod parçası ile başlayalım öyleyse. Eğer çok iyi süreler elde edersek belki de daha da iyileştirmeye çalışmayız :D
+
+```zig
+const std = @import("std");
+
+// Monte Carlo yöntemiyle Pi değeri hesaplanan fonksiyon
+// ilk parametre iterasyon sayısını alır ki bizim örneğimizde 1 milyar / işlemci-çekirdek sayısı kadardır.
+// İkinci parametre pointer olarak gelir ve in_circle değişkenine atomik olarak ekleme yapar.
+// Atomik seviyede ekleme yapmak hızlıdır çünkü doğrudan işlemci instruction'larıyla yapılır ve kilitlenmeye gerek kalmaz.
+fn monteCarloCalculation(iterations: usize, result: *usize) void {
+    var seed: u64 = undefined;
+    std.crypto.random.bytes(std.mem.asBytes(&seed)); // Rastgele bir seed oluşturuyoruz, böylece her çalıştırmada farklı sonuçlar elde edebiliriz.
+
+    // Xoshiro256 türünden bir PRNG-Pseudo Random Number Generator- başlatıyoruz
+    // Bu epey hızlı çalışır
+    var rng = std.Random.DefaultPrng.init(seed);
+    const random = rng.random();
+
+    var localCount: usize = 0;
+    var i: usize = 0;
+
+    // normal iterasyon döngümüz
+    while (i < iterations) : (i += 1) {
+        // f64 yerine f32 kullanarak işlemci üzerindeki yükü yarı yarıya düşürebiliriz.
+        const x = random.float(f32);
+        const y = random.float(f32);
+        // çember içinde olup olmadığını kontrol ediyoruz
+        if (x * x + y * y <= 1.0) {
+            localCount += 1;
+        }
+    }
+
+    // İşlem bitince tek bir atomik yazma işlemi
+    // İlk parametre veri türü, ikinci parametre hedef değişken,
+    // üçüncü parametre çağırılacak instruction komutu,
+    // dördüncü parametre eklenecek değer
+    // ve en nihayetinde beşinci parametre bellek sıralama türü
+    _ = @atomicRmw(usize, result, .Add, localCount, .monotonic);
+}
+
+pub fn main() !void {
+    const totalIterations: usize = 1_000_000_000;
+    const threadCount = try std.Thread.getCpuCount(); // işlemci çekirdek sayısını alıyoruz
+
+    const iterPerThread = totalIterations / threadCount; // thread başına iterasyon değeri
+
+    // Allocator'sız olmaz :D GPA nispeten daha iyi performans gösterir
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit(); // tedbir amaçlı deinit çağırıyoruz, böylece program sonunda kaynaklar düzgün şekilde serbest bırakılır
+    const allocator = gpa.allocator();
+
+    // thread'ler için bellek ayırıyoruz, her thread monteCarloCalculation fonksiyonunu çalıştıracak
+    const threads = try allocator.alloc(std.Thread, threadCount);
+    defer allocator.free(threads); // Yine tedbir amaçlı thread'ler için ayrılan belleği serbest bırakıyoruz
+
+    // Standart deney döngümüz. 10 kez çalıştırılacak
+    for (0..10) |_| {
+        var in_circle: usize = 0;
+
+        const start = std.time.nanoTimestamp();
+
+        // Her test adımında thread'ler oluşturup, monteCarloCalculation fonksiyonunu çalıştırıyoruz
+        for (threads) |*thread| {
+            thread.* = try std.Thread.spawn(
+                .{},
+                monteCarloCalculation,
+                .{ iterPerThread, &in_circle },
+            );
+        }
+
+        // Burada thread'lerin bitmesini bekliyoruz,
+        // her thread'in join edilmesi gerekiyor ki sonuçlar doğru şekilde toplanabilsin
+        // Burası aynı zamanda en son çalışma zamanının neden yüksek çıktığının bir sebebi olabilir
+        for (threads) |thread| {
+            thread.join();
+        }
+
+        const elapsed_ns = std.time.nanoTimestamp() - start;
+        const elapsed_ms = @divTrunc(elapsed_ns, std.time.ns_per_ms);
+
+        const pi = 4.0 * @as(f64, @floatFromInt(in_circle)) / @as(f64, @floatFromInt(totalIterations));
+        std.debug.print("Pi = {d:.6}  ({d} ms)\n", .{ pi, elapsed_ms });
+    }
+}
+```
+
+Uygulamayı aşağıdaki gibi cpu'nun tüm yeteneklerini de işin içerisine dahil ederek release modda çalıştırabiliriz.
+
+```bash
+zig run .\program.zig -O ReleaseFast -mcpu=native
+```
+
+![CalculatePi_13](../images/CalculatePi_13.png)
+
+**Rust**'ın ilk versiyonundaki release moddaki sürelere ulaşamadık belki ama yine de hızlı çalıştı diyebiliriz. Dikkat çekici noktalardan birisi ilk başlangıçtaki sürenin sonradan yükselmesi, belli bir ortalamada devam etmesi ve en sonda iki katında tamamlanması. Son süre ölçümünün bu kadar yüksek çıkmasının bir sebebi kuvvetle muhtemele paralel çalışan thread'lerin tamamının bitmesini bekleyen **join** çağrıları olsa gerek.
+
+Diğer yandan for döngümüz her adımda işletim sisteminden yeni thread'ler talep edip sonrasında bunları yok etmekte. İşletim sistemi bu talep ve yok etme sürecinden yorulabilir ve bellek üzerinde parçalanmalar *(fragmentation)* oluşabilir. Bu parçalanmalar yeni thread'ler için alan tahsislerini geciktirebilir. Aslında burada bir **thread-pool** yapısı kurgulamadığımız için de böyle bir durum oluşuyor diye düşünüyorum.
+
+Zig kodu çok daha iyi yazılabilir belki de ancak kaynaklardan öğrenebildiğim bu kadar.
+
+## Sonuç Değerlendirmesi
+
+Aslında bu çalışmada amacım pi sayısını hesaplarken **monte carlo** yöntemi ile ilerlemek, tutarlı sonuçlara ulaşmak için diğer matematik yöntemlere geçmekti. Bunu yaparken en çok aşina olduğum programlama dili C# ile işe başlamak istedim. Küçük iterasyonlarda hızlı sonuçlar aldım ama yüksek iterasyonlara gelince süreler ciddi anlamda şaşmaya başladı. Dolayısıyla yöntem değişikliklerine gitmem yeni şeyler keşfetmem gerekti.
+
+Özellikle çok yüksek iterasyonlarda paralel çalışmanın fark yarattığını gözlemedim. Derken **rust** ve **zig** dillerini işin içerisine katmak istedim. Release modda rust'ın epey iyi sonuçlar aldığını belirtmemiz lazım ki fark bu kadar açılınca release derlemelerini ve hatta AOT eklemeleri ile .net kodumuzu daha da hızlandırmaya çalıştım. Burada tek açık kapı .Net kodunu SIMD desteği ile işletip süre hesaplaması yapmak.
+
+İşte bir yerden sonra çok yüksek iterasyonlarda en iyi pi tahminlerine ulaşmaya geldi. **Monte carlo** doğru pi rakamlarına ulaşmak için iyi bir tercih değil. Bunu değiştirip farklı bir matematik model ile ilerleyeceğim ama tüm kodlarımız için şu anda aynı yöntem söz konusu. Dolayısıyla çalışma sürelerinin kıyaslamak ve bir özet tablo hazırlamak iyi olabilir.
 
 DEVAM EDECEK...
