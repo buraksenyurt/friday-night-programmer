@@ -14,21 +14,39 @@ fn main() {
 }
 
 fn calculate_pi(total_iterations: u64) -> f64 {
-    let in_circle: u64 = (0..total_iterations)
+    let chunk_size = 4; // SIMD için 4'lü gruplar halinde işlem yapacağız
+                        // çünkü AVX2 256-bit genişliğinde ve 4 adet f64 (64-bit) değeri aynı anda işleyebilir.
+    let loop_count = total_iterations / chunk_size;
+
+    let in_circle: u64 = (0..loop_count)
         .into_par_iter()
         .map_init(
             || rand::make_rng::<SmallRng>(),
             |rng, _| {
-                let (x, y): (f64, f64) = rng.random();
+                let x_values: [f64; 4] = rng.random(); // random'un güzel yanlarından birisi. Tek çağrıda arka arkaya 4 sayı üretip diziye atar.
+                let y_values: [f64; 4] = rng.random();
 
-                if x * x + y * y <= 1.0 {
-                    1_u64
-                } else {
-                    0_u64
-                }
+                get_circle_value(&x_values, &y_values)
             },
         )
         .sum();
 
     4.0 * (in_circle as f64) / (total_iterations as f64)
+}
+
+// x_values ve y_values elemanları 4 boyutlu dizi olduğunda derleyici bunların kesinlikle sabit boyutlu olduğunu bilecek.
+// Buna göre kod doğrudan AVX2 SIMD komutuna çevrilebilir.
+
+#[inline(always)]
+// Bunu eklediğimiz için derleyici bu fonksiyonu çağırmak yerine doğrudan kodun içerisine gömer.
+pub fn get_circle_value(x_values: &[f64; 4], y_values: &[f64; 4]) -> u64 {
+    let mut count = 0;
+
+    for i in 0..4 {
+        if x_values[i] * x_values[i] + y_values[i] * y_values[i] <= 1.0 {
+            count += 1;
+        }
+    }
+
+    count
 }
