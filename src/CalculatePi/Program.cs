@@ -9,12 +9,12 @@ public class Program
         for (int i = 0; i < 10; i++)
         {
             stopwatch.Restart();
-            long inCircle = PiEstimatorV0(totalIterations);
+            // long inCircle = PiEstimatorV0(totalIterations);
             // long inCircle = PiEstimatorV1(totalIterations);
             // long inCircle = PiEstimatorV2(totalIterations);
             // long inCircle = PiEstimatorV3(totalIterations);
             // long inCircle = PiEstimatorV4(totalIterations);
-            // long inCircle = PiEstimatorV5(totalIterations);
+            long inCircle = PiEstimatorV5(totalIterations);
             Console.WriteLine($"Estimated value of π: {4.0 * inCircle / totalIterations} in {stopwatch.ElapsedMilliseconds} ms");
         }
     }

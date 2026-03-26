@@ -7,8 +7,8 @@ fn main() {
 
     for _ in 0..10 {
         let start_time = std::time::Instant::now();
-        //let pi_estimate = calculate_pi_v0(total_iterations);
-        let pi_estimate = calculate_pi_v1(total_iterations);
+        let pi_estimate = calculate_pi_v0(total_iterations);
+        // let pi_estimate = calculate_pi_v1(total_iterations);
         let elapsed = start_time.elapsed();
         println!("Estimated Pi: {} in {:?}", pi_estimate, elapsed);
     }

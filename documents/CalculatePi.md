@@ -310,7 +310,7 @@ dotnet run -c Release
 
 ![CalculatePi_10](../images/CalculatePi_10.png)
 
-**dotnet run** ile doğrudan çalıştırdığımıza göre daha iyi sonuçlar aldık ama **rust** tarafına nazaran yine kötü ve epeyce kötü. Fakat şartlar yine eşit değil! Burada **Just-in Time** derleyicisinin optimizasyonları ile bir performans artışı sağlandı. Lakin .Net 8 sonrası gelen **Native AOT** desteği ile **rust** tarafına daha yakın sonuçlar elde etmek mümkün olabilir. O zaman programımızı birde **Native AOT** ile çalıştıralım. Bu amaçla ben aşağıdaki komutu denedim. Hem işlemci mimarisi hem de işletim sistemine uygun bir **release** çıktısı hazırlanıyor. Sonrasında tabii bu exe'yi çalıştırmamız gerekiyor.
+**dotnet run** ile doğrudan çalıştırdığımıza göre daha iyi sonuçlar aldık ama **rust** tarafına nazaran o kadar da iyi sayılmaz. Fakat şartlar yine eşit değil! Burada **Just-in Time** derleyicisinin optimizasyonları ile bir performans artışı sağlandı. Lakin .Net 8 sonrası gelen **Native AOT** desteği ile **rust** tarafına daha yakın sonuçlar elde etmek mümkün olabilir. O zaman programımızı birde **Native AOT** ile çalıştıralım. Bu amaçla ben aşağıdaki komutu denedim. Hem işlemci mimarisi hem de işletim sistemine uygun bir **release** çıktısı hazırlanıyor. Sonrasında tabii bu exe'yi çalıştırmamız gerekiyor.
 
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishAot=true
@@ -320,11 +320,11 @@ cd .\bin\release\net10.0\win-x64\publish\
 
 ![CalculatePi_11](../images/CalculatePi_11.png)
 
-Yani o kadar büyük bir iyileşme olmadı gibi. Hele rust ile release modda çalıştırılan kodun çalışma zamanı süreleri düşünülünce. Atladığım kesin bir şey var ve emin olmak adına **C#** uygulamasını belki de **SIMD *(Single Instruction, Multiple Data)*** desteği ekleyerek denemek gerekiyor. Tabii burada **SIMD** konusunu kısaca izah etmek lazım. Uzmanı değilim ama okuduğum kadarıyla hikayeyi şöyle özetleyebilirim;
+İyileşme olmadığı gibi süreler bir noktadan sonra uzayıp aynı seyirde devam etti gibi. Belki ilk çalışmaya başladığında işlemci ısındı ve donanımın bir gerçeği olarak süreler uzayıp aynı seyirde kaldı. Bunu ölçümlemek için daha iyi bir monitoring sistemi kurgulamak gerekiyor ama bu beni şu an için aşacak gibi duruyor. Kod tarafında kesin atladığım bir şey var ve emin olmak adına **C#** uygulamasını belki de **SIMD *(Single Instruction, Multiple Data)*** desteği ekleyerek denemek daha doğru olur. **SIMD** konusunu da kısaca izah etmek isterim, en azından anladığım kadarıyla.
 
 > Monte Carlo yönteminde çembere isabet etme durumunu tespit edereken bir formül kullanıyoruz. `x*x + y*y <= 1.0` şeklinde. İşlemcinin her bir sayı çifti için tek tek bu işlemi yaptığını düşünelim. Ancak SIMD desteği ile işlemcinin bazı register'larını kullanıp aynı anda 4 double veya 8 float işlemin tek bir saat vuruşunda *(clock cycle)* yapılması sağlanabilir. Yani tek bir işlemle 4 veya 8 sayı çifti için `x*x + y*y <= 1.0` kontrolü yapılabilir. İşin matematiği beni şu an için aşıyor ancak .Net'in **System.Runtime.Intrinsics** kütüphanesinde yer alan `Vector256`, `Vector<T>` gibi türler ile bu tür bir optimizasyonu deneyebiliriz. Tür adlarından da anlaşılacağı üzere burada hesaplamaların vektör karşılıklarının bulunduğu bir senaryo var. Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı iddia ediliyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına gelmekte. Genellikle **XorShift**, **PCG *(Permuted Congruential Generator)*** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler öneriliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam şart ki repoda denemesini yapacağım.
 
-Tekrardan rust tarafına dönelim ve uygulama kodumuzu aşağıdaki gibi değiştirelim.s
+Tekrardan rust tarafına dönelim ve uygulama kodumuzu aşağıdaki gibi değiştirelim.
 
 ```rust
 use rand::rngs::SmallRng;
@@ -382,7 +382,7 @@ pub fn get_circle_value(x_values: &[f64; 4], y_values: &[f64; 4]) -> u64 {
 
 ![CalculatePi_12](../images/CalculatePi_12.png)
 
-Haydaaa! :D SIMD dedik daha hızlı çalışır dedik ancak bir önceki rust kodumuza göre neredeyse 3.5 kat daha yavaş çalışma zamanı süreleri gördük, oldu mu şimdi! Aslında elde ettiğimiz süreler iki uygulama biçimi içinde oldukça iyi. Milisaniyeler mertebesinde 1 milyarlık iterasyonları tamamladık. Hatta ilk rust kodumuz gayet sade ve anlaşılır. Yine de SIMD beklediğimiz şekilde çalışmadı. Buradaki kritik nokta maliyetin nerede olduğunu tespit edebilmek. Büyük ihtmalle rastgele sayı üretimi işi beklenenden uzun sürüyor ve doğru şekilde bir vektörleme gerçekleşmiyor. SIMD için **"veriler zaten devasa bir dizide ve bellekte hazır bekliyorsa"** gibi bir durum olduğu ifade ediliyor *(Yani böyle bir hazırlık sonrası daha çok işe yarar deniyor)* Lakin bizim örneğimizde veriyi her adımda sıfırdan üretiyoruz ve üretim maliyeti hesaplama maliyetinin üzerine çıkıyor. Dikkat edelim rastgele sayı üretiminden 4 elemanlık bir dizi çıkartmayı kolaylaştırdık kolaylaştırmasına ama 4erli gruplama için altına girdiğimiz bu maliyet hesaplama süresini ciddi şekilde artırdı. Ciddi şekilde dediğime bakmayın, .Net kodumuza nazaran burada milisaniyeler mertebesinde konuşabiliyoruz *(Tabii C# program kodumuzu da SIMD ile çalışır hale getirip bir değerlendirme yapmamız lazım)*
+Haydaaa! :D **SIMD** dedik daha hızlı çalışır dedik ancak bir önceki rust kodumuza göre neredeyse **3.5** kat daha yavaş çalışma zamanı süreleri gördük, oldu mu şimdi! Aslında elde ettiğimiz süreler iki uygulama biçimi içinde oldukça iyi. Milisaniyeler mertebesinde 1 milyarlık iterasyonları tamamladık. Hatta ilk rust kodumuz gayet sade ve anlaşılır. Yine de **SIMD** metodolojimiz beklediğimiz şekilde çalışmadı. Buradaki kritik nokta maliyetin nerede olduğunu tespit edebilmek. Büyük ihtmalle rastgele sayı üretimi işi beklenenden uzun sürüyor ve doğru şekilde bir vektörleme gerçekleşmiyor. SIMD için **"veriler zaten devasa bir dizide ve bellekte hazır bekliyorsa"** gibi bir durum olduğu ifade ediliyor *(Yani böyle bir hazırlık sonrası daha çok işe yarar deniyor)* Lakin bizim örneğimizde veriyi her adımda sıfırdan üretiyoruz ve üretim maliyeti hesaplama maliyetinin üzerine çıkıyor. Dikkat edelim rastgele sayı üretiminden 4 elemanlık bir dizi çıkartmayı kolaylaştırdık kolaylaştırmasına ama 4erli gruplama için altına girdiğimiz bu maliyet hesaplama süresini ciddi şekilde artırdı. Ciddi şekilde dediğime bakmayın, .Net kodumuza nazaran burada milisaniyeler mertebesinde konuşabiliyoruz *(Tabii C# program kodumuzu da SIMD ile çalışır hale getirip bir değerlendirme yapmamız lazım)*
 
 ## O Zaman Kontrolü Biraz Daha Elimize Alalım. Zig ile Deneyelim
 
@@ -494,4 +494,12 @@ Aslında bu çalışmada amacım **Pi *(π)*** sayısını hesaplarken **monte c
 
 **Monte carlo** doğru pi rakamlarına ulaşmak için iyi bir tercih değil. Bunu değiştirip farklı bir matematik model ile ilerlemek lazım ama tüm kodlarımız için şu anda aynı yöntem söz konusu. Dolayısıyla çalışma sürelerini kıyaslamak ve bir özet tablo hazırlamak iyi olabilir.
 
-DEVAM EDECEK...
+Ortalık tabii çok karıştı. Hatta çalışma sırasında C# metodunun eski versiyonunu tekrar çalıştırdığımı fark ettim. Dolayısıyla üç dilinde en son karar kıldığım kod versiyonlarını aynı iterasyonlar sayıları ile ve release modda derleyerek çalıştırmaya karar verdim.
+
+Süreler milisaniye cinsindendir ve toplamda 10 çalıştırma üzerinden ortalama süreler hesaplanmıştır.
+
+| Dil | Yöntem | Komut | İlk Süre | Son Süre | En Çabuk Süre | En Yavaş Süre | Ortalama Süre |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| C# | Paralel for, Task, Çekirdek Sayısı kadar, | dotnet run -c Release | 1029 ms | 2252 ms | 1029 ms | 3103 ms | 2119.1 ms |
+| Rust | Rayon | cargo run --release | 255.427 ms | 254.023 ms | 247.887 ms | 257.314 ms | 251.564 ms |
+| Zig | std.Thread | zig run .\program.zig -O ReleaseFast -mcpu=native | 474 ms | 1097 ms | 474 ms | 1121 ms | 637 ms |
