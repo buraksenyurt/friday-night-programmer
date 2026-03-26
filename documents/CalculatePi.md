@@ -229,6 +229,89 @@ ve şu ana kadar ki Monte Carlo uyarlamaları için şunları da söyleyebiliriz
 - **V4:** ThreadLocal kullanarak her thread'in kendi Random örneğine sahip olması ve sayaç değerlerini güvenli bir şekilde birleştirmesi performansı önemli ölçüde artırıyor. Ancak paralel for döngüsünün getirdiği bir yük hala var gibi görünüyor.
 - **V5:** Çekirdek sayısına göre iterasyonları bölerek her çekirdeğin kendi görevini yapması ve sonunda güvenli bir şekilde birleştirmesi performansı daha da artırıyor.
 
-## Peki Ya Aynı Paralel Çalışmayı Zig Dili ile Yapsaydık?
+## Peki Ya Aynı Paralel Çalışmayı Rust Dili ile Yapsaydık?
+
+Pek tabii bu tip yüksek performans gerektiren hesaplamalar söz konusu olunca aklıma ilk gelen **Garbage Collector** mekanizmasını aradan çıkarmak hatta **managed environment** in de olmadığı bir dilde ilerlemek oluyor. Birkaç yıl olsa da ilgilenme fırsatı bulduğum **Rust** ve çok kısa bir süre baktığım **Zig** ile aynı senaryoyu denemek istiyorum. Önce **rust** tarafı ile başlayalım.
+
+İşlemci çekirdeklerinden maksimum fayda sağlamak adına **rayon** küfesi biçilmiş kaftan. Tabii rastgele sayı üretimi için de **rand** kütüphanesini kullanmayı tercih edeceğim. Bunları projeye **cargo** ile ekleyebiliriz.
+
+```bash
+cargo add rayon rand
+```
+
+main.rs dosyasına da aşağıdaki kod parçasını ekleyerek devam edebiliriz.
+
+```rust
+use rand::rngs::SmallRng;
+use rand::RngExt;
+use rayon::prelude::*;
+
+fn main() {
+    let total_iterations = 1_000_000_000;
+
+    for _ in 0..10 {
+        let start_time = std::time::Instant::now();
+        let pi_estimate = calculate_pi(total_iterations);
+        let elapsed = start_time.elapsed();
+        println!("Estimated Pi: {} in {:?}", pi_estimate, elapsed);
+    }
+}
+
+fn calculate_pi(total_iterations: u64) -> f64 {
+    let in_circle: u64 = (0..total_iterations)
+        .into_par_iter()
+        .map_init(
+            || rand::make_rng::<SmallRng>(),
+            |rng, _| {
+                let (x, y): (f64, f64) = rng.random();
+
+                if x * x + y * y <= 1.0 {
+                    1_u64
+                } else {
+                    0_u64
+                }
+            },
+        )
+        .sum();
+
+    4.0 * (in_circle as f64) / (total_iterations as f64)
+}
+```
+
+**calculate_pi** metodumuzu yine 10 kez çalıştırıp süre ölçümlemesi yapmaktayız. **into_par_iter()** ile paralel bir iterator ve devamında kullanılan **map_init** ile her bir **thread** için ayrı bir rastgele sayı üreteci oluşturuyoruz. map_init kod bloğunda f64 türünden rastgele x ve y değerleri üretiliyor ve çember içinde olup olmadıkları kontrol ediliyor. En sonunda da **sum** yardımıyla **in_circle** sayısı toplanarak **pi** tahmini yapılıyor ve bulunan sonuç döndürülüyor. Öncelikle bu kodu derleme modunda çalıştırarak süreleri gözlemleyelim.
+
+![CalculatePi_08](../images/CalculatePi_08.png)
+
+C# programımıza göre çok daha kötü bir performans sergiliyor gibi duruyor. Aslında bu sonucu normal karşılamak gerekir zira **cargo run** komutu varsayılan olarak **debug** modunda çalışır. Yani **release** modda çalıştırıp bir kıyaslama yapmak daha doğru olur.
+
+```bash
+cargo run --release
+```
+
+![CalculatePi_09](../images/CalculatePi_09.png)
+
+"Hımmm... Ama hile yapıyorsun hocam oldu mu şimdi?"" :D .Net tarafında da **release** modda çalıştırarak bir kıyaslama yapmamız gerekir esasında. Birde öyle deneyelim.
+
+```bash
+dotnet run -c Release
+```
+
+![CalculatePi_10](../images/CalculatePi_10.png)
+
+dotnet run ile doğrudan çalıştırdığımıza göre daha iyi sonuçlar aldık ama Rust tarafına nazaran çok kötü. Şartlar yine eşit değil ama. Burada Just-in Time derleyicisinin optimizasyonları devreye girdi ve bu nedenle performans artışı sağlandı. Aslında .Net 8 sonrası gelen **Native AOT** desteği ile Rust tarafına daha yakın sonuçlar elde etmek mümkün olabilir. O zaman birde **Native AOT** ile deneyelim. Bu amaçla ben aşağıdaki komutu denedim. Hem işlemci mimarisi hem de işletim sistemine uygun bir **release** çıktısı hazırlıyoruz. Sonrasında tabii bu exe'yi çalıştırmamız gerekiyor.
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishAot=true
+cd .\bin\release\net10.0\win-x64\publish\
+.\CalculatePi.exe
+```
+
+![CalculatePi_11](../images/CalculatePi_11.png)
+
+Yani o kadar büyük bir iyileşme olmadı gibi. Hele rust ile release modda çalıştırılan kodun çalışma zamanı süreleri düşünülünce. Atladığım kesin bir şey var ve emin olmak adına C# uygulamasını belki de  **SIMD *(Single Instruction, Multiple Data)*** desteği ekleyerek denemek gerekir. Tabii burada SIMD konusunu kısaca izah etmek lazım. Uzmanı değilim ama okuduğum kadarıyla hikayeyi şöyle ele almak gerekiyor;
+
+Monte Carlo yöntemimizde çembere isabet etme durumunu tespit edereken bir formül kullanıyoruz. `x*x + y*y <= 1.0` şeklinde. İşlemcinin her bir sayı çifti için tek tek bu işlemi yaptığını düşünelim. Ancak SIMD desteği ile işlemcinin bazı register'larını kullanarak aynı anda 4 double veya 8 float işlemin tek bir saat vuruşunda *(clock cycle)* yapılması sağlanabilir. Yani tek bir işlemle 4 veya 8 sayı çifti için `x*x + y*y <= 1.0` kontrolü yapılabilir. İşin matematiği beni şu an için aşıyor ancak .Net'in System.Runtime.Intrinsics kütüphanesinde yer alan `Vector256`, `Vector<T>` gibi türler ile bu tür bir optimizasyonu deneyebiliriz. Tür adlarından da anlaşılacağı üzere burada hesaplamaların vektör karşılıklarının bulunduğu bir senaryo var.
+
+Ancak işimizi zorlaştıracak bir kısım var ki o da rastgele sayı üretimi. **NextDouble** metodunun tekil *(kaynaklarda scalar olarak ifade ediliyor)* çalıştığı ve SIMD ile doğrudan vektör halinde çalışacak bir karşılığının olmadığı görülüyor. Bu, rastgele sayıları bu şekilde kullanırsak donanımsal avantajlardan yararlanamayacağımız anlamına geliyor. Genellikle **XorShift**, **PCG(Permuted Congruential Generator)** gibi algoritmaların kullanılması ya da rastgele sayıları önce devasa bir diziye doldurup SIMD ile bu diziden vektörler halinde çekilmesi gibi yöntemler tercih ediliyor. Bunun kodunu yazmak için biraz daha araştırma yapmam lazım. Tekrardan rust tarafına dönelim.
 
 DEVAM EDECEK...
