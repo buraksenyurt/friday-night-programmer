@@ -1,0 +1,13 @@
+[package]
+name = "ai-agent"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-openai = { version = "0.34.0", features = ["chat-completion"] }
+color-eyre = "0.6.5"
+dotenvy = "0.15.7"
+eyre = "0.6.12"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
