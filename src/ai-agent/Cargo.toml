@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 async-openai = { version = "0.34.0", features = ["assistant-types", "byot", "chat-completion", "response-types"] }
 color-eyre = "0.6.5"
+colored = "2"
 dotenvy = "0.15.7"
 eyre = "0.6.12"
 serde = { version = "1.0.228", features = ["derive"] }

@@ -75,6 +75,19 @@ impl From<ChatCompletionResponseMessage> for Message {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Stats {
+    pub prompt_tokens: u32,
+    pub completion_tokens: u32,
+    pub total_tokens: u32,
+}
+
+#[derive(Debug)]
+pub struct LLMResponse {
+    pub message: Message,
+    pub stats: Stats,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LLMContext {
     pub model: String,
     pub messages: Vec<Message>,
