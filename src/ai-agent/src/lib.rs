@@ -1,20 +1,31 @@
-use eyre::Result;
-use std::io::{stdin, stdout, Write};
-use serde::{Deserialize, Serialize};
-use async_openai::config::OpenAIConfig;
-use async_openai::Client;
+use async_openai::{Client, config::OpenAIConfig, types::chat::CreateChatCompletionResponse};
+use entity::*;
+use eyre::{Result, WrapErr};
+use std::io::{Write, stdin, stdout};
 
-pub async fn run(model: String,api_key:String,api_base:String) -> Result<()> {
-    let mut context = Context::new(model);
-    let config = OpenAIConfig {
-        api_key,
-        api_base,
-        ..Default::default()
-    };
+mod entity;
+
+pub async fn run(model: String, api_key: String, api_base: String) -> Result<()> {
+    let mut context = LLMContext::new(model);
+    let config = OpenAIConfig::new()
+        .with_api_key(api_key)
+        .with_api_base(api_base);
     let client = Client::with_config(config);
-    loop{
+    loop {
         let user_input = get_prompt()?;
-        dbg!("User input: {}", user_input);
+        let user_message = Message::new_user(user_input);
+
+        println!("{user_message}");
+
+        context.messages.push(user_message);
+
+        let llm_response = send(&context, &client).await?;
+
+        if !llm_response.content.is_empty() {
+            println!("{llm_response}");
+        }
+
+        // context.messages.push(llm_response.clone());
     }
 }
 
@@ -26,46 +37,14 @@ pub fn get_prompt() -> Result<String> {
     Ok(prompt.trim().to_string())
 }
 
-pub async fn call_llm(context: &Context,client : &Client) -> Result<String> {
+pub async fn send(context: &LLMContext, client: &Client<OpenAIConfig>) -> Result<Message> {
+    let response: CreateChatCompletionResponse = client
+        .chat()
+        .create_byot(context)
+        .await
+        .context("Sending request to llm")?;
+    let choice = response.choices[0].clone();
+    let message = Message::from(choice.message);
 
-    Ok("This is a response from the LLM.".to_string())
-}
-
-#[derive(Debug,Serialize, Deserialize)]
-pub struct Context {
-    pub model: String,
-    pub messages: Vec<Message>,
-}
-
-impl Context {
-    pub fn new(model: String) -> Self {
-        let system_message = Message::new_system("You are a helpful assistant who provides accurate and concise information.".to_string());
-        Self { model, messages: vec![system_message] }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Role {
-    User,
-    Assistant,
-    System,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Message {
-    pub role: Role,
-    pub content: String,
-}
-
-impl Message {
-    pub fn new_system(content: String) -> Self {
-        Self { role: Role::System, content }
-    }
-    pub fn new_user(content: String) -> Self {
-        Self { role: Role::User, content }
-    }
-    pub fn new_assistant(content: String) -> Self {
-        Self { role: Role::Assistant, content }
-    }
+    Ok(message)
 }
