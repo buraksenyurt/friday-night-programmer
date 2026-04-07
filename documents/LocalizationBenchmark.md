@@ -106,7 +106,7 @@ dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csp
 dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj reference LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastructure.csproj
 ```
 
-DEVAM EDECEK
+Kod tarafını geliştirmeye başladıkça projelerimizin kullanım amacı biraz daha netleşecek.
 
 ### Postgresql Tarafı
 
@@ -150,11 +150,97 @@ INSERT INTO localizations (culture, resource_key, value) VALUES
 ON CONFLICT (culture, resource_key) DO NOTHING;
 ```
 
+### Redis
+
+**Redis** tarafına da örnek veri tohumlarını aktarmakta yarar var. **Postgresql** için kullanığımız veri kümesinin aynısını **redis** için de değerlendirebiliriz. Tabii eklemek için kullanabileceğimiz birkaç yol var. **docker** kullandığımız için **redis-cli** üzerinden gerekli kümeleri ekleyebiliriz. Burada her bir dil kümesini bir **HashSet** olarak eklemekte yarar var. Örnek girdiler için aşağıdaki komutlar kullanılabilir. Hatta bunu bir **sh** dosyası olarak kaydedip, docker-compose içerisinden çalıştırılması da sağlanabilir.
+
+```bash
+redis-cli -h localhost -p 6379 HSET loc:en-US \
+  welcome_message    "Welcome to our application" \
+  farewell_message   "Goodbye, see you soon" \
+  error_not_found    "The requested resource was not found" \
+  error_unauthorized "You are not authorized to perform this action" \
+  button_save        "Save" \
+  button_cancel      "Cancel" \
+  button_delete      "Delete"
+
+redis-cli -h localhost -p 6379 HSET loc:tr-TR \
+  welcome_message    "Uygulamamıza hoş geldiniz" \
+  farewell_message   "Güle güle, yakında görüşürüz" \
+  error_not_found    "İstenen kaynak bulunamadı" \
+  error_unauthorized "Bu işlemi gerçekleştirme yetkiniz yok" \
+  button_save        "Kaydet" \
+  button_cancel      "İptal" \
+  button_delete      "Sil"
+
+redis-cli -h localhost -p 6379 HSET loc:de-DE \
+  welcome_message    "Willkommen in unserer Anwendung" \
+  farewell_message   "Auf Wiedersehen, bis bald" \
+  error_not_found    "Die angeforderte Ressource wurde nicht gefunden" \
+  error_unauthorized "Sie sind nicht berechtigt, diese Aktion durchzuführen" \
+  button_save        "Speichern" \
+  button_cancel      "Abbrechen" \
+  button_delete      "Löschen"
+
+echo "Mission accomplished."
+```
+
+Girdilerden emin olmak için en azından redis cli üzerinden aşağıdaki komut denenebilir.
+
+```bash
+HGETALL loc:tr-TR
+```
+
 ## Kod Tarafı
 
-Şimdi adım adım kodlarımızı geliştirmeye başlayalım.
+Şimdi adım adım kodlarımızı geliştirelim. Birden fazla projede yapacağımız önemli değişiklikler var.
 
-DEVAM EDECEK
+### Core Kütüphanesi
+
+ **Core** projesinden başlayabiliriz. Farklı türden çoklu dil mekanizmaları kullanacağımız için bunu aşağıdaki arayüz soyutlaması ile bir sözleşme *(contract)* haline getirmekte yarar var.
+
+```csharp
+namespace LocalizationChallenge.Core;
+
+public interface ILocalizationProvider
+{
+    string ProviderName { get; }
+    ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default);
+}
+```
+
+Sadece okunabilir *(readonly)* tanımadığımız **ProviderName** alanı *(field)* ile kullandığımız tekniği isimlendirip kodun ve çıktısının okunurluğunu kolaylaştırabiliriz. **GetLocalizedStringAsync** metodu ise kobay olarak kullandığımız davranışı tanımlıyor. Amacımız bir terimin belirtilen dildeki karşılığını döndürecek fonksiyonelliği tanımlamak. Okuma ile ilgili operasyonlar için bu davranış şu an için yeterli. Dolayısıyla asıl provider nesnelerinin bu arayüzü *(interface)* implemente etmesini bekliyoruz.
+
+Diğer yandan süre ölçümlemelerini tutacağımız bir veri nesneside işimize yarar. Aynen aşağıdaki gibi;
+
+```csharp
+namespace LocalizationChallenge.Core;
+
+public sealed record BenchmarkResult(
+    string ProviderName,
+    string? Value,
+    double ElapsedMicroseconds,
+    bool CacheHit
+);
+```
+
+Tipik olarak ölçüme konu olan provider enstrümanını, elde edilen değeri *(veriyi kontrol etmek için)*, mikro saniye türünden ölçüm değerini ve cache üzerinden sağlanıp sağlanmadığı bilgisini tutuyoruz.
+
+### Infrastructure Kütüphanesi
+
+EKLENECEK
+
+### Servis *(API)* Projesi
+
+EKLENECEK
+
+### Benchmark Projesi
+
+EKLENECEK
+
+## Çalışma Zamanı ve Test Çıktıları
+
+PLANDA
 
 ## Değişiklikleri Algılama
 
@@ -164,4 +250,12 @@ EKLENECEK
 
 EKLENECEK
 
-DEVAM EDECEK
+## Sorular
+
+- Boyut büyüdükçe provider'lar nasıl bir tepki verir?
+
+EKLENECEK
+
+## Sonuç
+
+EKLENECEK
