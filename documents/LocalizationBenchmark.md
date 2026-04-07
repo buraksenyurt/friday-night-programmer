@@ -268,7 +268,7 @@ public sealed class PostgresLocalizationProvider(NpgsqlDataSource dataSource)
     public async ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
     {
         await using var command = dataSource.CreateCommand(
-            "SELECT value FROM localizations WHERE key = @key AND culture = @culture LIMIT 1"
+            "SELECT value FROM localizations WHERE resource_key = @key AND culture = @culture LIMIT 1"
         );
         command.Parameters.AddWithValue("key", key);
         command.Parameters.AddWithValue("culture", culture);
@@ -371,14 +371,196 @@ Tabii bu sınıfın kod içeriği diğerlerine göre biraz daha karmaşık. Nite
 Son olarak hibrit çalışan provider sınıfımızı yazalım. Bu bileşenimiz diğer teknikleri harmanlar nitelikte.
 
 ```csharp
+using LocalizationChallenge.Core;
+using StackExchange.Redis;
 
+namespace LocalizationChallenge.Infrastructure;
+
+public sealed class HybridLocalizationProvider(
+    MemoryCacheLocalizationProvider level1,
+    RedisLocalizationProvider level2,
+    PostgresLocalizationProvider level3,
+    IConnectionMultiplexer redis) : ILocalizationProvider
+{
+    private readonly IDatabase redisDb = redis.GetDatabase();
+
+    public string ProviderName => "Hybrid";
+
+    public async ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
+    {
+        var value = await level1.GetLocalizedStringAsync(culture, key, cancellationToken);
+        if (value is not null) return value;
+
+        value = await level2.GetLocalizedStringAsync(culture, key, cancellationToken);
+        if (value is not null) return value;
+
+        value = await level3.GetLocalizedStringAsync(culture, key, cancellationToken);
+        if (value is not null)
+        {
+            _ = redisDb.HashSetAsync($"loc:{culture}", key, value);
+        }
+
+        return value;
+    }
+}
 ```
 
-DEVAM EDECEK
+Hibrit model olarak kullandığımız bu bileşen önemli işler yapıyor. Yapıcı metod *(constructor)* üzerinden dört bileşen enjekte edilmekte. Diğer çoklu dil desteği sağlayan provider bileşenleri ve redis tarafı için bir referans. **GetLocalizedStringAsync** metodunun akışını inceleyelim. Herhangi bir culture için aranan **key:value** çifti öncelikle **in-memory provider**'dan karşılanmaya çalışılır ki herhangi bir network maliyeti olmadığından ve veri ram üzerinde tutulduğundan en hızlı modeldir. Eğer veri level1 olarak isimlendirilen bu aşamada bulunamazsa ikinci seviyeye inilir *(level 2)* ve bu kez daha yavaş olan *(çünkü arada çıkılması gereken bir network ortamı vardır)* **redis provider** bileşeni üzerinden aranır. İkinci seviyede de aranan çift bulunamazsa son seviyeye inilir ve **postgresql provider** kullanılır. Burada disk okuma maliyeti olduğu için diğerlerine göre çok daha yavaş bir akış söz konusudur.
+
+Diğer yandan üçüncü seviye sonrasındaki **if** bloğuna dikkat etmekte yarar var. Veri bu seviyede **bulunduysa** bir **fire and forget** çağrısı yapılarak aranan **key:value** bilgisinin ilgili **culture** adına **redis** ortamına yazılması sağlanır. Böylece çok kısa süre sonra gelen **key:value** isteği üçüncü seviyeye inilmeden ikinci seviyeden yani **redis** üzerinden karşılanabilir. Bu strateji **Cache Promotion** olarak da ifade edilmektedir.
+
+**IDatabase** arayüzü üzerinden çağırılan **HashSetAsync** metodunundan gelen **Task** sonucu _ operatörü ile görmezden gelinmiştir *(discard)* ve hatta dikkat edileceği üzere **await** bile kullanılmamıştır. Bu tamamen bilinçli bir harekettir zira aranan ve ancak seviye üçte bulunan verinin sonraki çağrılarda yine veritabanından gelmesi yerine redis'ten gelmesi sağlanır. Bu durum veritabanına yeni veriler eklendiğinde henüz Redis'te olmayan değerlerin eklenmesi açısından da önemlidir. *(Çalışmada henüz **cache invalidation** tarafı için bir yapmadık ama onu da hesaba katamamız gerekiyor)*  
+
+**Infrastructure** projemizde epey bir bileşen oldu. Bu bileşenler çalışma zamanında diğer servisler tarafından Dependency Injection Container üzerinden kullanılacaklar ve hatta birçok konfigurasyon ayarını da runtime'a almamız gerekecek. Dolayısıyla taktik belli; **IServiceCollection** arayüzünü genişleterek bu bağımlılıkları **infrastructure** kütüphanesi üstünden yüklemek. Bu amaçla projeye **DependencyInjection** isimli aşağıdaki sınıfı ekleyerek devam edelim.
+
+```csharp
+using LocalizationChallenge.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using StackExchange.Redis;
+
+namespace LocalizationChallenge.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddLocalizationProviders(this IServiceCollection services, IConfiguration configuration)
+    {
+        var pgDataSource = NpgsqlDataSource.Create(configuration.GetConnectionString("Postgres"));
+        services.AddSingleton(pgDataSource);
+
+        var redis = ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis"));
+        services.AddSingleton<IConnectionMultiplexer>(redis);
+
+        services.AddSingleton<MemoryCacheLocalizationProvider>();
+        services.AddSingleton<RedisLocalizationProvider>();
+        services.AddSingleton<PostgresLocalizationProvider>();
+
+        services.AddSingleton<ILocalizationProvider>(sp => sp.GetRequiredService<MemoryCacheLocalizationProvider>());
+        services.AddSingleton<ILocalizationProvider>(sp => sp.GetRequiredService<RedisLocalizationProvider>());
+        services.AddSingleton<ILocalizationProvider>(sp => sp.GetRequiredService<PostgresLocalizationProvider>());
+        services.AddSingleton<ILocalizationProvider, HybridLocalizationProvider>();
+
+        services.AddHostedService(sp => sp.GetRequiredService<MemoryCacheLocalizationProvider>());
+
+        return services;
+    }
+}
+```
 
 ### Servis *(API)* Projesi
 
-EKLENECEK
+Şimdide API servisimizi geliştirmeye başlayalım. Servisimiz amacı provider'ların api yoluyla kullanılmasını sağlamak. **Minimal API** olarak geliştirebiliriz. Ama tabii bize gerekli konfigurasyon ayarlarını da eklememiz lazım. Bu amaçla **appsettings.json** dosyasımıza aşağıdaki içeriğe sahip **ConnectionStrings** bölümü ekleyelim.
+
+```json
+{
+  "ConnectionStrings": {
+    "Postgres": "Host=localhost;Port=5435;Database=postgres;Username=johndoe;Password=somew0rds",
+    "Redis": "localhost:6379"
+  }
+}
+```
+
+Program kodlarını da aşağıdaki gibi geliştirebiliriz.
+
+```csharp
+using LocalizationChallenge.Core;
+using LocalizationChallenge.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Postgres ve Redis için connection string bilgileri alınıyor.
+var postgresConnStr = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Postgres connection string is not configured.");
+var redisConnStr = builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis connection string is not configured.");
+
+// Localization provider'lar DI container'a ekleniyor.
+builder.Services.AddLocalizationProviders(builder.Configuration);
+
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.UseHttpsRedirection();
+
+// Adettendir "api ayakta mı?" kontrolü
+app.MapGet("api/health", () => Results.Ok("Healthy"));
+
+// Belli bir provider, culture ve key için lokalize edilmiş string değeri döndüren endpoint.
+app.MapGet("api/localization/{provider}/{culture}/{key}", async (
+    string provider,
+    string culture,
+    string key,
+    [FromServices] IEnumerable<ILocalizationProvider> providers,
+    CancellationToken cancellationToken) =>
+{
+    // [FromServices] ile tüm ILocalizationProvider implementasyonlarını alıyoruz ve istenen provider adına sahip olanı buluyoruz.
+    var target = providers.FirstOrDefault(p => p.ProviderName.Equals(provider, StringComparison.OrdinalIgnoreCase));
+    if (target is null) return Results.NotFound(new { error = $"Provider '{provider}' not found." });
+
+    // Performans ölçümü için Stopwatch kullanarak, lokalize string alma işleminin ne kadar sürdüğünü hesaplıyoruz.
+    var timer = Stopwatch.GetTimestamp();
+    var value = await target.GetLocalizedStringAsync(key, culture, cancellationToken);
+    var elapsed = Stopwatch.GetElapsedTime(timer);
+
+    // Ölçüm sonuçlarını dönüyoruz
+    return Results.Ok(new
+    {
+        Provider = target.ProviderName,
+        Culture = culture,
+        Key = key,
+        Value = value,
+        ElapsedMicroseconds = elapsed.TotalMicroseconds
+    });
+}).WithDescription("Get localized string by provider, culture, and key.");
+
+
+// Tüm provider'lar için belli bir culture ve key'e karşılık gelen string değerleri döndüren endpoint.
+// Bunu tüm provider'ların aynı key için aynı değeri döndürüp döndürmediğini kontrol etmek ve performans karşılaştırması yapmak için kullanabiliriz.
+app.MapGet("api/benchmark/{culture}/{key}", async (
+    string culture,
+    string key,
+    [FromServices] IEnumerable<ILocalizationProvider> providers,
+    CancellationToken cancellationToken) =>
+{
+    var results = new List<BenchmarkResult>();
+
+    // DI Container'a kayıtlı tüm provider'lar için, verilen culture ve key'e karşılık gelen lokalize string değerini alıp,
+    // performans ölçümü yaparak sonuçları topluyoruz.
+    foreach (var provider in providers)
+    {
+        var timer = Stopwatch.GetTimestamp();
+        var value = await provider.GetLocalizedStringAsync(key, culture, cancellationToken);
+        var elapsed = Stopwatch.GetElapsedTime(timer);
+
+        results.Add(new BenchmarkResult(
+            provider.ProviderName,
+            value,
+            elapsed.TotalMicroseconds,
+            CacheHit: value is not null));
+    }
+
+    return Results.Ok(new
+    {
+        Culture = culture,
+        Key = key,
+        MeasuredAt = DateTime.UtcNow,
+        Results = results.OrderBy(r => r.ElapsedMicroseconds)
+    });
+}).WithDescription("Benchmark all providers for a given culture and key.");
+
+await app.RunAsync();
+```
+
+Bu noktaya kadar her şey doğru ilerlediyse en azından API'nin başarılı şekilde çalıştığını ve birkaç key:value değerini sorgulayabildiğimizi görmeliyiz. Bunun için **curl** veya **postman** gibi araçlardan yararlanabiliriz. Örneğin, benchmark noktasına yaptığım postman çağrısının bir çıktısını aşağıda görebilirsiniz.
+
+![Postman call](../images/LocallyBench_02.png)
 
 ### Benchmark Projesi
 
@@ -388,7 +570,7 @@ EKLENECEK
 
 PLANDA
 
-## Değişiklikleri Algılama
+## Değişiklikleri Algılama Servisi *(Cache Invalidation)*
 
 EKLENECEK
 
