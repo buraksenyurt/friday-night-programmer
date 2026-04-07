@@ -16,7 +16,7 @@ Tartışmanın konusu çooooook uzun zamandır dünyamızda var alan çoklu dil 
 
 ## Hazırlıklar
 
-Öncelikle birkaç yaklaşımız olduğunu belirtelim. Çoklu dil desteği için dikeyde büyüyen bir tabloyu postgresql üzerinde tutacağız. Bir diğer yaklaşımda dağıtık sistemlerin en karizma caching ürünlerinden olan **redis** ile ilerleyeceğiz. .Net'in dahili bellek kullanımı da yabana atılır türden değil. Dolayısıyla o da işin içerisine giriyor. Bir başka tercih de disk üzerinde bildiğimiz **JSON** tadında tutmak gibi belki bunu yaml ile değiştirebiliriz ya da bir markdown dosyasıyla. Elbette hibrit bir çözüm de deneyeceğiz, all together :D
+Öncelikle birkaç yaklaşımız olduğunu belirtelim. Çoklu dil desteği için dikeyde büyüyen bir tabloyu postgresql üzerinde tutacağız. Bir diğer yaklaşımda dağıtık sistemlerin en karizma caching ürünlerinden olan **redis** ile ilerleyeceğiz. .Net'in dahili bellek kullanımı da yabana atılır türden değil. Dolayısıyla o da işin içerisine giriyor. Bir başka tercih de disk üzerinde bildiğimiz **JSON** tadında tutmak gibi belki bunu yaml ile değiştirebiliriz ya da bir markdown dosyasıyla. Elbette daha stratejik bir yaklaşımı benimseyen hibrit bir çözüm de deneyeceğiz, all together :D
 
 ### Docker Setup
 
@@ -73,7 +73,7 @@ networks:
 
 ### Solution İskeleti
 
-Solution içeriğinde birkaç proje yer alacak. Farklı provider türlerimiz olacağı için çok basit soyutlamalar kullanmakta, benchmark ölçümleri için ayrı bir proje kullanmakta ve testleri bir web api üzerinden icra etmekte yarar var. Buna göre solution içeriği ve gerekli nuget paketlerini aşağıdaki script'te olduğu gibi hazırlayabiliriz.
+Solution içeriğinde birkaç proje yer alacak. Farklı provider türlerimiz olacağı için çok basit soyutlamalar kullanmakta, benchmark ölçümleri için ayrı bir proje açmakta ve testleri bir web api üzerinden icra etmekte yarar var. Yani farklı provider'lar için class library'ler, çoklu dil veri setlerine ulaşmak için bir web api ve performans ölçümleri için bir console uygulaması. Buna göre solution içeriği ve gerekli **nuget** paketlerini aşağıdaki gibi hazırlayabiliriz.
 
 ```bash
 mkdir LocalizationChallenge
@@ -90,7 +90,7 @@ dotnet add LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastruc
 dotnet add LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastructure.csproj package Microsoft.Extensions.Hosting.Abstractions
 dotnet sln add LocalizationChallenge.Infrastructure/
 
-dotnet new classlib -n LocalizationChallenge.Benchmarks
+dotnet new console -n LocalizationChallenge.Benchmarks
 dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj package BenchmarkDotNet
 dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj package Npgsql
 dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj package StackExchange.Redis
@@ -109,11 +109,11 @@ dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csp
 dotnet add LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj reference LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastructure.csproj
 ```
 
-Kod tarafını geliştirmeye başladıkça projelerimizin kullanım amacı biraz daha netleşecek.
+Kod tarafında ilerledikçe projelerimizin kullanım amacı biraz daha netleşecek.
 
 ### Postgresql Tarafı
 
-Veritabanı tarafında bir tabloya ve en azından tohumlamaya ihtiyacımız var. Başlangıç için aşağıdaki script'i kullanabiliriz. *(İlerleyen aşamada belki bir trigger ekleyip olası değişimleri dış dünyaya push'layacağımız bir mekanizmayı da ele alırız ki **cache-invalidation** noktasında gerekli olabilir)*
+Veritabanı tarafında bir tabloya ve onu en azından örnek verilerle tohumlamaya *(seeding)* ihtiyacımız var. Başlangıç için aşağıdaki script'i kullanabiliriz. *(İlerleyen aşamada belki bir trigger ekleyip olası değişimleri dış dünyaya push'layacağımız bir mekanizmayı da ele alırız ki **cache-invalidation** noktasında gerekli olabilir)*
 
 ```sql
 CREATE TABLE IF NOT EXISTS localizations (
@@ -153,7 +153,7 @@ INSERT INTO localizations (culture, resource_key, value) VALUES
 ON CONFLICT (culture, resource_key) DO NOTHING;
 ```
 
-Sql içeriğini pgadmin arabirimi üzerinden ekleyebileceğimiz gibi komut satırından bu dosyayı container içerisine alarak da çalıştırabiliriz.
+**Sql** içeriğini pgadmin arabirimi üzerinden ekleyebileceğimiz gibi komut satırından bu dosyayı container içerisine alarak da çalıştırabiliriz.
 
 ```bash
 # Öncelikle sql dosyasını container içerisine kopyalayalım
@@ -564,7 +564,9 @@ Bu noktaya kadar her şey doğru ilerlediyse en azından API'nin başarılı şe
 
 ### Benchmark Projesi
 
-EKLENECEK
+Benchmark projemiz bir **console** uygulaması ve içerisinde **BenchmarkDotNet** kütüphanesini kullanarak farklı provider'ların performansını ölçmeye yarayacak kodları barındıracak.
+
+DEVAM EDECEK
 
 ## Çalışma Zamanı ve Test Çıktıları
 
