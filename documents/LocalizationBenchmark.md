@@ -4,7 +4,7 @@ Tartışmanın konusu çooooook uzun zamandır dünyamızda var alan çoklu dil 
 
 Örneğin müşteri bilgilerini kaydetme ekranında kullandığımız **button** kontrolünün başlığını **save_button** şeklinde bir **key** ile sabitleyip değerlerini ana dilimizde *kaydet*, İngilizce'de *save*, İspanyolca' da *Ahorrar* şeklinde tutabiliriz. Bunun için ister tablo tasarımı kullanalım ister bir **key:value** koleksiyon verinin okunması, değiştirilmesi, aynı anda erişilmesi gibi konular başka soruları da gündeme getirir. Nerede tutsak iyi olur, hangi teknik bizi ne kadar yavaşlatır/hızlandırır, eş zamanlı *(concurrent)* çağrılarda değişenlerin güncelliğini nasıl koruruz, **race-condition** oluşur mu, ön belleğe *(cache)* alsak ne zaman tazelemek gerekir, koca veriyi ön belleğe alma maliyeti nedir vb.
 
-Çoklu dil desteği aslında çözülmemiş bir problem değil. Birçok yazılım firması zaten çoktandır ideal çözümler üzerinden ilerlemekte. Bu çalışmadaki amacım veritabanı *(kuvvetle muhtemel Postgresql)*, redis, in-memory cache veya hibrit çözümler arasında bir benchmark ölçümü yapmak. Neticede aşağıdaki tabloda belirtilen sonuçları ispatlamaya ya da gerçeği yansıtıp yansıtmadığını bulmaya çalışacağız.
+Çoklu dil desteği aslında çözülmemiş bir problem değil. Birçok yazılım firması zaten çoktandır ideal çözümler üzerinden ilerlemekte. Bu çalışmadaki amacım veritabanı *(kuvvetle muhtemel Postgresql)*, **redis**, **in-memory cache** veya hibrit çözümler arasında bir benchmark ölçümü yapmak. Neticede aşağıdaki tabloda belirtilen sonuçları ispatlamaya ya da gerçeği yansıtıp yansıtmadığını bulmaya çalışacağız.
 
 | **Yaklaşım** | **Read** | **Cold Start** Maliyeti | **Hot Read** Maliyeti |
 | --- | --- | --- | --- |
@@ -16,11 +16,11 @@ Tartışmanın konusu çooooook uzun zamandır dünyamızda var alan çoklu dil 
 
 ## Hazırlıklar
 
-Öncelikle birkaç yaklaşımız olduğunu belirtelim. Çoklu dil desteği için dikeyde büyüyen bir tabloyu postgresql üzerinde tutacağız. Bir diğer yaklaşımda dağıtık sistemlerin en karizma caching ürünlerinden olan **redis** ile ilerleyeceğiz. .Net'in dahili bellek kullanımı da yabana atılır türden değil. Dolayısıyla o da işin içerisine giriyor. Bir başka tercih de disk üzerinde bildiğimiz **JSON** tadında tutmak gibi belki bunu yaml ile değiştirebiliriz ya da bir markdown dosyasıyla. Elbette daha stratejik bir yaklaşımı benimseyen hibrit bir çözüm de deneyeceğiz, all together :D
+Öncelikle birkaç yaklaşımız olduğunu belirtelim. Çoklu dil desteği için dikeyde büyüyen bir tabloyu **PostgreSQL** üzerinde tutacağız. Bir diğer yaklaşımda dağıtık sistemlerin en karizma caching ürünlerinden olan **Redis** ile ilerleyeceğiz. .Net'in dahili bellek kullanımı da yabana atılır türden değil. Dolayısıyla o da işin içerisine giriyor. Bir başka tercih de içeriği disk üzerinde **JSON** veya **YAML** gibi bir formatta tutmak ama bunu bu senaryoda ele almayacağım. Elbette hibrit olarak en hızlıdan en yavaşa doğru farklı seviyleri ele alan hibrit bir modelimiz de olacak.
 
 ### Docker Setup
 
-Düzeneğimizi `**.Net 10** platformunda kurgulayabiliriz. **Postgresql** ve **Redis** enstrümanları için her zaman olduğu gibi bir **docker-compose** dosyası iş görecektir. En azından aşağıdaki içeriğe sahip olmasında yarar var.
+Düzeneğimizi `**.Net 10** platformunda kurgulayabiliriz. **PostgreSQL** ve **Redis** enstrümanları için her zaman olduğu gibi bir **docker-compose** dosyası iş görecektir. En azından aşağıdaki içeriğe sahip olmasında yarar var.
 
 ```yml
 services:
@@ -73,7 +73,7 @@ networks:
 
 ### Solution İskeleti
 
-Solution içeriğinde birkaç proje yer alacak. Farklı provider türlerimiz olacağı için çok basit soyutlamalar kullanmakta, benchmark ölçümleri için ayrı bir proje açmakta ve testleri bir web api üzerinden icra etmekte yarar var. Yani farklı provider'lar için class library'ler, çoklu dil veri setlerine ulaşmak için bir web api ve performans ölçümleri için bir console uygulaması. Buna göre solution içeriği ve gerekli **nuget** paketlerini aşağıdaki gibi hazırlayabiliriz.
+Solution içeriğinde birkaç proje yer alacak. Farklı provider türlerimiz olacağı için çok basit soyutlamalar kullanmakta, **benchmark** ölçümleri için ayrı bir proje açmakta ve testleri bir web api üzerinden icra etmekte yarar var. Yani farklı provider'lar için class library'ler, çoklu dil veri setlerine ulaşmak için bir **web api** ve performans ölçümleri için bir **console** uygulaması. Buna göre solution içeriği ve gerekli **nuget** paketlerini aşağıdaki gibi hazırlayabiliriz.
 
 ```bash
 mkdir LocalizationChallenge
@@ -153,7 +153,7 @@ INSERT INTO localizations (culture, resource_key, value) VALUES
 ON CONFLICT (culture, resource_key) DO NOTHING;
 ```
 
-**Sql** içeriğini pgadmin arabirimi üzerinden ekleyebileceğimiz gibi komut satırından bu dosyayı container içerisine alarak da çalıştırabiliriz.
+**SQL** içeriğini **pgadmin** arabirimi üzerinden ekleyebileceğimiz gibi komut satırından bu dosyayı container içerisine alarak da çalıştırabiliriz.
 
 ```bash
 # Öncelikle sql dosyasını container içerisine kopyalayalım
@@ -168,7 +168,7 @@ docker exec locally-postgres psql -U johndoe -d postgres -c "SELECT * FROM local
 
 ### Redis
 
-**Redis** tarafına da örnek veri tohumlarını aktarmakta yarar var. **Postgresql** için kullanığımız veri kümesinin aynısını **redis** için de değerlendirebiliriz. Tabii eklemek için kullanabileceğimiz birkaç yol var. **docker** kullandığımız için **redis-cli** üzerinden gerekli kümeleri ekleyebiliriz. Burada her bir dil kümesini bir **HashSet** olarak eklemekte yarar var. Örnek girdiler için aşağıdaki komutlar kullanılabilir. Hatta bunu bir **sh** dosyası olarak kaydedip, docker-compose içerisinden çalıştırılması da sağlanabilir.
+**Redis** tarafına da örnek veri tohumlarını aktarmakta yarar var. **Postgresql** için kullanığımız veri kümesinin aynısını **redis** için de değerlendirebiliriz. Tabii verileri aktarmak için kullanabileceğimiz birkaç yol var. Bunlardan birisi **docker** ortamondaki **Redis** container'ına terminal açmak ve örneğin aşağıdaki içeriğe sahip bir shell script dosyasını kopyalayıp işletmek. Burada her bir dil kümesini bir **HashSet** olarak ekliyoruz.
 
 ```bash
 redis-cli -h localhost -p 6379 HSET loc:en-US \
@@ -233,9 +233,9 @@ public interface ILocalizationProvider
 }
 ```
 
-Sadece okunabilir *(readonly)* tanımadığımız **ProviderName** alanı *(field)* ile kullandığımız tekniği isimlendirip kodun ve çıktısının okunurluğunu kolaylaştırabiliriz. **GetLocalizedStringAsync** metodu ise kobay olarak kullandığımız davranışı tanımlıyor. Amacımız bir terimin belirtilen dildeki karşılığını döndürecek fonksiyonelliği tanımlamak. Okuma ile ilgili operasyonlar için bu davranış şu an için yeterli. Dolayısıyla asıl provider nesnelerinin bu arayüzü *(interface)* implemente etmesini bekliyoruz.
+**ProviderName** alanı *(field)* adı üstünde hangi tekniği kullandığımızı belirtecek. **GetLocalizedStringAsync** metodu ise kobay olarak kullandığımız davranışı tanımlıyor. Amacımız bir terimin belirtilen dildeki karşılığını döndürecek fonksiyonelliği tanımlamak. Veri okuma ile ilgili operasyonlar için bu davranış şu an için yeterli. Dolayısıyla asıl provider nesnelerinin bu arayüzü *(interface)* implemente etmesini bekliyoruz.
 
-Diğer yandan süre ölçümlemelerini tutacağımız bir veri nesneside işimize yarar. Aynen aşağıdaki gibi;
+Diğer yandan süre ölçümlemelerini tutacağımız bir veri nesneside işimize yarar. BenchmarkResult isimli bu sınıfı da aşağıdaki gibi tasarlayabiliriz.
 
 ```csharp
 namespace LocalizationChallenge.Core;
@@ -248,11 +248,11 @@ public sealed record BenchmarkResult(
 );
 ```
 
-Tipik olarak ölçüme konu olan provider enstrümanını, elde edilen değeri *(veriyi kontrol etmek için)*, mikro saniye türünden ölçüm değerini ve cache üzerinden sağlanıp sağlanmadığı bilgisini tutuyoruz.
+Tipik olarak ölçüme konu olan provider enstrümanını, elde edilen değeri *(veriyi kontrol etmek için)*, mikro saniye türünden ölçüm değerini ve cache üzerinden tedarik edilip edilemediği bilgisini tutuyoruz.
 
 ### Infrastructure Kütüphanesi
 
-Hakiki provider bileşenlerimiz burada yer alacak. **Postgres**, **Redis**, **In-Memory** ve **hibrit** teknikleri için birer provider sınıfı yazarak devam edebiliriz. Tahmin edileceği üzere bunlar **Core** kütüphanesindeki **ILocalizationProvider** arayüzünü implemente etmeliler. İlk olarak **postgres** tarafı ile başlayalım.
+Hakiki provider bileşenlerimiz bu **class library** projesinde yer alacak. **Postgres**, **Redis**, **In-Memory** ve **hibrit** teknikleri için birer provider sınıfı yazarak devam edelim. Tahmin edileceği üzere bunlar **Core** kütüphanesindeki **ILocalizationProvider** arayüzünü implemente etmeliler. İlk olarak **postgres** tarafı ile başlayalım.
 
 ```csharp
 using LocalizationChallenge.Core;
@@ -279,7 +279,7 @@ public sealed class PostgresLocalizationProvider(NpgsqlDataSource dataSource)
 }
 ```
 
-Oldukça basit bir sınıf. **key** ve **culture** bilgilerini parametre olarak alan bir **sql** sorgusu işletiliyor ve bulununa sonuç geriye **string** olarak dönülüyor. Tabii bir null check kontrolümüz de var. Hiç vakit kaybetmeden **redis** bileşenimizi geliştirerek devam edelim.
+Oldukça basit bir sınıf. **key** ve **culture** bilgilerini parametre olarak alan bir **SQL** sorgusu işletiliyor ve sonuç geriye **string** olarak dönülüyor. Tabii bir *null check* kontrolümüz de var. Hiç vakit kaybetmeden **redis** bileşenimizi geliştirerek devam edelim.
 
 ```csharp
 using LocalizationChallenge.Core;
@@ -301,9 +301,9 @@ public sealed class RedisLocalizationProvider(IConnectionMultiplexer connectionM
 }
 ```
 
-**Redis** üzerinden ilgil **hashSet**'e ulaşıp **key** değerini geri döndürüyoruz *(bulamazsak da boş bir değer)*
+**Redis** üzerinden ilgili **hashSet**'e ulaşıp **key** değerini geri döndürüyoruz *(bulamazsak da boş bir değer)*
 
-Sıradaki bileşen .Net'in **in-memory cache** özelliğini benimsiyor. Örneğimizde ele aldığımız çoklu dil verilerinin çok sık değişmeyeceğini düşünürsek yeni tip bir koleksiyon türünü de göz önüne alabiliriz. **.Net 8** ile gelen ama **.Net 10** tarafında önemli performans iyileştirmeleri içeren ve özellikle **lookup** türündeki **dictionary** veri kümelerinde %20 ila %40 arasında daha hızlı olduğu iddia edilen **FrozenDictionary** sınıfını ele almak için iyi bir fırsat *(Bu koleksiyonu ve özelliklerini ayrıca çalışmam gerekiyor zira read-only ve performans kritik senaryolar için biçilmiş kaftan olduğu iddia edilmekte)*
+Sıradaki bileşen .Net'in **in-memory cache** özelliğini kullanıyor. Örneğimizde ele aldığımız çoklu dil verilerinin çok sık değişmeyeceğini düşünürsek yeni tip bir koleksiyon türünü de göz önüne alabiliriz. **.Net 8** ile gelen ama **.Net 10** tarafında önemli performans iyileştirmeleri içeren ve özellikle **lookup** türündeki **dictionary** veri kümelerinde *%20 ile %40* arasında daha hızlı olduğu iddia edilen **FrozenDictionary** sınıfını ele almak için iyi bir fırsat *(Bu koleksiyonu ve özelliklerini ayrıca çalışmam gerekiyor zira read-only ve performans kritik senaryolar için biçilmiş kaftan olduğu iddia edilmekte)*
 
 ```csharp
 using LocalizationChallenge.Core;
@@ -366,9 +366,9 @@ public sealed class MemoryCacheLocalizationProvider(NpgsqlDataSource dataSource)
 }
 ```
 
-Tabii bu sınıfın kod içeriği diğerlerine göre biraz daha karmaşık. Nitekim sadece **ILocalizationProvider** arayüzü değil, **IHostedService** arayüzünü de uyguluyor. Buradaki amaç DI tarfında bu bileşen ayağa kalkarken *(bir başka deyişle örneğimizdeki web api canlanırken)* **Start** metodunun devreye girmesi ve SQL tarafında tutulan çoklu dil veri setlerinin **FrozenDictionary** içerisine alınmasını sağlamak. Böylece bir verinin belli bir dildeki karşılığı için bellekte tutulan yüksek performanslı dictionary kullanılacak.
+Tabii bu sınıfın kod içeriği diğerlerine göre biraz daha karmaşık. Nitekim sadece **ILocalizationProvider** sözleşmesini değil, **IHostedService** arayüzünü de uyguluyor. Buradaki amaç DIC *(Dependency Injection Container)* tarafında bu bileşen ayağa kalkarken *(bir başka deyişle örneğimizdeki web api canlanırken)* **Start** metodunun devreye girmesi ve **SQL** tarafında tutulan çoklu dil veri setlerinin **FrozenDictionary** içerisine alınmasını sağlamak. Böylece bir verinin belli bir dildeki karşılığı için bellekte tutulan yüksek performanslı dictionary kullanılacak.
 
-Son olarak hibrit çalışan provider sınıfımızı yazalım. Bu bileşenimiz diğer teknikleri harmanlar nitelikte.
+Son olarak hibrit çalışan provider sınıfımızı yazalım. Bu bileşenimiz diğer teknikleri harmanlar nitelikte ama önemli bir strateji de barındırıyor.
 
 ```csharp
 using LocalizationChallenge.Core;
@@ -405,13 +405,13 @@ public sealed class HybridLocalizationProvider(
 }
 ```
 
-Hibrit model olarak kullandığımız bu bileşen önemli işler yapıyor. Yapıcı metod *(constructor)* üzerinden dört bileşen enjekte edilmekte. Diğer çoklu dil desteği sağlayan provider bileşenleri ve redis tarafı için bir referans. **GetLocalizedStringAsync** metodunun akışını inceleyelim. Herhangi bir culture için aranan **key:value** çifti öncelikle **in-memory provider**'dan karşılanmaya çalışılır ki herhangi bir network maliyeti olmadığından ve veri ram üzerinde tutulduğundan en hızlı modeldir. Eğer veri level1 olarak isimlendirilen bu aşamada bulunamazsa ikinci seviyeye inilir *(level 2)* ve bu kez daha yavaş olan *(çünkü arada çıkılması gereken bir network ortamı vardır)* **redis provider** bileşeni üzerinden aranır. İkinci seviyede de aranan çift bulunamazsa son seviyeye inilir ve **postgresql provider** kullanılır. Burada disk okuma maliyeti olduğu için diğerlerine göre çok daha yavaş bir akış söz konusudur.
+Yapıcı metod *(constructor)* üzerinden dört bileşen enjekte edilmekte. Diğer çoklu dil desteği sağlayan provider bileşenleri ve **redis** tarafına erişmek için bir referans. **GetLocalizedStringAsync** metodunun akışını inceleyelim. Herhangi bir culture için aranan **key:value** çifti öncelikle **in-memory provider**'dan karşılanmaya çalışılır ki herhangi bir network maliyeti olmadığından ve veri ram üzerinde tutulduğundan en hızlı modeldir. Eğer veri *level1* olarak isimlendirilen bu aşamada bulunamazsa ikinci seviyeye inilir *(level 2)* ve bu kez daha yavaş olan *(çünkü arada çıkılması gereken bir network ortamı vardır)* **redis provider** bileşeni üzerinden aranır. İkinci seviyede de aranan çift bulunamazsa son seviyeye inilir ve **postgresql provider** kullanılır. Burada disk okuma maliyeti olduğu için diğerlerine göre çok daha yavaş bir akış söz konusudur.
 
-Diğer yandan üçüncü seviye sonrasındaki **if** bloğuna dikkat etmekte yarar var. Veri bu seviyede **bulunduysa** bir **fire and forget** çağrısı yapılarak aranan **key:value** bilgisinin ilgili **culture** adına **redis** ortamına yazılması sağlanır. Böylece çok kısa süre sonra gelen **key:value** isteği üçüncü seviyeye inilmeden ikinci seviyeden yani **redis** üzerinden karşılanabilir. Bu strateji **Cache Promotion** olarak da ifade edilmektedir.
+Diğer yandan üçüncü seviye sonrasındaki **if** bloğuna dikkat etmekte yarar var. Veri bu seviyede **bulunduysa** bir **fire and forget** çağrısı yapılarak aranan **key:value** bilgisinin ilgili **culture** adına **redis** ortamına yazılması sağlanır. Böylece çok kısa süre sonra gelen aynı **key:value** isteği üçüncü seviyeye inilmeden ikinci seviyeden yani **redis** üzerinden karşılanabilir. Bu strateji **Cache Promotion** olarak da ifade edilmektedir.
 
-**IDatabase** arayüzü üzerinden çağırılan **HashSetAsync** metodunundan gelen **Task** sonucu _ operatörü ile görmezden gelinmiştir *(discard)* ve hatta dikkat edileceği üzere **await** bile kullanılmamıştır. Bu tamamen bilinçli bir harekettir zira aranan ve ancak seviye üçte bulunan verinin sonraki çağrılarda yine veritabanından gelmesi yerine redis'ten gelmesi sağlanır. Bu durum veritabanına yeni veriler eklendiğinde henüz Redis'te olmayan değerlerin eklenmesi açısından da önemlidir. *(Çalışmada henüz **cache invalidation** tarafı için bir yapmadık ama onu da hesaba katamamız gerekiyor)*  
+**IDatabase** arayüzü üzerinden çağırılan **HashSetAsync** metodunundan gelen **Task** sonucu `_` operatörü ile görmezden gelinmiştir *(discard)* ve hatta dikkat edileceği üzere **await** bile kullanılmamıştır. Bu tamamen bilinçli bir harekettir zira aranan ve ancak seviye üçte bulunan verinin sonraki çağrılarda yine veritabanından gelmesi yerine redis'ten gelmesi sağlanır. Bu durum veritabanına yeni veriler eklendiğinde henüz Redis'te olmayan değerlerin eklenmesi açısından da önemlidir. *(Çalışmada henüz **cache invalidation** tarafı için birşey yapmadık ama onu da hesaba katamamız gerekiyor)*  
 
-**Infrastructure** projemizde epey bir bileşen oldu. Bu bileşenler çalışma zamanında diğer servisler tarafından Dependency Injection Container üzerinden kullanılacaklar ve hatta birçok konfigurasyon ayarını da runtime'a almamız gerekecek. Dolayısıyla taktik belli; **IServiceCollection** arayüzünü genişleterek bu bağımlılıkları **infrastructure** kütüphanesi üstünden yüklemek. Bu amaçla projeye **DependencyInjection** isimli aşağıdaki sınıfı ekleyerek devam edelim.
+**Infrastructure** projemizde epey bir bileşen oldu. Bu bileşenler çalışma zamanında diğer uygulamalar *(bizim senaryoda web api olacak)* tarafından *Dependency Injection Container* üzerinden kullanılacaklar ve hatta birçok konfigurasyon ayarını da çalışma zamanına almamız gerekecek. Dolayısıyla taktik belli; **IServiceCollection** arayüzünü genişleterek bu bağımlılıkları **infrastructure** kütüphanesi üstünden yüklemek. Bu amaçla projeye **DependencyInjection** isimli aşağıdaki sınıfı ekleyerek devam edelim.
 
 ```csharp
 using LocalizationChallenge.Core;
@@ -450,7 +450,7 @@ public static class DependencyInjection
 
 ### Servis *(API)* Projesi
 
-Şimdide API servisimizi geliştirmeye başlayalım. Servisimiz amacı provider'ların api yoluyla kullanılmasını sağlamak. **Minimal API** olarak geliştirebiliriz. Ama tabii bize gerekli konfigurasyon ayarlarını da eklememiz lazım. Bu amaçla **appsettings.json** dosyasımıza aşağıdaki içeriğe sahip **ConnectionStrings** bölümü ekleyelim.
+Şimdide **API** servisimizi geliştirmeye başlayalım. Servisimiz amacı provider'ların api yoluyla kullanılmasını test edebilmek. Burası doğrudan üretime çıkabilecek türden bir servis bile olabilir. **Minimal API** olarak geliştirebiliriz. Çalışma zamanı için gerekli konfigurasyon ayarlarını da eklememiz lazım. Bu amaçla **appsettings.json** dosyasımıza aşağıdaki içeriğe sahip **ConnectionStrings** bölümünü ekleyebiliriz.
 
 ```json
 {
@@ -558,19 +558,144 @@ app.MapGet("api/benchmark/{culture}/{key}", async (
 await app.RunAsync();
 ```
 
-Bu noktaya kadar her şey doğru ilerlediyse en azından API'nin başarılı şekilde çalıştığını ve birkaç key:value değerini sorgulayabildiğimizi görmeliyiz. Bunun için **curl** veya **postman** gibi araçlardan yararlanabiliriz. Örneğin, benchmark noktasına yaptığım postman çağrısının bir çıktısını aşağıda görebilirsiniz.
+Bu noktaya kadar her şey doğru ilerlediyse en azından API'nin başarılı şekilde çalıştığını ve birkaç **key:value** değerini sorgulayabildiğimizi görmeliyiz. Bunun için **curl** veya **postman** gibi araçlardan yararlanabiliriz. **benchmark** endpoint adresine yaptığım postman çağrısının bir çıktısını aşağıda görebilirsiniz. [Postman dosyası burada](../src/LocalizationChallenge/LocalizationChallenge.postman_collection.json)
 
 ![Postman call](../images/LocallyBench_02.png)
 
 ### Benchmark Projesi
 
-Benchmark projemiz bir **console** uygulaması ve içerisinde **BenchmarkDotNet** kütüphanesini kullanarak farklı provider'ların performansını ölçmeye yarayacak kodları barındıracak.
+Benchmark projemiz bir **console** uygulaması ve içerisinde **BenchmarkDotNet** kütüphanesini kullanarak farklı provider'ların performansını ölçmeye yarayacak kodları barındıracak. Bu projenin Web API projemizle pek alakası yok. Servis projemiz ilgili provider'ları API üzerinden dış dünyaya açtığımız bir hizmet sadece. Tekrar benchmark projemize dönelim. İlk olarak **BenchmarkDotNet** çalışma zamanı ile ilgili bazı konfigurasyon ayarlarını yapmamız gerekiyor. Bu amaçla **ManuelConfig** sınıfından türeyen aşağıdaki sınıfı ekleyerek ilerleyebiliriz.
 
-DEVAM EDECEK
+```csharp
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Environments;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Order;
+
+namespace LocalizationChallenge.Benchmarks;
+
+// BenchmarkDotNet konfigürasyonu için özel bir sınıf oluşturuyoruz. 
+// Bu sınıf, benchmark'larımızın nasıl çalışacağını ve hangi ölçümleri yapacağını belirlemekte
+public class BenchmarkConfig
+    : ManualConfig
+{
+    public BenchmarkConfig()
+    {
+        AddJob(Job.Default
+            .WithRuntime(CoreRuntime.Core10_0) // Testlerimiz .NET 10 çalışma zamanında koşulacak
+            .WithWarmupCount(3) // Her benchmark için 3 kez ısınma turu yapılacak, 
+            // böylece JIT derlemesi ve diğer başlangıç maliyetleri hesaplamalara katılmaz. 
+            .WithIterationCount(10) // Isınma turları bittikten sonra her benchmark için 10 ölçüm turu yapılacağını belirtmiş oluruz
+            .WithInvocationCount(112)); // Her bir iterasyonda (turda) ilgili metotlar arka arkaya 112 kez çağrılacak.(Sadece 6nın katı olması gerektiğini belirten bir hata mesajına istinaden böyle yaptım)
+
+        AddLogger(ConsoleLogger.Default); // Terminal ekranına log basılmasını sağlar.
+        AddExporter(MarkdownExporter.GitHub); // Test sonuçlarını GitHub Markdown formatında dışa aktarılmasını sağlar.
+        AddDiagnoser(MemoryDiagnoser.Default); // Sadece çalışmas süresinin değil, ne kadar RAM tüketildiğinin ve Garbage Collector'un ne kadar meşgul edildiğinin bilgileri de toplanır.
+        AddColumnProvider(DefaultColumnProviders.Instance); // Rapor çıktısına eklenecen kolon adlarını belirler. (Örneğin, ortalama süre, standart sapma, bellek kullanımı gibi)
+        Orderer = new DefaultOrderer(SummaryOrderPolicy.FastestToSlowest); // Sonuç tablosu en hızlı metotdan en yavaşa doğru sıralanır.
+        Options |= ConfigOptions.JoinSummary;
+    }
+}
+```
+
+Aslında performans ölçümleri için gerekli ayarların belirlendiği bir sınıf. Tabii birde test edilecek fonksiyonların koşturulması gerekiyor. Bu amaçla da kodları aşağıda görülen **LocalizationBenchmark** sınıfını kullanabiliriz.
+
+```csharp
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Order;
+using LocalizationChallenge.Infrastructure;
+using Npgsql;
+using StackExchange.Redis;
+
+namespace LocalizationChallenge.Benchmarks;
+
+[Config(typeof(BenchmarkConfig))]
+[MemoryDiagnoser]
+[Orderer(SummaryOrderPolicy.FastestToSlowest)]
+public class LocalizationBenchmarks
+{
+    private PostgresLocalizationProvider _postgres = null!;
+    private RedisLocalizationProvider _redis = null!;
+    private MemoryCacheLocalizationProvider _memory = null!;
+    private HybridLocalizationProvider _hybrid = null!;
+
+    /*
+        Testimi sadece tek bir metin için değil 6 farklı senaryo için koşulacak.
+        3 culture * 2 key olarak düşünebiliriz.
+        Yani çalışma zamanında benchmark buradaki parametrelere göre olası tüm kombinasyonları işletecektir.
+    */
+    [Params("tr-TR", "en-US", "de-DE")]
+    public string Culture { get; set; } = "tr-TR";
+
+    [Params("welcome_message", "button_save")]
+    public string Key { get; set; } = "welcome_message";
+
+    /*
+        Setup metodu sadece bir kez çalışır. Sonuçta benchmark ölçümlerinde
+        sistem ayağa kaklarken veritabanı bağlantısının oluşturulması, redis'e bağlanılması 
+        ve provider nesnelerinin bunları kullanarak oluşturulması gibi işlemler de dahil olmak 
+        üzere tüm hazırlıkların yapılması gerekir.
+        Bunlar ölçümlerimizi etkilememli zira ölçmek istediğimi konu bu hazırlık safhası değil.
+    */
+    [GlobalSetup]
+    public async Task Setup()
+    {
+        const string postgresConn = "Host=localhost;Port=5435;Database=postgres;Username=johndoe;Password=somew0rds";
+        const string redisConn = "localhost:6379,abortConnect=false";
+
+        var dataSource = NpgsqlDataSource.Create(postgresConn);
+        var redisDb = await ConnectionMultiplexer.ConnectAsync(redisConn);
+
+        _postgres = new PostgresLocalizationProvider(dataSource);
+        _redis = new RedisLocalizationProvider(redisDb);
+        _memory = new MemoryCacheLocalizationProvider(dataSource);
+        _hybrid = new HybridLocalizationProvider(_memory, _redis, _postgres, redisDb);
+
+        await (_memory).StartAsync(CancellationToken.None);
+    }
+
+    /*
+        Burası yarışmacıların tanımlandığı kısımdır.
+        Buradaki metotların her biri 10 tur boyunca 112şer kez çağrılacak. 
+    */
+    [Benchmark(Baseline = true, Description = "PostgreSQL (no cache)")]
+    public ValueTask<string?> PostgreSQL() => _postgres.GetLocalizedStringAsync(Culture, Key);
+
+    [Benchmark(Description = "Redis (single key)")]
+    public ValueTask<string?> Redis() => _redis.GetLocalizedStringAsync(Culture, Key);
+
+    [Benchmark(Description = "MemoryCache (FrozenDictionary)")]
+    public ValueTask<string?> MemoryCache() => _memory.GetLocalizedStringAsync(Culture, Key);
+    [Benchmark(Description = "Hybrid ( Level1 -> Level 2 -> Level 3, warm)")]
+    public ValueTask<string?> Hybrid_Warm() => _hybrid.GetLocalizedStringAsync(Culture, Key);
+}
+```
+
+Son olarak bu sınıfın çalıştırılması lazım :D Bunu da **Program.cs** dosyasına aşağıdaki kodları ekleyerek yapabiliriz.
+
+```csharp
+using BenchmarkDotNet.Running;
+
+namespace LocalizationChallenge.Benchmarks;
+
+public class Program
+{
+    public static void Main()
+    {
+        BenchmarkRunner.Run<LocalizationBenchmarks>(new BenchmarkConfig());
+    }
+}
+```
 
 ## Çalışma Zamanı ve Test Çıktıları
 
-PLANDA
+Kurgumuz neredeyse hazır.
+
+DEVAM EDECEK
 
 ## Değişiklikleri Algılama Servisi *(Cache Invalidation)*
 
