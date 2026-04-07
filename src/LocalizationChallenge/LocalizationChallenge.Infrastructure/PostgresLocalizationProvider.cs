@@ -11,7 +11,7 @@ public sealed class PostgresLocalizationProvider(NpgsqlDataSource dataSource)
     public async ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
     {
         await using var command = dataSource.CreateCommand(
-            "SELECT value FROM localizations WHERE key = @key AND culture = @culture LIMIT 1"
+            "SELECT value FROM localizations WHERE resource_key = @key AND culture = @culture LIMIT 1"
         );
         command.Parameters.AddWithValue("key", key);
         command.Parameters.AddWithValue("culture", culture);
