@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="LocalizationChallenge.Api/LocalizationChallenge.Api.csproj" />
+  <Project Path="LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj" />
+  <Project Path="LocalizationChallenge.Core/LocalizationChallenge.Core.csproj" />
+  <Project Path="LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastructure.csproj" />
+</Solution>
