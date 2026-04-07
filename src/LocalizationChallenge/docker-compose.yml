@@ -1,0 +1,46 @@
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: locally-postgres
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: somew0rds
+      POSTGRES_DB: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    networks:
+      - locally-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: locally-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: scoth@tiger.com
+      PGADMIN_DEFAULT_PASSWORD: 123456
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - locally-network
+
+  redis:
+    image: redis:latest
+    container_name: locally-redis
+    ports:
+      - "6379:6379"
+    # Burada persistance storage'ı devre dışı bırakıyoruz ve pure in-memory modda çalıştırıyoruz. 
+    # Nitekim benchmark sırasında disk IO işlemleri performansı etkileyebilir.
+    command: redis-server --save "" --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - locally-network
+
+volumes:
+  postgres_data:
+
+networks:
+  locally-network:
+    driver: bridge
