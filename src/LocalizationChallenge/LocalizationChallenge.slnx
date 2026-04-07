@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+    <File Path="redis-seed.sh" />
+    <File Path="seed.sql" />
+  </Folder>
   <Project Path="LocalizationChallenge.Api/LocalizationChallenge.Api.csproj" />
   <Project Path="LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj" />
   <Project Path="LocalizationChallenge.Core/LocalizationChallenge.Core.csproj" />
