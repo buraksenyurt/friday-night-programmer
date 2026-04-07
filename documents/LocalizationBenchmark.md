@@ -33,7 +33,7 @@ services:
       POSTGRES_PASSWORD: somew0rds
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgres/data
     networks:
@@ -57,6 +57,9 @@ services:
     container_name: locally-redis
     ports:
       - "6379:6379"
+    # Burada persistance storage'ı devre dışı bırakıyoruz ve pure in-memory modda çalıştırıyoruz. 
+    # Nitekim benchmark sırasında disk IO işlemleri performansı etkileyebilir.
+    command: redis-server --save "" --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru
     networks:
       - locally-network
 
@@ -249,7 +252,129 @@ Tipik olarak ölçüme konu olan provider enstrümanını, elde edilen değeri *
 
 ### Infrastructure Kütüphanesi
 
-EKLENECEK
+Hakiki provider bileşenlerimiz burada yer alacak. **Postgres**, **Redis**, **In-Memory** ve **hibrit** teknikleri için birer provider sınıfı yazarak devam edebiliriz. Tahmin edileceği üzere bunlar **Core** kütüphanesindeki **ILocalizationProvider** arayüzünü implemente etmeliler. İlk olarak **postgres** tarafı ile başlayalım.
+
+```csharp
+using LocalizationChallenge.Core;
+using Npgsql;
+
+namespace LocalizationChallenge.Infrastructure;
+
+public sealed class PostgresLocalizationProvider(NpgsqlDataSource dataSource)
+    : ILocalizationProvider
+{
+    public string ProviderName => "Postgres";
+
+    public async ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
+    {
+        await using var command = dataSource.CreateCommand(
+            "SELECT value FROM localizations WHERE key = @key AND culture = @culture LIMIT 1"
+        );
+        command.Parameters.AddWithValue("key", key);
+        command.Parameters.AddWithValue("culture", culture);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result as string ?? string.Empty;
+    }
+}
+```
+
+Oldukça basit bir sınıf. **key** ve **culture** bilgilerini parametre olarak alan bir **sql** sorgusu işletiliyor ve bulununa sonuç geriye **string** olarak dönülüyor. Tabii bir null check kontrolümüz de var. Hiç vakit kaybetmeden **redis** bileşenimizi geliştirerek devam edelim.
+
+```csharp
+using LocalizationChallenge.Core;
+using StackExchange.Redis;
+
+namespace LocalizationChallenge.Infrastructure;
+
+public sealed class RedisLocalizationProvider(IConnectionMultiplexer connectionMultiplexer)
+    : ILocalizationProvider
+{
+    private readonly IDatabase database = connectionMultiplexer.GetDatabase();
+    public string ProviderName => "Redis";
+
+    public async ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
+    {
+        var value = await database.HashGetAsync($"loc::{culture}", key);
+        return value.HasValue ? value.ToString() : string.Empty;
+    }
+}
+```
+
+**Redis** üzerinden ilgil **hashSet**'e ulaşıp **key** değerini geri döndürüyoruz *(bulamazsak da boş bir değer)*
+
+Sıradaki bileşen .Net'in **in-memory cache** özelliğini benimsiyor. Örneğimizde ele aldığımız çoklu dil verilerinin çok sık değişmeyeceğini düşünürsek yeni tip bir koleksiyon türünü de göz önüne alabiliriz. **.Net 8** ile gelen ama **.Net 10** tarafında önemli performans iyileştirmeleri içeren ve özellikle **lookup** türündeki **dictionary** veri kümelerinde %20 ila %40 arasında daha hızlı olduğu iddia edilen **FrozenDictionary** sınıfını ele almak için iyi bir fırsat *(Bu koleksiyonu ve özelliklerini ayrıca çalışmam gerekiyor zira read-only ve performans kritik senaryolar için biçilmiş kaftan olduğu iddia edilmekte)*
+
+```csharp
+using LocalizationChallenge.Core;
+using Microsoft.Extensions.Hosting;
+using Npgsql;
+using System.Collections.Frozen;
+
+namespace LocalizationChallenge.Infrastructure;
+
+public sealed class MemoryCacheLocalizationProvider(NpgsqlDataSource dataSource)
+    : ILocalizationProvider, IHostedService
+{
+    // Değişmeyen veri yapılarında, thread-safe olan ve hızlı erişim sağlayan FrozenDictionary bileşenini kullanarak önbellek oluşturuyoruz.
+    // volatile bildirimi ile cache değişkenine yapılan atamaların tüm thread'ler tarafından görünür olması sağlanır.
+    // Böylece StartAsync metodunda cache güncellendiğinde, diğer thread'ler de bu güncellemeyi görebilir.
+    private volatile FrozenDictionary<string, FrozenDictionary<string, string>> cache = FrozenDictionary<string, FrozenDictionary<string, string>>.Empty;
+    public string ProviderName => "InMemoryCache";
+
+    public ValueTask<string> GetLocalizedStringAsync(string key, string culture, CancellationToken cancellationToken = default)
+    {
+        if (cache.TryGetValue(culture, out var dict) && dict.TryGetValue(key, out var val))
+            return ValueTask.FromResult<string?>(val);
+
+        return ValueTask.FromResult<string?>(null);
+    }
+
+    // Bileşenimizi başlatırken, veritabanından tüm lokalizasyon verilerini çekip, hızlı erişim için önbelleğe yüklememiz gerekiyor.
+    // Bunun için IHostedService arayüzü implementasyonunu kullandık.
+    // Api tarafındaki DI container'ına bu bileşeni singleton olarak eklerken, aynı zamanda IHostedService olarak da kaydedeceğiz.
+    // Böylece uygulama başladığında StartAsync metodu tetiklenecek ve önbellek doldurulacak.
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await using var cmd = dataSource.CreateCommand(
+            "SELECT culture, resource_key, value FROM localizations");
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        var staging = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var culture = reader.GetString(0);
+            var resourceKey = reader.GetString(1);
+            var value = reader.GetString(2);
+
+            if (!staging.TryGetValue(culture, out var dict))
+            {
+                dict = new Dictionary<string, string>(StringComparer.Ordinal);
+                staging[culture] = dict;
+            }
+            dict[resourceKey] = value;
+        }
+
+        cache = staging.ToFrozenDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.ToFrozenDictionary(StringComparer.Ordinal),
+            StringComparer.OrdinalIgnoreCase);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+```
+
+Tabii bu sınıfın kod içeriği diğerlerine göre biraz daha karmaşık. Nitekim sadece **ILocalizationProvider** arayüzü değil, **IHostedService** arayüzünü de uyguluyor. Buradaki amaç DI tarfında bu bileşen ayağa kalkarken *(bir başka deyişle örneğimizdeki web api canlanırken)* **Start** metodunun devreye girmesi ve SQL tarafında tutulan çoklu dil veri setlerinin **FrozenDictionary** içerisine alınmasını sağlamak. Böylece bir verinin belli bir dildeki karşılığı için bellekte tutulan yüksek performanslı dictionary kullanılacak.
+
+Son olarak hibrit çalışan provider sınıfımızı yazalım. Bu bileşenimiz diğer teknikleri harmanlar nitelikte.
+
+```csharp
+
+```
+
+DEVAM EDECEK
 
 ### Servis *(API)* Projesi
 
