@@ -91,6 +91,7 @@ Sezon boyunca yardımcı olabilecek bazı dokümanlar, araçlar, gereçler...
 
 Diğer yandan bazı işlerimizi kolaylaştıracak rehber niteliğindeki how to dokümanları da aşağıdaki listede toplanabilir.
 
+- [Localization Benchmark](./documents/LocalizationBenchmark.md)
 - [Pi Sayısını Hesaplamak](./documents/CalculatePi.md)
 - [.Net 10 ile Server-Sent Events Kullanımı](./documents/ServerSentEvents.md)
 - [Bir MCP Server Yazmak](./documents/MCPServer.md)

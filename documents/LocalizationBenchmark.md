@@ -1,8 +1,8 @@
 # Hangi Localization Tekniği
 
-Tartışmanın konusu çooooook uzun zamandır dünyamızda var alan çoklu dil desteği. Kimi zaman veritabanı üzerinden kimi zaman fiziki dosyalardan *(resx gibi)* yönetmeye çalıştığımız bir mevzu. Sürekli değişip genişleyebilenler bir yana nadiren değişip genellikle statik kalanlar da işin bir başka yanı. Aslında temel amaç bir program arayüzünün veya kullanıcı ile etkileşimde olan taraflarının farklı dillere de destek vermesini sağlamak. Teori basit; değişmez sabit bir kavram *(key diyelim)* karşılığında kullanılan dile göre farklı değerler tutulmasını sağlamak. 
+Tartışmanın konusu çooooook uzun zamandır dünyamızda var alan çoklu dil desteği. Kimi zaman veritabanı üzerinden kimi zaman fiziki dosyalardan *(resx gibi)* yönetmeye çalıştığımız bir mevzu. Sürekli değişip genişleyebilenler bir yana nadiren değişip genellikle statik kalanlar da işin bir başka yanı. Aslında temel amaç bir program arayüzünün veya kullanıcı ile etkileşimde olan taraflarının farklı dillere de destek vermesini sağlamak. Teori basit; değişmez sabit bir kavram *(key diyelim)* karşılığında kullanılan dile göre farklı değerler tutulmasını sağlamak.
 
-Örneğin müşteri bilgilerini kaydetme ekranında kullandığımız **button** kontrolünün başlığını **save_button** şeklinde bir **key** ile sabitleyip değerlerini ana dilimizde *kaydet*, İngilizce'de *save*, İspanyolca' da *Ahorrar* şeklinde tutabiliriz. Bunun için ister tablo tasarımı kullanalım ister bir **key:value** koleksiyon verinin okunması, değiştirilmesi, aynı anda erişilmesi gibi konular başka soruları da gündeme getirir. Nerede tutsak iyi olur, hangi teknik bizi ne kadar yavaşlatır/hızlandırır, eş zamanlı *(concurrent)* çağrılarda değişenlerin güncelliğini nasıl koruruz, **race-condition** oluşur mu, ön belleğe *(cache)* alsak ne zaman tazelemek gerekir, koca veriyi ön belleğe alma maliyeti nedir vb. 
+Örneğin müşteri bilgilerini kaydetme ekranında kullandığımız **button** kontrolünün başlığını **save_button** şeklinde bir **key** ile sabitleyip değerlerini ana dilimizde *kaydet*, İngilizce'de *save*, İspanyolca' da *Ahorrar* şeklinde tutabiliriz. Bunun için ister tablo tasarımı kullanalım ister bir **key:value** koleksiyon verinin okunması, değiştirilmesi, aynı anda erişilmesi gibi konular başka soruları da gündeme getirir. Nerede tutsak iyi olur, hangi teknik bizi ne kadar yavaşlatır/hızlandırır, eş zamanlı *(concurrent)* çağrılarda değişenlerin güncelliğini nasıl koruruz, **race-condition** oluşur mu, ön belleğe *(cache)* alsak ne zaman tazelemek gerekir, koca veriyi ön belleğe alma maliyeti nedir vb.
 
 Çoklu dil desteği aslında çözülmemiş bir problem değil. Birçok yazılım firması zaten çoktandır ideal çözümler üzerinden ilerlemekte. Bu çalışmadaki amacım veritabanı *(kuvvetle muhtemel Postgresql)*, redis, in-memory cache veya hibrit çözümler arasında bir benchmark ölçümü yapmak. Neticede aşağıdaki tabloda belirtilen sonuçları ispatlamaya ya da gerçeği yansıtıp yansıtmadığını bulmaya çalışacağız.
 
@@ -150,6 +150,19 @@ INSERT INTO localizations (culture, resource_key, value) VALUES
 ON CONFLICT (culture, resource_key) DO NOTHING;
 ```
 
+Sql içeriğini pgadmin arabirimi üzerinden ekleyebileceğimiz gibi komut satırından bu dosyayı container içerisine alarak da çalıştırabiliriz.
+
+```bash
+# Öncelikle sql dosyasını container içerisine kopyalayalım
+docker cp seed.sql locally-postgres:/seed.sql
+# Şimdi de çalıştırarak verileri ekleyelim
+docker exec locally-postgres psql -U johndoe -d postgres -f /seed.sql
+# Verilerin eklenip eklenmediğini kontrol edelim
+docker exec locally-postgres psql -U johndoe -d postgres -c "SELECT * FROM localizations WHERE culture = 'tr-TR';"
+```
+
+![SQL Seed Runtime](../images/LocallyBench_01.png)
+
 ### Redis
 
 **Redis** tarafına da örnek veri tohumlarını aktarmakta yarar var. **Postgresql** için kullanığımız veri kümesinin aynısını **redis** için de değerlendirebiliriz. Tabii eklemek için kullanabileceğimiz birkaç yol var. **docker** kullandığımız için **redis-cli** üzerinden gerekli kümeleri ekleyebiliriz. Burada her bir dil kümesini bir **HashSet** olarak eklemekte yarar var. Örnek girdiler için aşağıdaki komutlar kullanılabilir. Hatta bunu bir **sh** dosyası olarak kaydedip, docker-compose içerisinden çalıştırılması da sağlanabilir.
@@ -185,11 +198,19 @@ redis-cli -h localhost -p 6379 HSET loc:de-DE \
 echo "Mission accomplished."
 ```
 
-Girdilerden emin olmak için en azından redis cli üzerinden aşağıdaki komut denenebilir.
+Yukarıdaki betiği çalıştırmak için aşağıdaki gibi bir yol izleyebiliriz *(Ben denemelerimi Windows 11 ortamında Command Prompt üzerinden yaptım)*
 
 ```bash
-HGETALL loc:tr-TR
+# Öncelikle redis-seed dosyasını container içerisine kopyalayalım
+docker cp redis-seed.sh locally-redis:/redis-seed.sh
+# Ardından çalıştırarak verileri ekleyelim
+docker exec locally-redis sh /redis-seed.sh
+
+# Verilerin eklenip eklenmediğini kontrol edelim
+docker exec locally-redis redis-cli -h localhost -p 6379 HGETALL loc:tr-TR
 ```
+
+![Locally Bench Redis Insert](../images/LocallyBench_00.png)
 
 ## Kod Tarafı
 
