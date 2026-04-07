@@ -1,0 +1,101 @@
+{
+  "info": {
+    "_postman_id": "d0a10b96-b989-45db-a55e-ab36abf35b90",
+    "name": "Localization Challenge",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "1401662"
+  },
+  "item": [
+    {
+      "name": "Get from Postgres Provider",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7092/api/localization/postgres/tr-TR/button_save",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7092",
+          "path": [
+            "api",
+            "localization",
+            "postgres",
+            "tr-TR",
+            "button_save"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get from In-Memory Provider",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7092/api/localization/inmemorycache/tr-TR/button_save",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7092",
+          "path": [
+            "api",
+            "localization",
+            "inmemorycache",
+            "tr-TR",
+            "button_save"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get from Redis Provider",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7092/api/localization/redis/de-DE/button_save",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7092",
+          "path": [
+            "api",
+            "localization",
+            "redis",
+            "de-DE",
+            "button_save"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Benchmark Call",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:7092/api/benchmark/de-DE/button_save",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7092",
+          "path": [
+            "api",
+            "benchmark",
+            "de-DE",
+            "button_save"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
