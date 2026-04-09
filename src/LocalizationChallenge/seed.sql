@@ -33,3 +33,16 @@ INSERT INTO localizations (culture, resource_key, value) VALUES
   ('de-DE', 'button_cancel',      'Abbrechen'),
   ('de-DE', 'button_delete',      'Löschen')
 ON CONFLICT (culture, resource_key) DO NOTHING;
+
+-- Cache Invalidation için eklendi
+CREATE OR REPLACE FUNCTION notify_loc_change()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM pg_notify('loc_changed', NEW.culture || ':' || NEW.resource_key);
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_loc_change
+    AFTER INSERT OR UPDATE OR DELETE ON localizations
+    FOR EACH ROW EXECUTE FUNCTION notify_loc_change();

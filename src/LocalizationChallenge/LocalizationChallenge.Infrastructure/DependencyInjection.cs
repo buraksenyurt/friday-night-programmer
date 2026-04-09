@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<ILocalizationProvider, HybridLocalizationProvider>();
 
         services.AddHostedService(sp => sp.GetRequiredService<MemoryCacheLocalizationProvider>());
+        services.AddHostedService<LocalizationCacheSenseService>();
 
         return services;
     }
