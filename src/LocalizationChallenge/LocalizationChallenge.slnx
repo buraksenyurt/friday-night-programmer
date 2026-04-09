@@ -8,4 +8,5 @@
   <Project Path="LocalizationChallenge.Benchmarks/LocalizationChallenge.Benchmarks.csproj" />
   <Project Path="LocalizationChallenge.Core/LocalizationChallenge.Core.csproj" />
   <Project Path="LocalizationChallenge.Infrastructure/LocalizationChallenge.Infrastructure.csproj" />
+  <Project Path="LocalizationChallenge.LoadTest/LocalizationChallenge.LoadTest.csproj" />
 </Solution>
