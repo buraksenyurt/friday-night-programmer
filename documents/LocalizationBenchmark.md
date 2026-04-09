@@ -758,7 +758,108 @@ Sonuçlar çok şaşırtıcı olmasa gerek. Disk üzerinden ciddi anlamda operas
 
 ## Değişiklikleri Algılama Servisi *(Cache Invalidation)*
 
-EKLENECEK
+Müşteriye özel terzi dikimi iş çözümlerinden ürünleşmiş olanlarına kadar neredeyse bütün uygulamalarda nadiren de olsa statik veri kümelerinin değişimi ya da yenilerinin eklenmesi söz konusudur. Örneğin müşteri ihtiyaçları doğrultusunda geliştirilen yeni bir özellikteki kullanıcı mesajları, iletiler, bildirimler çoklu dil desteği için yeni kelimelerin girilmesini ya da değiştirilmesini gerektirebilir. Hatta bazı senaryolarda cümlelerin çoklu dil desteğine göre hazırlanması da mümkündür. *"Ödemeniz başarıyla gerçekleştirildi"* cümlesinin çoklu dil desteğine göre eklenmesi veya *"Ödemeniz başarılı bir şekilde gerçekleştirildi."* şeklinde değiştirilmesi de söz konusudur. Tüm bu hareketlilik cache'lenen verilerin tekrardan çekilmesini gerektirir.
+
+> Bizim çalışmamızda Cache-Invalidation önemli bir yere sahip. Örneğin hibrit metodolojimizde Level 3'te yani veritabanı seviyesinde bir güncelleme olduğunda önceden yüklenen değerler Level 1 ve Level 2 seviyesinde yaşamaya devam edecek ve sistemdeki kullanıcılar eski değere erişecek. Dolayısıyla değişenleri cache'e tekrar almamız gerekiyor.
+
+Senaryomuzda çoklu dil desteğinin ana kaynağı **localizations** isimli veritabanı tablosu. Buradaki değişikliklere göre cache'ten düşürme işlemlerini nasıl ele alabileceğimize bir bakalım. İlk olarak **postgres** tarafında gerekli enstrümanları ekleyelim.
+
+```sql
+CREATE OR REPLACE FUNCTION notify_loc_change()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM pg_notify('loc_changed', NEW.culture || ':' || NEW.resource_key);
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_loc_change
+    AFTER INSERT OR UPDATE OR DELETE ON localizations
+    FOR EACH ROW EXECUTE FUNCTION notify_loc_change();
+```
+
+**localizations** tablosundaki satırlarda veri ekleme, güncelleme veya silme işlemleri gerçekleştirildiğinde **trg_loc_change** isimli trigger tetikleniyor. Bu trigger içerisinden de notify_loc_change isimli fonksiyon çağırılmakta. Fonksiyonumuzda **postgresql** içerisine gömülü olan **pg_nofity** isimli fonksiyon çağırılmakta. Aslında bu basit bir pub/sub sisteminin tetikleyicisi. Fonksiyon tetiklendiğinde değişen satırdaki culture ve resource_key bilgileri *(ki NEW ile ifade edilir)* kanala gönderilir. Birnevi **broadcast** yayını söz konusudur. Dolayısıyla abone olan taraflar bu değişikliği yakalayabilir.
+
+### Background Service ile Değişiklikleri Algılama
+
+Postgresql tarafı üzerine düşen görevi yapacak ve değişiklik olduğunda bunu **broadcast** yayını ile ortama fırlatacak. Altyapı işlerini tuttuğumuz projemize bir **BackgroundService** türevi ekleyerek devam edelim.
+
+```csharp
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using StackExchange.Redis;
+
+namespace LocalizationChallenge.Infrastructure;
+
+public class LocalizationCacheSenseService(
+    NpgsqlDataSource dataSource,
+    IConnectionMultiplexer redis,
+    MemoryCacheLocalizationProvider memCacheProvider,
+    ILogger<LocalizationCacheSenseService> logger) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        // Bir iptal isteği gelene kadar, PostgreSQL veritabanına bağlanarak "loc_changed" kanalını dinliyoruz.
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+
+                // Notification event'ine abone olarak, veritabanında bir değişiklik olduğunda tetiklenecek kod bloğu.
+                conn.Notification += async (_, args) =>
+                {
+                    // Eğer bir değişiklik varsa (update,delete, insert) event metodun içerisine düşmemiz lazım
+                    logger.LogInformation("Localization changed: {Payload}", args.Payload);
+                    // postgresql tarafından gönderilen payload'u "culture:resourceKey" formatında bekliyoruz.
+                    // Bu bilgiyi kullanarak, ilgili cache kaydını Redis'ten siliyoruz.
+                    var parts = args.Payload.Split(':', 2);
+                    if (parts.Length == 2)
+                    {
+                        var culture = parts[0];
+                        var resourceKey = parts[1];
+                        var db = redis.GetDatabase();
+                        await db.HashDeleteAsync($"loc:{culture}", resourceKey);
+                    }
+                    // Ayrıca bellekte duran cache'i de güncellemek adına
+                    // MemoryCacheLocalizationProvider'ın StartAsync metodunu çağırıyoruz
+                    // Dolayısıyla debug ederken oraya da gidebiliyor olmamız lazım
+                    await memCacheProvider.StartAsync(CancellationToken.None);
+                };
+
+                // PostgreSQL'de LISTEN komutunu kullanarak loc_changed kanalını dinlememiz gerekiyor.
+                // Zira oradaki trigger içerisinden tetiklenen fonksiyon bu isimle bir yayın yapmakta
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "LISTEN loc_changed";
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                logger.LogInformation("Listening for localization changes on PostgreSQL channel loc_changed");
+
+                while (!cancellationToken.IsCancellationRequested)
+                    await conn.WaitAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Localization invalidation connection lost. Reconnecting in 5s...");
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            }
+        }
+    }
+}
+```
+
+Tabii eklediğimiz bu servisi **Infrastructure** projemizdeki **DependencyInjection** sınıfına da eklememiz gerekiyor.
+
+```csharp
+services.AddHostedService<LocalizationCacheSenseService>();
+```
+
+Artık testlerimizi yapabiliriz/yapabilirsiniz. Ben kendi ortamımda şu şekilde ilerledim. Api projesini ayağa kaldırdım. Bu proje ayağa kalkarken **Infrastructure** projesinden DIC'ye eklenen servisler de ayağa kalkıyor. Dolayısıyla **postgresql** tarafındaki değişiklikleri dinleyen **LocalizationCacheSenseService** de çalışmaya başlıyor. Ardından **pgadmin** arabirimini kullanarak tabloya bağlandım ve birkaç değişiklik yaptım. Değişiklikleri **commit** edince Visual Studio ortamında ilgili event'in tetiklendiğini ve cache'in temizlendiğini gördüm. Ardından **postman** üzerinden aynı **key** ve **culture** bilgileriyle api çağrısı yaptım ve değişikliklerin yansıdığını gördüm. Sizde buna benzer şekilde testlerinizi yapabilirsiniz.
 
 ## k6 Benchmark
 
