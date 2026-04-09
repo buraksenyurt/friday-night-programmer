@@ -861,16 +861,145 @@ services.AddHostedService<LocalizationCacheSenseService>();
 
 Artık testlerimizi yapabiliriz/yapabilirsiniz. Ben kendi ortamımda şu şekilde ilerledim. Api projesini ayağa kaldırdım. Bu proje ayağa kalkarken **Infrastructure** projesinden DIC'ye eklenen servisler de ayağa kalkıyor. Dolayısıyla **postgresql** tarafındaki değişiklikleri dinleyen **LocalizationCacheSenseService** de çalışmaya başlıyor. Ardından **pgadmin** arabirimini kullanarak tabloya bağlandım ve birkaç değişiklik yaptım. Değişiklikleri **commit** edince Visual Studio ortamında ilgili event'in tetiklendiğini ve cache'in temizlendiğini gördüm. Ardından **postman** üzerinden aynı **key** ve **culture** bilgileriyle api çağrısı yaptım ve değişikliklerin yansıdığını gördüm. Sizde buna benzer şekilde testlerinizi yapabilirsiniz.
 
-## k6 Benchmark
+## NBomber ile Yük Testi
 
-EKLENECEK
+Şu ana kadar yaptıklarımızı bir değerlendirelim. Hedefimiz çoklu dil desteği senaryolarında farklı yaklaşımlar arasındaki hız farkını incelemekti. Ana kaynak olarak bir veritabanı sistemi kullandık ancak özellikle hibrit sistemimiz buradaki veriyi level 2 ve level 1 olmak üzere daha hızlı noktalardan da karşılar oldu. Farklı senaryolar için doğrudan API çağrı noktalarımız da bulunuyor. Bir gerçek hayat senaryosunda dil bağımlı büyük bir veri setinin veya parçalarının servisler yoluyla çekilmesi pekala söz konusu olabilir. Hal böyle olunca bir yük testi *(load test)* ve sonrasında ortaya çıkacak tablonun da incelenmesi gerekiyor. Bu amaçla **NBomber** isimli .Net kütüphanesini kullanararak bir deneme yapabiliriz. Çözümümüze yeni bir **console** uygulaması ekleyip gerekli **nuget** paketlerini yükleyelim.
 
-## Sorular
+```bash
+# Console projesi oluşturuluyor
+dotnet new console -n LocalizationChallenge.LoadTest
+# NBomber ile ilgili eklentiler
+dotnet add LocalizationChallenge.LoadTest/LocalizationChallenge.LoadTest.csproj package NBomber
+dotnet add LocalizationChallenge.LoadTest/LocalizationChallenge.LoadTest.csproj package NBomber.Http
 
-- Boyut büyüdükçe provider'lar nasıl bir tepki verir?
+dotnet sln add LocalizationChallenge.LoadTest
+```
 
-EKLENECEK
+Sırada **NBomber** kullanımı için gerekli kodlarımız var.
 
-## Sonuç
+```csharp
+using NBomber.Contracts;
+using NBomber.CSharp;
+using NBomber.Http.CSharp;
+using System.Text.Json;
 
-EKLENECEK
+namespace LocalizationChallenge.LoadTest;
+
+class Program
+{
+    static void Main()
+    {
+        var postgresMetric = Metric.CreateGauge("postgres_read_us", unitOfMeasure: "us");
+        var redisMetric = Metric.CreateGauge("redis_read_us", unitOfMeasure: "us");
+        var memoryMetric = Metric.CreateGauge("memory_read_us", unitOfMeasure: "us");
+        var hybridMetric = Metric.CreateGauge("hybrid_read_us", unitOfMeasure: "us");
+
+        var cultures = new[] { "tr-TR", "en-US", "de-DE" };
+        var keys = new[] { "welcome_message", "farewell_message", "button_save", "error_not_found" };
+
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        var httpClient = new HttpClient(handler);
+
+        var scenario = Scenario.Create("ramp_up_scenario", async context =>
+        {
+            var culture = cultures[Random.Shared.Next(cultures.Length)];
+            var key = keys[Random.Shared.Next(keys.Length)];
+
+            var request = Http.CreateRequest("GET", $"https://localhost:7092/api/benchmark/{culture}/{key}");
+            var response = await Http.Send(httpClient, request);
+
+            if (response.StatusCode != "OK" || response.Payload.Value == null)
+            {
+                return Response.Fail(statusCode: response.StatusCode);
+            }
+
+            try
+            {
+                using var httpResponse = response.Payload.Value;
+                await using var stream = await httpResponse.Content.ReadAsStreamAsync();
+                using var jsonDoc = await JsonDocument.ParseAsync(stream);
+
+                if (jsonDoc.RootElement.TryGetProperty("results", out var results))
+                {
+                    foreach (var result in results.EnumerateArray())
+                    {
+                        var provider = result.GetProperty("providerName").GetString();
+                        var elapsed = result.GetProperty("elapsedMicroseconds").GetDouble();
+
+                        switch (provider)
+                        {
+                            case "Postgres": postgresMetric.Set(elapsed); break;
+                            case "Redis": redisMetric.Set(elapsed); break;
+                            case "InMemoryCache": memoryMetric.Set(elapsed); break;
+                            case "Hybrid": hybridMetric.Set(elapsed); break;
+                        }
+                    }
+                }
+
+                return Response.Ok(statusCode: response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                context.Logger.Error(ex, "JSON parse error has been occured.");
+                return Response.Fail(statusCode: response.StatusCode, "Parse Error");
+            }
+        })
+        .WithWarmUpDuration(TimeSpan.FromSeconds(5))
+        .WithLoadSimulations(
+            Simulation.RampingConstant(copies: 100, during: TimeSpan.FromSeconds(30)),
+            Simulation.KeepConstant(copies: 100, during: TimeSpan.FromSeconds(60)),
+            Simulation.RampingConstant(copies: 0, during: TimeSpan.FromSeconds(10))
+        );
+
+        NBomberRunner
+            .RegisterScenarios(scenario)
+            .Run();
+    }
+}
+```
+
+Tabii testler sırasında bazı beklenmedik durumlarda oluşmadı değil. Örneğin bu kadar çok isteğin **postgresql** veritabanına gitmesi **"53300: sorry, too many clients already"** şeklinde bir çalışma zamanı istisnası *(Runtime exception)* oluşmasına neden oldu. Bu problemi aşmak için havuzda duracak maksimum ve mininum bağlantı sayılarını ayarlamak gerekiyor.
+
+```json
+ "ConnectionStrings": {
+    "Postgres": "Host=localhost;Port=5435;Database=postgres;Username=johndoe;Password=somew0rds;Maximum Pool Size=20;Minimum Pool Size=5","
+  }
+```
+
+> Önemli Not: NBomber bireysel kullanımda ücretsiz olarak kullanılabilen bir araç ancak üretim ortamlarında veya takım olarak kullanımlarda lisans gerektirebilir. Detaylar için [NBomber](https://nbomber.com/) sayfasını inceleyebilirsiniz.
+
+**LoadTest** isimli konsol uygulması çalışmasını tamamladığında **reports** isimli klasör içerisinde ölçümlere ait dosyalar belirdi. **Html, markdown, text ve csv** formatlarında. Ne ararsan var :D
+
+![NBomber Runtime](../images//LocallyBench_03.png)
+
+Hatta şuraya markdown dosyasından ölçüm değerlerin içeren tabloları da ekleyelim. Ancak benim önerim özellikle html sayfasını incelemeniz yönünde olacak.
+
+|step|ok stats|
+|---|---|
+|name|`global information`|
+|request count|all = `197178`, ok = `197178`, RPS = `1971.78`|
+|latency (ms)|min = `1.68`, mean = `40.39`, max = `267.74`, StdDev = `19.29`|
+|latency percentile (ms)|p50 = `39.17`, p75 = `51.42`, p95 = `73.54`, p99 = `94.4`|
+
+|status code|count|message|
+|---|---|---|
+|OK|197178||
+
+### Load Test Sonuçlarını Nasıl Yorumlamalıyız?
+
+Burada ağ gecikmelerini *(Network Latency)*, kestrel sunucusun tepkisini, routing işlemlerini ve elde edilen sonuçların JSON olarak işlenip geri döndürülmesini kapsayan uçtan uca bir ölçümleme yapıyoruz. Yani **benchmark** testlerinden daha farklı bir durum söz konusu.
+
+Bizim elde ettiğimiz sonuçlar 100 saniyelik zaman diliminde *(1 dakika 40 saniye)* gerçekleşmiştir. Bu aralıkta 200 bine yakın talep yollanmış ve 0 hata alınmıştır. Saniyede ortalama 2000 talep işlenmiştir. Bir kullanıcı isteğinin API tarafına ulaşması, işlenmesi ve geri dönmesi de ortalama 40 milisaniye sürmüştür. Bununla birlikte **latency percentile** sekmesinde **p50**, **p75**, **p95** ve **p99** şeklinde bazı değerler yer almakta. Bunu şöyle yorumlayabiliriz. Her 100 kullanıcıdan 99'u cevabını 94.4 milisaniyenin altında almıştır. Yani 100 kullanıcıdan 1 tanesi cevabını 94.4 milisaniyeden daha geç almıştır. Buna göre 100 kullanıcıdan 95'i cevabını 73.54 milisaniyenin altında bir sürede alırken 5 tanesi cevabını 73.54 milisaniyeden daha geç almıştır. Dolayısıyla **p** yüzdeliklerini bu mantıkta okuyabiliriz. Aslında görsel anlatımı çok daha etkili ne yalan söyleyeyim. O yüzden html raporunu incelemenizi öneririm :D
+
+![N Reports](../images/LocallyBench_04.png)
+
+Diğer yandan **Gauge** olarak hazırlanan metriklerde çalışma süreleri ele alınır ve HTML dosyasından ulaşılabilir.
+
+![Custom Metrics](../images/LocallyBench_05.png)
+
+Böylece geldik bir çalışmamızın daha sonuna. Benim için uzun ama epey eğitici oldu. En azından bir test düzeneğini örnek bir senaryo ile ele alma şansı buldum.
+
+[Çalışmaya ait örnek kodlara Github üzerinden ulaşabilirsiniz.](https://github.com/buraksenyurt/friday-night-programmer/tree/main/src/LocalizationChallenge)
