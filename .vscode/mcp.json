@@ -8,6 +8,10 @@
                 "--project",
                 "${workspaceFolder}/src/TodoMCPServer"
             ]
+        },
+        "Todo MCP Server V2": {
+            "type": "sse",
+            "url": "http://localhost:5055/sse"
         }
     }
 }
