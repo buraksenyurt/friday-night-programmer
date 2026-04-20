@@ -138,7 +138,7 @@ docker-compose up
 
 Bu değişiklik sonrası servisimize yine aynı şekilde erişebiliriz. *(Docker Container senaryosuna göre kod tarafındaki adres bilgisi 0.0.0.0:8080 şeklinde değiştirilmiştir)*
 
-![system stats on docker](//images/MachineStatsDocker.png)
+![system stats on docker](/images/MachineStatsDocker.png)
 
 ## WASM Uygulamasının Geliştirilmesi
 
@@ -148,7 +148,7 @@ Bu örnekte de wasm-pack aracını kullanarak ilerleyebiliriz.
 wasm-pack new mach-dash-app
 cd mach-dash-app
 
-# json serileştirem desteği için serde_json
+# json serileştirme desteği için serde_json
 # asenkron fonksiyon desteği içinse wasm-bindgen-futures
 cargo add serde_json wasm-bindgen-futures
 ```

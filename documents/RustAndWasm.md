@@ -25,7 +25,7 @@ Sistemimizde Rust'ın yüklü olduğunu varsayarak devam edebiliriz ama değilse
 
 ## Proje Kurulumu
 
-### Adım 1: WASM destekli yeni bir Rust projesi oluşturarak işe başlıyoruz.
+### Adım 1: WASM destekli yeni bir Rust projesi oluşturarak işe başlıyoruz
 
 ```bash
 wasm-pack new meth-leb

@@ -1,9 +1,8 @@
 # Embedding Denilen Kavram
 
-Embedding, genellikle doğal dil işleme (NLP) ve makine öğrenimi alanlarında kullanılan bir teknik. Bir kelime, cümle veya belge gibi metinsel verilerin sayısal  formata dönüştürülmesinde ele alınıyor. Bu sayısal format, genellikle vektörler şeklinde temsil ediliyor ve bazı hesaplama teknikleri yardımıyla aradaki benzerlikler ve ilişkiler yakalanabiliyor. Cosine Similarity veya Euclidean Distance gibi yöntemler kullanılarak bu vektörler arasındaki benzerlik ölçülebiliyor.
-Bunu **Rust** tarafında deneyimlemek istedim. Bu konuda destek olabilecek güzel bir crate buldum; [fastembed](https://crates.io/crates/fastembed). Hatta text dışında image embedding opsiyonları da var.
+Embedding, genellikle doğal dil işleme (NLP) ve makine öğrenimi alanlarında kullanılan bir teknik. Bir kelime, cümle veya belge gibi metinsel verilerin sayısal formata dönüştürülmesinde ele alınıyor. Bu sayısal format, genellikle vektörler ile temsil ediliyor ve bazı hesaplama teknikleri yardımıyla aradaki benzerlikler ve ilişkiler yakalanabiliyor. **Cosine Similarity** veya **Euclidean Distance** gibi yöntemler kullanılarak bu vektörler arasındaki benzerlik ölçülebiliyor. Bunu **Rust** tarafında deneyimlemek istedim. Bu konuda destek olabilecek güzel bir **crate** buldum; [fastembed](https://crates.io/crates/fastembed). Hatta text dışında **image embedding** seçeneği de var.
 
-Çalışma prensibi oldukça basit. Öncelikle bu embedding işlemini gerçekleştirecek bir model seçiliyor. Program çalışırken bu modelde sisteme indiriliyor. Sonrasında model yardımıyla metinsel ifadelerin vektör dönüşümleri gerçekleştiriliyor. Ardından hesaplama fonksiyonları ile ilişki değerleri çıkarılıyor. İşte bu işlemin arkasından bir Agent devreye sokulup daha tutarlı sonuçlar çıkartılması sağlanabilir. *Retrieval Augmented Generation* konusunda bilinmesi gereken konulardan birisi bu diye düşünüyorum. Örnek rust kodlarımıza gelince;
+Çalışma prensibi oldukça basit. Öncelikle bu embedding işlemini gerçekleştirecek bir model seçiliyor. Program çalışırken bu seçilen model sisteme indiriliyor. Sonrasında model yardımıyla metinsel ifadelerin vektör dönüşümleri gerçekleştiriliyor. Ardından hesaplama fonksiyonları ile ilişki değerleri çıkarılıyor. İşte bu işlemin arkasından bir agent devreye sokulup daha tutarlı sonuçlar çıkartılması sağlanabilir. *Retrieval Augmented Generation* konusunda bilinmesi gereken konulardan birisi bu. Örnek rust kodlarımıza gelince;
 
 ```rust
 use anyhow::Result;
@@ -22,7 +21,7 @@ use std::path::Path;
     İşin temelinde biraz matematik var. Cosine similarity (Açısal benzerlik) veya
     Euclidean distance (Öklid uzaklığı) gibi yöntemlerle bu vektörler arasındaki benzerlikleri ölçüyoruz.
 
-    Projece hata yönetimini kolaylaştırmak için anyhow,
+    Projede hata yönetimini kolaylaştırmak için anyhow,
     Embedding değerlerini oluşturmak için fastembed,
     JSON verimiz ile kolayca çalışmak için serde, serde_json küfelerini (crates) kullanıyoruz.
 */

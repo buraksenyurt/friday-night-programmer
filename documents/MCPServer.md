@@ -408,3 +408,94 @@ Yapılacaklar listemdeki görevleri son tarihlerine göre sırala ve en yakın z
 ![Query result](../images/MCPServer_07.png)
 
 E ben daha ne diyeyim :D Bundan sonraki aşamada belki de bir chatbot uygulaması geliştirip onun üzerinden de bu araçları kullanmayı deneyebiliriz ya da örneğin sistemde yüklü olan bir CLI aracına bu MCP Server'ı entegre edip benzer görevleri bu kez oradan da deneyebiliriz.
+
+## Update: MCP Server ile SSE Destekli İletişim
+
+MCP standardı güncel olarak iki tip veri taşıma *(Transport)* mekanizmasını destekler: Standard Input/Output *(Stdio)* ve SSE *(Server-Sent Events)*.
+
+- **Stdio:**
+  - **Çalışma şekli;** İstemci taraf (Vs Code, Copilot CLI vb.) ile MCP sunucusu arasında veri alışverişi, standart giriş/çıkış akışları üzerinden gerçekleşir. MCP sunucusu arka planda bir alt process olarak çalışır ve veri iletimi JSON-RPC mesajları ile gerçekleşir.
+  - **Avantajları;** Kurulumu ve entegrasyonu genellikle daha basittir, özellikle yerel geliştirme ortamlarında hızlıca test etmek için idealdir, ağ yapılandırması gerektirmez, port çakışması olmaz veya güvenlik duvarı sorunları yaşanmaz.
+  - **Dezavantajları;** Sadece yerel kullanım için uygundur, uzak sunucularla iletişim kurmak mümkün değildir, ölçeklenebilirlik sınırlıdır, yüksek trafik altında performans sorunları yaşanabilir.
+  - **Kullanım senaryoları;** Sunucu ve istemcinin aynı makinede çalıştığı durumlar, hızlı prototipleme ve geliştirme süreçleri, basit araç entegrasyonları.
+- **SSE (Server-Sent Events):**
+  - **Çalışma şekli;** MCP sunucusu bir Web API olarak çalışır. İstemci sunucuya HTTP üzerinden bir bağlantı açar ve sunucu, SSE protokolünü kullanarak istemciye asenkron mesajlar gönderir.
+  - **Avantajları;** Ağ üzerinden çalışır. Dil modeli nerede olursa olsun internet veya intranet üzerinden bağlanabilir.
+  - **Dezavantajları;** Kurulumu ve entegrasyonu daha karmaşıktır. Araya bir ağ katmanı girdiğinden gecikmeler (latency) olabilir ve daha da önemlisi authentication/authorization eklemek gerejir, çünkü aksi halde herhangi biri sunucuya bağlanıp araçları kullanabilir.
+  - **Kullanım senaryoları;** Internet veya intranet üzerinden merkezi bir MCP sunucusuna ihtiyaç duyulan durumlar, birden fazla istemcinin aynı MCP sunucusunu kullanacağı senaryolar.
+
+Bu çalışmadaki örnekte **stdio** iletişim mekanizması kullanıldı. Eğer **SSE** destekli bir yapı kurmak istersek bir **WebApi** projesi oluşturabiliriz. Aşağıdaki gibi hareket edelim.
+
+```bash
+dotnet new web -n TodoMCPServerSSE
+
+# Gerekli Nuget paketlerinin eklenmesi
+dotnet add package ModelContextProtocol.AspNetCore
+```
+
+Bu uygulamada da TodoApiService ve TodoTools sınıflarını aynı şekilde kullanabiliriz. Farklı olan taraf program.cs kodları.
+
+```csharp
+using ModelContextProtocol.Protocol;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddConsole(options =>
+{
+    options.LogToStandardErrorThreshold = LogLevel.Trace;
+});
+
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+var todoApiBaseUrl = builder.Configuration["TodoApiUrl"];
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    return new TodoApiService(httpClientFactory, todoApiBaseUrl);
+});
+
+builder.Services
+    .AddMcpServer(options =>
+    {
+        options.ServerInfo = new Implementation
+        {
+            Name = "TodoMCPServer_SSE",
+            Version = "1.0.0"
+        };
+    })
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
+
+var app = builder.Build();
+
+app.MapMcp("/sse");
+app.Run();
+```
+
+Durumu bir özetleyelim. Todo işlemleri ile ilgili web api servisimiz rust ile yazılmış bir uygulama idi. Bu servisin her durumda çalışır olmasını bekliyoruz. Yeni MCP sunucu uygulamamız ise bir öncekinden farklı olarak bir WebApi projesi. Bununla birlikte **MapMcp** isimli metotla otomatik olarak bir yapay zeka aracının iletişim kurabileceği bir endpoint haline geliyor. **AddMcpServer** metodu arkasından çağırılan **WithHttpTransport** metodu ise bu iletişim için SSE destekli bir mekanizma kullanılacağını belirtiyor. Artık bu sunucuyu başlattığımızda, yapay zeka araçları belirtilen endpoint'e bağlanarak araç setimizi keşfedebilir ve kullanabilirler.
+
+Bunu deneyimlemek için öncelikle **rust** ile yazılmış todo-api servisinin çalışır durumda olduğundan emin olalım. Ardından dotnet projemizi çalıştırarak **MCP** sunucusunu ayağa kaldıralım. Sonrasında istersek **VS Code** tarafındaki **mcp.json** dosyasını aşağıdaki gibi güncelleyerek yeni sunucumuzu etkinleştirebiliriz.
+
+```json
+{
+    "servers": {
+        "Todo MCP Server V2": {
+            "type": "sse",
+            "url": "http://localhost:5055/sse"
+        }
+    }
+}
+```
+
+![MCPServer_08.png](../images/MCPServer_08.png)
+
+Ekran görüntüsünden de görüldüğü üzere yeni MCP sunucusundan sunulan araçlar başarılı şekilde keşfedilmiştir.
+
+![MCPServer_09.png](../images/MCPServer_09.png)
+
+![MCPServer_10.png](../images/MCPServer_10.png)

@@ -1,4 +1,4 @@
-# Rust Dilin Phantom Type Kullanımı: PhantomData
+# Rust Dilinde Phantom Type Kullanımı: PhantomData
 
 Bazı durumlarda bir tipe ekstra bilgiler dahil ederken bu bilgilerin çalışma zamanında *(runtime)* gerçekten de saklanmasını istemeyiz. Kulağa garip bir cümle olarak geldiği aşikar, farkındayım. Bir örnek üzerinden ilerlersek daha anlaşılır olacaktır ama öncesinde temel bilgileri ele alalım. Rust dilinde `PhantomData<T>` şeklinde generic bir yapı bulunuyor. **PhantomData** yapısı ile tanımlanan bir veri çalışma zamanında saklamaz ama derleyici bu türün kullanıldığını bilir ve buna bağlı olarak ownership, borrowing, lifetimes gibi kuralları işletebilir. Zaten bu türe phantom yani "hayalet" denmesinin sebebi de budur; çalışma zamanında var olmayan ama derleyici tarafından bilinen tür olarak ifade edilebilir.
 
