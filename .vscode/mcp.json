@@ -9,9 +9,13 @@
                 "${workspaceFolder}/src/TodoMCPServer"
             ]
         },
-        "Todo MCP Server V2": {
-            "type": "sse",
-            "url": "http://localhost:5055/sse"
-        }
+        "Company Benchmark Server V2": {
+            "type": "http",
+            "url": "http://localhost:5045/mcp"
+        },
+        // "Company Benchmark Server Legacy SSE": {
+        //   "type": "sse",
+        //   "url": "http://localhost:5045/mcp/sse"
+        // }
     }
 }
