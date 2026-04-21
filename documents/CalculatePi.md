@@ -1,4 +1,6 @@
-# Pi Sayısını Hesaplama Yolunda
+# Pi Sayısını Hesaplama Yolunda (Draft)
+
+[Güncel Makale için şöyle buyrun](https://buraksenyurt.github.io/2026/03/26/pi-sayisini-hesaplama-yolunda/)
 
 Matematiksel yöntemlerden bazılarını ele alarak belli bir basamağa kadar **pi *(π)*** sayısını hesaplamaya çalışacağım. Doğru bir basamak değerine ulaşmak ve burada yüksek sürate çıkmak hedeflerim arasında. Önce en amele yöntemlerden başlayarak daha sonra daha karmaşık yöntemlere geçmek niyetindeyim ama yol beni farklı bir rotaya sürükledi diye de özet geçeyim :D Diğer modellere geçemeden kendimi diller arasında performans hesaplamaları, optimizasyonlar ve senkronizasyon sorunlarıyla uğraşırken buldum. O yüzden bu yazıda sadece Monte Carlo yöntemini ele alacağım.
 

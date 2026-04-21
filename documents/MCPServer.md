@@ -1,4 +1,6 @@
-# .Net ile Bir MCP Server Yazmak
+# .Net ile Bir MCP Server Yazmak (Draft)
+
+[Güncel Makale için şöyle buyrun](https://buraksenyurt.github.io/2026/03/07/microsoft-dotnet-platformunda-bir-mcp-server-yazmak/)
 
 **MCP *(Model Context Protocol)***, yapay zeka araçları için tool desteği sağlamak amacıyla kullanılan bir protokol olarak düşünülebilir. Anthropic tarafından geliştirilmiş bir standarttır ki detaylarına [buradan](https://github.com/modelcontextprotocol) ulaşabilirsiniz. Bu protokolün geliştirilmesinde amaç yapay zeka araçlarına belli bir standart dahilinde harici araç desteği sunabilmektir. Genel senaryoda bir dil modeline gitmeden önce bu protokol üzerinden hizmet veren **MCP Server**`lara gidilerek sağlanan araçlar kullanılabilir. Araçlar da arka planda çoğunlukla **REST API** hizmetlerini çağırır ama bu zorunluluk değildir. Bir başka deyişle **MCP server**'ın sağladığı araç seti arka planda sarmalladığı herhangi bir başka araca da gidebilir. **MCP**, yapay zeka araçları için standart bir protokol sunduğundan tüm **MCP server**'lar bir yapay zeka aracı tarafından çağırılabilir.
 

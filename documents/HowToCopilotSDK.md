@@ -1,5 +1,7 @@
 # Copilot-SDK - Hello World Uygulaması
 
+[Güncel Makale için şöyle buyrun](https://buraksenyurt.github.io/2026/03/03/copilot-sdk-ile-ilk-deneyimler/)
+
 VS Code'un chat penceresi, Claude veya Copilot'ın CLI araçları gibi dil modelleri ile konuşan kendi terminal uygulamalarımız yazmak için **Copilot-SDK**'yi kullanabiliriz. Bu çalışmada SDK'nın nasıl kullanılabileceğine dair birkaç basit örnek yapmaya çalışıyoruz.
 
 - [Referans](https://github.com/github/copilot-sdk)

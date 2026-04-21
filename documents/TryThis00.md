@@ -1,5 +1,7 @@
 # Metot Parametrelerinden Gelen Değerleri Değiştirmek
 
+[Güncel Makale için şöyle buyrun](https://buraksenyurt.github.io/2026/01/15/bunu-bir-dene-00-metot-argumanlarinda-degisiklik-c-rust-ve-zig/)
+
 C# programlama dilinde sınıf nesne örnekleri *(Class Object Instance)* metotlara varsayılan olarak referans türü *(reference type)* olarak iletilir. Bu, metot içinde yapılan değişikliklerin çağıran tarafı etkileyebileceği anlamına gelir. Bu çalışmada söz konusu senaryonun Rust ve Zig gibi programlama dillerinde nasıl ele alındığını incelemeye çalışıyorum.
 
 > Şu notu düşmek isterim: Bu çalışmada amaç üç dili birbiriyle kıyaslamak değil, her bir dilin bu tip senaryoya yaklaşımını incelemektir. Normal koşullarda bir stok takip programını Rust ve Zig ile geliştirmeyi tercih etmem.

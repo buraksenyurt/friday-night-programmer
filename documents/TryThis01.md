@@ -1,5 +1,7 @@
 # Çoklu Thread Ortamlarında Ortak Veriyi Değiştirmek
 
+[Güncel Makale için şöyle buyrun](https://buraksenyurt.github.io/2026/02/15/bunu-bir-dene-01-coklu-thread-ortamlarinda-ortak-veriyi-degistirmek-c-rust-ve-zig/)
+
 [Try This 00](/documents/TryThis00.md) dokümanında, bir fonksiyona aktarılan parametre üzerinde değişklik yapmak istediğimizde bunun **C#**, **Rust** ve **Zig** programlama dilleri tarafındaki ele alınış biçimlerini farklı örneklerle incelemeye çalışmıştım. Nihayetinde ulaştığım noktada bir nesnenin kendisini tanımlayan değerlerin değiştirilmesinde programlama dili ve hatta kullanılacak yazılım mimarisi bazında farklı yaklaşımlar olduğunu görmüştük. Merak ettiğim bir başka konu ise, multi-thread *(çoklu iş parçacığı)* ortamlarında ortak veriyi değiştirmek. Aynı veri üzerinde birden fazla **thread**'in okuma/yazma işlemi yapması çok sık karşılaşılan bir durum. Şu anda elimde **managed** ortamı olan, yerleşik framework kütüphanelerinde üst düzey soyutlamalar sunan **C#**, bellek güvenliği konusundaki titiz stratejileri ve zorlamaları ile öne çıkan **Rust** ve **C**'nin modern bir versiyonu olarak gördüğüm düşük seviyeli sistem programlama dili olan **Zig** var.
 
 ## Önce C# Tarafı
