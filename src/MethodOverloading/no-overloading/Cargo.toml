@@ -1,0 +1,7 @@
+[package]
+name = "no-overloading"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+uuid = { version = "1.23.1", features = ["v4"] }
