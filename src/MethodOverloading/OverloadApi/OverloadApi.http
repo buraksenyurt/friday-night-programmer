@@ -1,0 +1,6 @@
+@OverloadApi_HostAddress = http://localhost:5231
+
+GET {{OverloadApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

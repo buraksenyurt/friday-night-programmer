@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11723.189 insiders
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverloadApi", "OverloadApi.csproj", "{BFD64C95-1BA6-E806-AA0A-2F3EAD7F6872}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFD64C95-1BA6-E806-AA0A-2F3EAD7F6872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFD64C95-1BA6-E806-AA0A-2F3EAD7F6872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFD64C95-1BA6-E806-AA0A-2F3EAD7F6872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFD64C95-1BA6-E806-AA0A-2F3EAD7F6872}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3BD3A3F6-3434-4A9B-850E-5652B9B8B75D}
+	EndGlobalSection
+EndGlobal
