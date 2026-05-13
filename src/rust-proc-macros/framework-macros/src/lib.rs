@@ -10,8 +10,8 @@ pub fn greetings(input: TokenStream) -> TokenStream {
         println!("Greetings from proc macro");
      }
      "#
-        .parse()
-        .unwrap()
+    .parse()
+    .unwrap()
 }
 
 /*
@@ -40,13 +40,12 @@ pub fn invoice_code(input: TokenStream) -> TokenStream {
     let module_code = parts[0];
     let invoice_type = parts[1];
     /*
-        Macrolar derleme zamanı için kod üretirler ama çalışma zamanında da harici kütüphaneleri
-        ele alabilirler. Mesela üretilen fatura numarasına chrono crate üzerinden güncel
-        tarihe ait yil, ay, gün bilgisini ekleyebiliriz.
-     */
+       Macrolar derleme zamanı için kod üretirler ama çalışma zamanında da harici kütüphaneleri
+       ele alabilirler. Mesela üretilen fatura numarasına chrono crate üzerinden güncel
+       tarihe ait yil, ay, gün bilgisini ekleyebiliriz.
+    */
     let build_date = chrono::Local::now().format("%Y%m%d").to_string();
     let id = parts[2];
-
 
     let output = format!(
         r#"
@@ -57,3 +56,38 @@ pub fn invoice_code(input: TokenStream) -> TokenStream {
     output.parse().unwrap()
 }
 
+/*
+    Basit derive-macro örneği.
+    Bu sefer bir veri yapısına #derive ile uygulanabilen bir macro var.
+    Bu macro bir struct için uyguladığımızda ona otomatik olarak entity_name
+    isimli bir metot dahil ediyoruz.
+
+    Basit kullanımlar için ideal ama struct'ın şuna benzer yazılması lazım.
+    struct Game {
+
+    Başa pub gelirse, generic T kullanılırsa, tuple struct ele alınırsa vs
+    boşluk karakterine göre ayrıştırıp struct adını bulma yine çuvallar.
+    Dolayısıyla token bazlı ayrıştırma yaparak hareket etmek gerekir ki bu bizi tekrardan
+    sync, quote kullanımına getirir.
+*/
+#[proc_macro_derive(TableName)]
+pub fn derive_table_name(input: TokenStream) -> TokenStream {
+    let raw = input.to_string();
+    let struct_name = raw
+        .split_whitespace()
+        .skip_while(|token| *token != "struct")
+        .nth(1)
+        .expect("Expected a struct name");
+
+    let generated = format!(
+        r#"
+            impl {struct_name} {{
+                pub fn table_name() -> &'static str {{
+                    "tbl_{struct_name}"
+                }}
+            }}
+        "#
+    );
+
+    generated.parse().unwrap()
+}
