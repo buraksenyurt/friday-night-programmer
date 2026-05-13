@@ -7,3 +7,4 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
+chrono = "0.4.44"
