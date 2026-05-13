@@ -1,4 +1,6 @@
 use proc_macro::TokenStream;
+use quote::quote;
+use syn::{Expr, Token, parse::Parse, parse::ParseStream, parse_macro_input};
 
 // function-like macro
 #[proc_macro]
@@ -54,6 +56,69 @@ pub fn invoice_code(input: TokenStream) -> TokenStream {
     );
 
     output.parse().unwrap()
+}
+
+/*
+    Şimdi invoice_code makrosunun daha güvenli bir versiyonunu yazalım.
+    Bu makro girdilere göre bir fatura numarası formatı oluşturuyor. Ancak girdileri
+    string olarak parse etmek yerine token bazlı parse işlemi yapıyoruz.
+
+    Bunun en büyük avantajı pek takii string parse işlemi yapmıyor oluşumuz. Örneğin
+    klasik invoice_code makrosunu aşağıdaki gibi çağırsak;
+
+    invoice_code!("VEH", get_type("VIP,User"), 1000);
+
+    şuna benzer bir derleme hatası alırız;
+
+    error: wrong number of arguments!
+ --> app\src\main.rs:9:5
+  |
+9 |     invoice_code!("VEH", get_type("VIP,User"), 1000);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*/
+struct InvoiceArgs {
+    module_code: Expr,
+    invoice_type: Expr,
+    id: Expr,
+}
+
+impl Parse for InvoiceArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // İlk parça modül kodu onu doğrudan alıyoruz
+        let module_code: Expr = input.parse()?;
+        input.parse::<Token![,]>()?; // Bir virgül atlıyoruz
+        let invoice_type: Expr = input.parse()?; // İkinci parça fatura tipi
+        input.parse::<Token![,]>()?; // Bir virgül daha atlıyoruz
+        let id: Expr = input.parse()?; // Son parça id
+
+        Ok(InvoiceArgs {
+            module_code,
+            invoice_type,
+            id,
+        })
+    }
+}
+
+#[proc_macro]
+pub fn invoice_code_safe(input: TokenStream) -> TokenStream {
+    // Öncelikle gelen TokenStream'i InvoiceArgs yapısına parse ediyoruz
+    // Bunu yaparken de başka bir macro kullandığımıza dikkat edelim :)
+    let args = parse_macro_input!(input as InvoiceArgs);
+
+    let module = args.module_code;
+    let inv_type = args.invoice_type;
+    let id = args.id;
+
+    // Burası zaten klasik fatura için tarih damgasını aldığımız yer
+    let build_date = chrono::Local::now().format("%Y%m%d").to_string();
+
+    // Çıktıyı da quote makrosu ile oluşturuyoruz. Burada #args.module_code gibi ifadelerle
+    // parse ettiğimiz argümanlara erişebiliyoruz.
+    let output = quote! {
+        format!("INV-{}-{}-{}-{}", #module, #inv_type, #build_date, #id)
+    };
+
+    TokenStream::from(output)
 }
 
 /*
