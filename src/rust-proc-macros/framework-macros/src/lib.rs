@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse::Parse, parse::ParseStream, parse_macro_input, Expr, Token};
+use syn::{parse::Parse, parse::ParseStream, parse_macro_input, Data, Expr, Fields, Token, Type};
 
 // function-like macro
 #[proc_macro]
@@ -191,5 +191,84 @@ pub fn derive_created_event(input: TokenStream) -> TokenStream {
             }
         }
     };
+    TokenStream::from(expanded)
+}
+
+/*
+    Peki bir struct'ın alanlarını okuyarak kod üretebilir miyiz?
+    Örneğin bir struct içindeki alanlar üzerinde basit validasyon işlemleri yapan kodları oluşturacak
+    bir derive macro yazalım. Böylece her struct için manuel olarak validasyon kodu yazmak yerine,
+    bu işlemi otomatikleştirebiliriz.
+*/
+#[proc_macro_derive(Validator)]
+pub fn derive_validator(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    // tip adını alalım
+    let type_name = input.ident;
+
+    // alanları alıyoruz. Sadece named fields yani struct { field: type } şeklinde olanları desteklemekte
+    // Bunu yaparken data'yı bir pattern match ile kontrol ediyoruz.
+    // Eğer struct değilse veya named fields değilse compile error üretiyoruz.
+    let fields = match input.data {
+        Data::Struct(data_struct) => match data_struct.fields {
+            Fields::Named(named_fields) => named_fields.named,
+            _ => {
+                return quote! {
+                    compile_error!("Validator only supports structs with named fields");
+                }
+                .into();
+            }
+        },
+        _ => {
+            return quote! {
+                compile_error!("Validator only supports structs");
+            }
+            .into();
+        }
+    };
+
+    // Her bir alan içi çok basit bir validasyon yapıyoruz.
+    // Aslında sadece String türündeki alanların boş olup olmadığını kontrol ediyoruz.
+    // Diğer türler için herhangi bir validasyon yapmıyoruz.
+    // Gerçek hayat senaryolarında elbette daha fazla tip için kontrol yapabiliriz.
+    // Bu kadarı bile karışık aslında :D
+    let validations = fields.iter().filter_map(|field| {
+        let field_name = field.ident.as_ref()?;
+
+        let is_string = match &field.ty {
+            Type::Path(type_path) => type_path
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident == "String")
+                .unwrap_or(false),
+            _ => false,
+        };
+
+        if is_string {
+            let message = format!("{} is required", field_name);
+            Some(quote! {
+                if self.#field_name.trim().is_empty() {
+                    return Err(#message.to_string());
+                }
+            })
+        } else {
+            None
+        }
+    });
+
+    // Son olarak validasyon kodlarını içeren bir impl bloğu oluşturuyoruz.
+    // Dolayısıyla bir struct için bu derive macro'yu kullandığımızda,
+    // o struct'a validate isimli bir metot otomatik olarak ekleniyor olacak.
+    let expanded = quote! {
+        impl #type_name {
+            pub fn validate(&self) -> Result<(), String> {
+                #(#validations)*
+
+                Ok(())
+            }
+        }
+    };
+
     TokenStream::from(expanded)
 }

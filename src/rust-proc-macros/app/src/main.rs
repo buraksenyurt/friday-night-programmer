@@ -21,10 +21,21 @@ fn main() {
         title: "Example Game".to_string(),
     };
     println!("Game created event: {}", game.created_event());
+
+    let product_dto = ProductDto {
+        title : "".to_string(),
+        sku : "PRD-1234".to_string(),
+        list_price: 4.99
+    };
+
+    match product_dto.validate() {
+        Ok(_)=> println!("Valid"),
+        Err(e) => println!("Error: {e}"),
+    }
 }
 
 // Her bir domain modeli için otomatik event tanımı üreten bir derive macro senaryosu
-trait CreatedEvent{
+trait CreatedEvent {
     fn created_event(&self) -> String;
 }
 
@@ -33,7 +44,7 @@ trait CreatedEvent{
 struct Game {
     id: u32,
     title: String,
-}   
+}
 
 fn get_type(types: &str) -> String {
     types.split(',').next().unwrap_or("").to_string()
@@ -45,4 +56,12 @@ struct Player {
     id: u32,
     name: String,
     point: f32,
+}
+
+#[derive(Validator)]
+#[allow(dead_code)]
+struct ProductDto {
+    title: String,
+    sku: String,
+    list_price: f32
 }
