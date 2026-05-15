@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Expr, Token, parse::Parse, parse::ParseStream, parse_macro_input};
+use syn::{parse::Parse, parse::ParseStream, parse_macro_input, Expr, Token};
 
 // function-like macro
 #[proc_macro]
@@ -31,7 +31,7 @@ pub fn greetings(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn invoice_code(input: TokenStream) -> TokenStream {
     let raw = input.to_string(); // gelen token stream'i alalım
-    // sonra virgüle göre parçalarını alalım
+                                 // sonra virgüle göre parçalarını alalım
     let parts = raw.split(',').map(|p| p.trim()).collect::<Vec<&str>>();
 
     // bir kontrol yapalım
@@ -155,4 +155,41 @@ pub fn derive_table_name(input: TokenStream) -> TokenStream {
     );
 
     generated.parse().unwrap()
+}
+
+/*
+TableName derive macro'sunun quote ve syn crate'lerini kullanarak daha güvenli ve esnek
+bir versiyonunu aşağıdaki gibi ele alabiliriz.
+*/
+#[proc_macro_derive(TableNameSafe)]
+pub fn derive_table_name_safe(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput); // Token Stream'i alıp anlamlı bir Abstract Syntax Tree'ye dönüştürür.
+    let type_name = input.ident;
+    let table_name = type_name.to_string().to_lowercase();
+
+    let expanded = quote! {
+        impl #type_name {
+            pub fn table_name() -> &'static str {
+                concat!("tbl_", #table_name)
+            }
+        }
+    };
+    TokenStream::from(expanded)
+}
+
+#[proc_macro_derive(CreatedEvent)]
+pub fn derive_created_event(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    let type_name = input.ident;
+    let event_name = format!("{}_created", type_name.to_string().to_lowercase());
+
+    let expanded = quote! {
+        impl CreatedEvent for #type_name {
+            fn created_event(&self) -> String {
+                #event_name.to_string()
+                // Burada belki de başka bir dış bağımlılığı ele alıp event'i oraya göndereceğiz
+            }
+        }
+    };
+    TokenStream::from(expanded)
 }

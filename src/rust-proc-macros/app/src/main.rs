@@ -1,4 +1,4 @@
-use framework_macros::{TableName, greetings, invoice_code, invoice_code_safe};
+use framework_macros::*;
 
 fn main() {
     // function-like macro kullanım örnekleri
@@ -14,15 +14,35 @@ fn main() {
 
     // derive-macro kullanım örnekleri
     println!("Game table name is {}", Game::table_name());
+    println!("Player table name is {}", Player::table_name()); // quote, syn kullanılan versiyon
+
+    let game = Game {
+        id: 1,
+        title: "Example Game".to_string(),
+    };
+    println!("Game created event: {}", game.created_event());
+}
+
+// Her bir domain modeli için otomatik event tanımı üreten bir derive macro senaryosu
+trait CreatedEvent{
+    fn created_event(&self) -> String;
 }
 
 #[allow(dead_code)]
-#[derive(TableName)]
+#[derive(TableName, CreatedEvent)]
 struct Game {
     id: u32,
     title: String,
-}
+}   
 
 fn get_type(types: &str) -> String {
     types.split(',').next().unwrap_or("").to_string()
+}
+
+#[allow(dead_code)]
+#[derive(TableNameSafe)]
+struct Player {
+    id: u32,
+    name: String,
+    point: f32,
 }
