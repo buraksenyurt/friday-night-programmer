@@ -1,8 +1,6 @@
 ---
 import "../styles/global.css";
-import Navigation from "../components/Navigation.astro";
-import Footer from "../components/Footer.astro";
-import Header from "../components/Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
 const pageTitle = "About Rusty World";
 
@@ -15,75 +13,38 @@ const whoAmI = {
 };
 
 const skills = ["Rust", "C#", "Java", "OCaml", "Zig"];
-
-const skillColor = "indianred";
-const fontWeight = "bold";
-const textCase = "uppercase";
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
-        <style define:vars={{ skillColor, fontWeight, textCase }}>
-            h1 {
-                color: crimson;
-                font-size: 4rem;
-            }
-            .skill {
-                color: var(--skillColor);
-                font-weight: var(--fontWeight);
-                text-transform: var(--textCase);
-            }
-        </style>
-        <title>{pageTitle}</title>
-    </head>
-    <body>
-        <!-- <a href="/">Home</a><br />
-        <a href="/about/">{pageTitle}</a><br />
-        <a href="/blog/">Blog</a><br /> -->
-        <!-- <Navigation /> -->
-        <Header />
+<BaseLayout pageTitle={pageTitle}>
+    <p>
+        This blog was created to share articles and information about the Rust
+        programming language. Rust is known as a safe and fast systems
+        programming language, and this blog aims to cover various topics related
+        to Rust.
+    </p>
+    <h2>Target Audience</h2>
+    <p>
+        This blog is designed for developers, students, and technology
+        enthusiasts interested in the Rust programming language. Anyone looking
+        to learn about Rust can benefit from this blog.
+    </p>
 
-        <h1>About This Blog</h1>
-        <h2>... or why this blog exists?</h2>
-        <p>
-            This blog was created to share articles and information about the
-            Rust programming language. Rust is known as a safe and fast systems
-            programming language, and this blog aims to cover various topics
-            related to Rust.
-        </p>
-        <h2>Target Audience</h2>
-        <p>
-            This blog is designed for developers, students, and technology
-            enthusiasts interested in the Rust programming language. Anyone
-            looking to learn about Rust can benefit from this blog.
-        </p>
-
-        <p>Here are a few facts about me:</p>
-        <ul>
-            <li>My name is {whoAmI.firstName} {whoAmI.lastName}.</li>
-            <li>I live in {whoAmI.country}.</li>
-            <li>My occupation is {whoAmI.occupation}.</li>
-            {
-                whoAmI.hobbies.length >= 2 && (
-                    <li>
-                        Two of my hobbies are: {whoAmI.hobbies[0]} and{" "}
-                        {whoAmI.hobbies[1]}
-                    </li>
-                )
-            }
-        </ul>
-        <p>My skills are:</p>
-        <ul>
-            {skills.map((skill) => <li class="skill">{skill}</li>)}
-        </ul>
-        <Footer />
-        <script>
-            import "../scripts/menu.js";
-        </script>
-    </body>
-</html>
+    <h2>Here are a few facts about me:</h2>
+    <ul>
+        <li>My name is {whoAmI.firstName} {whoAmI.lastName}.</li>
+        <li>I live in {whoAmI.country}.</li>
+        <li>My occupation is {whoAmI.occupation}.</li>
+        {
+            whoAmI.hobbies.length >= 2 && (
+                <li>
+                    Two of my hobbies are: {whoAmI.hobbies[0]} and{" "}
+                    {whoAmI.hobbies[1]}
+                </li>
+            )
+        }
+    </ul>
+    <p>My skills are:</p>
+    <ul>
+        {skills.map((skill) => <li class="skill">{skill}</li>)}
+    </ul>
+</BaseLayout>

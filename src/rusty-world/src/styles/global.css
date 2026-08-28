@@ -80,3 +80,9 @@ h2 {
     display: none;
   }
 }
+
+.skill {
+  color: indianred;
+  font-weight: bold;
+  text-transform: uppercase;
+}

@@ -1,36 +1,18 @@
 ---
 import "../styles/global.css";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
-// const pageTitle = "Blog";
+const pageTitle = "Blog Posts";
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
-        <title>Rusty World</title>
-    </head>
-    <body>
-        <!-- <a href="/">Home</a><br />
-        <a href="/about/">About</a><br />
-        <a href="/blog/">{pageTitle}</a><br /> -->
-        <!-- <Navigation /> -->
-        <Header />
-        <h1>We are learning Rust programming language.</h1>
-        <p>These are the adventures we might encounter while learning Rust.</p>
+<BaseLayout pageTitle={pageTitle}>
+    <h2>Articles on the Rust programming language</h2>
 
-        <ul>
-            <li><a href="/posts/hello-rust/">Hello World in Rust</a></li>
-            <li><a href="/posts/variables/">Variables in Rust</a></li>
-        </ul>
-        <Footer />
-        <script>
-            import "../scripts/menu.js";
-        </script>
-    </body>
-</html>
+    <p>We are learning Rust programming language.</p>
+    <p>These are the adventures we might encounter while learning Rust.</p>
+
+    <ul>
+        <li><a href="/posts/hello-rust/">Hello World in Rust</a></li>
+        <li><a href="/posts/variables/">Variables in Rust</a></li>
+    </ul>
+</BaseLayout>
