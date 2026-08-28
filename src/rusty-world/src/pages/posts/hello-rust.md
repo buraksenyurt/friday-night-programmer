@@ -1,17 +1,14 @@
 ---
-title: 'Hello World in Rust'
+layout: ../../layouts/MarkdownPostLayout.astro
+title: Hello World in Rust
 pubDate: 2026-08-28
-description: 'This is a simple "Hello World" program written in Rust. It demonstrates the basic syntax and structure of a Rust program.'
-author: 'Burak Selim Şenyurt'
+description: This is a simple "Hello World" program written in Rust. It demonstrates the basic syntax and structure of a Rust program.
+author: Burak Selim Şenyurt
 image:
     url: 'https://docs.astro.build/assets/rose.webp'
     alt: 'The Astro logo on a dark background with a pink glow.'
 tags: ['rust', 'hello world', 'programming']
 ---
-# Hello World in Rust
-
-Published on: 2026-08-28
-
 Just try to run this code in your local machine.
 
 ```rust

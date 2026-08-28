@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/MarkdownPostLayout.astro
 title: Variables in Rust
 author: Burak Selim Şenyurt
 description: This article explains the concept of variables in Rust, including how to declare and use them, as well as the differences between mutable and immutable variables.
@@ -8,10 +9,6 @@ image:
 pubDate: 2026-08-28
 tags: ['rust', 'variables', 'programming']
 ---
-# Variables in Rust
-
-Published on: 2026-08-28
-
 Run this code in your local machine.
 
 ```rust

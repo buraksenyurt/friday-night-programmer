@@ -1,7 +1,10 @@
 ---
 import "../styles/global.css";
 import BaseLayout from "../layouts/BaseLayout.astro";
-
+import BlogPost from "../components/BlogPost.astro";
+const allPosts = Object.values(
+    import.meta.glob("./posts/*.md", { eager: true }),
+);
 const pageTitle = "Blog Posts";
 ---
 
@@ -11,8 +14,16 @@ const pageTitle = "Blog Posts";
     <p>We are learning Rust programming language.</p>
     <p>These are the adventures we might encounter while learning Rust.</p>
 
-    <ul>
+    <!-- <ul>
         <li><a href="/posts/hello-rust/">Hello World in Rust</a></li>
         <li><a href="/posts/variables/">Variables in Rust</a></li>
+    </ul> -->
+
+    <ul>
+        {
+            allPosts.map((post: any) => (
+                <BlogPost title={post.frontmatter.title} url={post.url} />
+            ))
+        }
     </ul>
 </BaseLayout>
