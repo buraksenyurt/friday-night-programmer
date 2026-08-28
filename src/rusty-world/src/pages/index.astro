@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
 ---
 
 <html lang="en">
@@ -12,9 +15,8 @@ import '../styles/global.css';
 		<title>Rusty World</title>
 	</head>
 	<body>
-		<a href="/">Home</a><br />
-        <a href="/about/">About</a><br />
-		<a href="/blog/">Blog</a><br />
+		<Header />
 		<h1>Articles on the Rust programming language</h1>
+		<Footer />
 	</body>
 </html>

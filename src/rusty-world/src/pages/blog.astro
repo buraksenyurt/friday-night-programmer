@@ -1,7 +1,9 @@
 ---
-import '../styles/global.css';
+import "../styles/global.css";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
 
-const pageTitle = "Blog";
+// const pageTitle = "Blog";
 ---
 
 <html lang="en">
@@ -14,9 +16,10 @@ const pageTitle = "Blog";
         <title>Rusty World</title>
     </head>
     <body>
-        <a href="/">Home</a><br />
+        <!-- <a href="/">Home</a><br />
         <a href="/about/">About</a><br />
-        <a href="/blog/">{pageTitle}</a><br />
+        <a href="/blog/">{pageTitle}</a><br /> -->
+        <Navigation />
         <h1>We are learning Rust programming language.</h1>
         <p>These are the adventures we might encounter while learning Rust.</p>
 
@@ -24,5 +27,6 @@ const pageTitle = "Blog";
             <li><a href="/posts/hello-rust/">Hello World in Rust</a></li>
             <li><a href="/posts/variables/">Variables in Rust</a></li>
         </ul>
+        <Footer />
     </body>
 </html>
