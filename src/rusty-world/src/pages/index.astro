@@ -1,10 +1,26 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Greeting from "../components/Greeting";
+
 const pageTitle = "Rusty World";
 ---
 
 <BaseLayout pageTitle={pageTitle}>
 	<h2>Welcome to Rusty World</h2>
+	<Greeting
+		client:load
+		messages={[
+			"Hallo",
+			"Halo",
+			"Kon'nichiwa",
+			"Ni hao",
+			"Privet",
+			"Merhaba",
+			"Bonjour",
+			"Hola",
+			"Namaste",
+		]}
+	/>
 	<p>
 		This is a demo website built with Astro, showcasing a blog about Rust
 		programming and related topics. Explore the articles, learn new things,
