@@ -1,25 +1,28 @@
 ---
+import '../styles/global.css';
 
+const pageTitle = "Blog";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Rusty World</title>
-	</head>
-	<body>
-		<a href="/">Ana Sayfa</a><br />
-        <a href="/about/">Hakkında</a><br />
-        <a href="/blog/">Blog</a><br />
-		<h1>We are learning Rust programming language.</h1>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Rusty World</title>
+    </head>
+    <body>
+        <a href="/">Home</a><br />
+        <a href="/about/">About</a><br />
+        <a href="/blog/">{pageTitle}</a><br />
+        <h1>We are learning Rust programming language.</h1>
         <p>These are the adventures we might encounter while learning Rust.</p>
 
         <ul>
             <li><a href="/posts/hello-rust/">Hello World in Rust</a></li>
+            <li><a href="/posts/variables/">Variables in Rust</a></li>
         </ul>
-	</body>
+    </body>
 </html>
