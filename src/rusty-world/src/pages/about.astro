@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
 
 const pageTitle = "About Rusty World";
 
@@ -44,7 +45,8 @@ const textCase = "uppercase";
         <!-- <a href="/">Home</a><br />
         <a href="/about/">{pageTitle}</a><br />
         <a href="/blog/">Blog</a><br /> -->
-        <Navigation />
+        <!-- <Navigation /> -->
+        <Header />
 
         <h1>About This Blog</h1>
         <h2>... or why this blog exists?</h2>
@@ -80,5 +82,8 @@ const textCase = "uppercase";
             {skills.map((skill) => <li class="skill">{skill}</li>)}
         </ul>
         <Footer />
+        <script>
+            import "../scripts/menu.js";
+        </script>
     </body>
 </html>
