@@ -23,7 +23,8 @@ public static class GameApp
         var scheduler = new Scheduler(world);
 
         scheduler.AddSystem(SystemState.Startup, new SetupPositionSystem());
-        scheduler.AddSystem(SystemState.Update, new MovementSystem());
+        // scheduler.AddSystem(SystemState.Update, new MovementSystem());
+        scheduler.AddSystem(SystemState.Update, new MovementWithVelocitySystem());
 
         scheduler.Run(SystemState.Startup);
         for (int i = 0; i < 3; i++)
