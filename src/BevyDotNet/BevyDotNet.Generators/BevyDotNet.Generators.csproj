@@ -5,6 +5,8 @@
 	  <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <NoWarn>$(NoWarn);RS1036</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
