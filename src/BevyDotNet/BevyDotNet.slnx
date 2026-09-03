@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BevyDotNet.Library/BevyDotNet.Library.csproj" />
+  <Project Path="BevyDotNet.Tester.ConsoleApp/BevyDotNet.Tester.ConsoleApp.csproj" />
+</Solution>
