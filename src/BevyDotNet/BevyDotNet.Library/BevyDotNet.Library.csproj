@@ -1,9 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<!--Source Code Generator tarafından üretilen kodu görmek istersek 
+		aşağıdaki blokları açabiliriz. Generated isimli bir klasör oluşacak
+		ve üretilen g.cs uzantılı dosyalar oraya düşecektir.
+	-->
+	<!--<PropertyGroup>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+	</PropertyGroup>-->
+
+	<ItemGroup>
+		<ProjectReference Include="..\BevyDotNet.Generators\BevyDotNet.Generators.csproj" OutputItemType="Analyzer"
+ReferenceOutputAssembly="false" />
+	</ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ namespace BevyDotNet.Tester.ConsoleApp.Game;
 
 public class SetupPositionSystem : ISystem<Position>
 {
-    public void Apply(IEnumerable<(Entity entity, Position component)> components)
+    public void Apply(IEnumerable<(Entity entity, Position component1)> components)
     {
         foreach (var (entity, position) in components)
         {
@@ -17,7 +17,7 @@ public class SetupPositionSystem : ISystem<Position>
 
 public class MovementSystem : ISystem<Position>
 {
-    public void Apply(IEnumerable<(Entity entity, Position component)> components)
+    public void Apply(IEnumerable<(Entity entity, Position component1)> components)
     {
         foreach (var (entity, position) in components)
         {
