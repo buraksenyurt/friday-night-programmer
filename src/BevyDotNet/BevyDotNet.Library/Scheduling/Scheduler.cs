@@ -1,11 +1,5 @@
 ﻿namespace BevyDotNet.Library;
 
-public enum SystemState
-{
-    Startup,
-    Update
-}
-
 public partial class Scheduler(World world)
 {
     private readonly Dictionary<SystemState, List<SystemEntry>> _systems = new()

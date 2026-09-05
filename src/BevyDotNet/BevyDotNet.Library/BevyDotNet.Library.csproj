@@ -16,8 +16,7 @@
 	</PropertyGroup>-->
 
 	<ItemGroup>
-		<ProjectReference Include="..\BevyDotNet.Generators\BevyDotNet.Generators.csproj" OutputItemType="Analyzer"
-ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\BevyDotNet.Generators\BevyDotNet.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 </Project>
