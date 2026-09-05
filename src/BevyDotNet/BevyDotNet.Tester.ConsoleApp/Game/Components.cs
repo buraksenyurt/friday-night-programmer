@@ -20,5 +20,9 @@ public class Range
     : IComponent
 {
     public float Value { get; set; }
+}
 
+public class Immobile :
+    IComponent
+{
 }

@@ -9,7 +9,7 @@ public static class GameApp
         World world = new();
 
         var player = world.CreateEntity();
-        player.AddComponent(new Position { X = 10, Y = 10 });
+        player.AddComponent(new Position { X = 149, Y = 10 });
         player.AddComponent(new Velocity { X = 1, Y = 0 });
 
         var enemy = world.CreateEntity();
@@ -17,8 +17,9 @@ public static class GameApp
         enemy.AddComponent(new Velocity { X = -1, Y = 0 });
 
         var tower = world.CreateEntity();
-        tower.AddComponent(new Position { X = 0, Y = 0 });
+        tower.AddComponent(new Position { X = 10, Y = 0 });
         tower.AddComponent(new Range { Value = 85 });
+        tower.AddComponent(new Immobile());
 
         var scheduler = new Scheduler(world);
 
@@ -27,9 +28,10 @@ public static class GameApp
         scheduler.AddSystem(SystemState.Update, new MovementWithVelocitySystem());
 
         scheduler.Run(SystemState.Startup);
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             scheduler.Run(SystemState.Update);
+            Console.WriteLine($"After update there are {world.GetEntities().Count()} entities in the world");
         }
     }
 }

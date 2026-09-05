@@ -32,7 +32,7 @@ public class EcsGenerator : IIncrementalGenerator
         return $$"""
         public interface ISystem<{{typeParams}}> {{constraints}}
         {
-            void Apply(IEnumerable<(Entity entity, {{tupleArgs}})> components);
+            void Apply(IEnumerable<(Entity entity, {{tupleArgs}})> components, Commands commands);
         }
 
 
@@ -130,10 +130,10 @@ public class EcsGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static string GenerateAddSystemMethods(int arity)
+    private static string GenerateAddSystemMethods(int count)
     {
-        var typeParams = string.Join(", ", Enumerable.Range(1, arity).Select(i => $"T{i}"));
-        var constraints = string.Join(" ", Enumerable.Range(1, arity).Select(i => $"where T{i} : IComponent"));
+        var typeParams = string.Join(", ", Enumerable.Range(1, count).Select(i => $"T{i}"));
+        var constraints = string.Join(" ", Enumerable.Range(1, count).Select(i => $"where T{i} : IComponent"));
 
         return $$"""
             public void AddSystem<{{typeParams}}>(SystemState state, ISystem<{{typeParams}}> system) {{constraints}}

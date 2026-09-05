@@ -11,5 +11,7 @@ public class World
         return entity;
     }
 
+    public void DestroyEntity(Entity entity) => _entities.Remove(entity);
+
     public IEnumerable<Entity> GetEntities() => _entities;
 }

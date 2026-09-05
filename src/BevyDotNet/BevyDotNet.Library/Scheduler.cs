@@ -18,6 +18,8 @@ public partial class Scheduler(World world)
     {
         if (!_systems.TryGetValue(state, out List<object>? value)) return;
 
+        var commands = new Commands();
+
         foreach (var system in value)
         {
             var systemType = system
@@ -33,7 +35,9 @@ public partial class Scheduler(World world)
             var queryInstance = Activator.CreateInstance(queryType, world);
             var entities = queryType.GetMethod("GetEntities")!.Invoke(queryInstance, null);
 
-            systemType.GetMethod("Apply")!.Invoke(system, [entities]);
+            systemType.GetMethod("Apply")!.Invoke(system, [entities, commands]);
         }
+
+        commands.Flush(world);
     }
 }
