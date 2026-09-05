@@ -6,11 +6,12 @@ public class SetupPositionSystem : ISystem<Position, Immobile>
 {
     public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components, Commands commands)
     {
-        foreach (var (entity, position, immobile) in components)
+        var random = new Random();
+        foreach (var (entity, position, _) in components)
         {
-            position.X = 0;
-            position.Y = 0;
-            Console.WriteLine($"[Setup] Entity {entity.ID} initialized at (0,0)");
+            position.X = random.Next(0, 100);
+            position.Y = random.Next(0, 100);
+            Console.WriteLine($"[Setup] Entity {entity.ID} initialized at ({position.X}, {position.Y})");
         }
     }
 }
@@ -44,6 +45,18 @@ public class MovementWithVelocitySystem : ISystem<Position, Velocity>
                 commands.Despawn(entity);
                 Console.WriteLine($"[Despawn] Entity {entity.ID} has moved out of bounds and will be despawned.");
             }
+        }
+    }
+}
+
+public class LogWorldStateSystem : ISystem<Position, Immobile>
+{
+    public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components, Commands commands)
+    {
+        Console.WriteLine("\n[Log] Current world state:");
+        foreach (var (entity, position, immobile) in components)
+        {
+            Console.WriteLine($"Entity {entity.ID}: After setup position ({position.X}, {position.Y}), Immobile ({immobile})");
         }
     }
 }

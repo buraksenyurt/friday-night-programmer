@@ -136,9 +136,12 @@ public class EcsGenerator : IIncrementalGenerator
         var constraints = string.Join(" ", Enumerable.Range(1, count).Select(i => $"where T{i} : IComponent"));
 
         return $$"""
-            public void AddSystem<{{typeParams}}>(SystemState state, ISystem<{{typeParams}}> system) {{constraints}}
+            public SystemHandler AddSystem<{{typeParams}}>(SystemState state, ISystem<{{typeParams}}> system) {{constraints}}
             {
-                _systems[state].Add(system);
+                var entry = new SystemEntry(system);
+                _systems[state].Add(entry);
+                InvalidateOrder(state);
+                return new SystemHandler(this, state, entry);
             }
 
         """;
