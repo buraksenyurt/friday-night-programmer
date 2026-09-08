@@ -1,11 +1,10 @@
 ﻿using BevyDotNet.Library;
-using BevyDotNet.Library.Core;
 
 namespace BevyDotNet.Tester.ConsoleApp.Game;
 
 public class SetupPositionSystem : ISystem<Position, Immobile>
 {
-    public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components, EventBus eventBus)
+    public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components)
     {
         var random = new Random();
         foreach (var (entity, position, _) in components)
@@ -19,7 +18,7 @@ public class SetupPositionSystem : ISystem<Position, Immobile>
 
 public class MovementSystem : ISystem<Position>
 {
-    public void Apply(IEnumerable<(Entity entity, Position component1)> components, EventBus eventBus)
+    public void Apply(IEnumerable<(Entity entity, Position component1)> components)
     {
         foreach (var (entity, position) in components)
         {
@@ -34,10 +33,11 @@ public class MovementSystem : ISystem<Position>
 Bu sistem birde Commands kullanıyor. Entity despawn işlemi için. 
 O yüzden IUsesCommands arayüzünü implement ediyor ve Commands property'ini alıyor.
  */
-public class MovementWithVelocitySystem : ISystem<Position, Velocity>, IUsesCommands
+public class MovementWithVelocitySystem : ISystem<Position, Velocity>, IUsesCommands, IUsesEventBus
 {
     public Commands Commands { get; set; } = null!;
-    public void Apply(IEnumerable<(Entity entity, Position component1, Velocity component2)> components, EventBus eventBus)
+    public EventBus EventBus { get; set; } = null!;
+    public void Apply(IEnumerable<(Entity entity, Position component1, Velocity component2)> components)
     {
         Console.WriteLine("\n[Update] MovementWithVelocitySystem is updating entities with Position and Velocity components;");
         foreach (var (entity, position, velocity) in components)
@@ -49,7 +49,7 @@ public class MovementWithVelocitySystem : ISystem<Position, Velocity>, IUsesComm
             if (position.X > 150.0f || position.X < -50.0f)
             {
                 Commands.Despawn(entity);
-                eventBus.Publish(new EntityDespawnedEvent(entity.ID)); // Despawn ile ilgili event yayınlanır
+                EventBus.Publish(new EntityDespawnedEvent(entity.ID)); // Despawn ile ilgili event yayınlanır
                 Console.WriteLine($"[Despawn] Entity {entity.ID} has moved out of bounds and will be despawned.");
             }
         }
@@ -58,7 +58,7 @@ public class MovementWithVelocitySystem : ISystem<Position, Velocity>, IUsesComm
 
 public class LogWorldStateSystem : ISystem<Position, Immobile>
 {
-    public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components, EventBus eventBus)
+    public void Apply(IEnumerable<(Entity entity, Position component1, Immobile component2)> components)
     {
         Console.WriteLine("\n[Log] Current world state:");
         foreach (var (entity, position, immobile) in components)
@@ -71,11 +71,12 @@ public class LogWorldStateSystem : ISystem<Position, Immobile>
 /*
 EntityDespawnedEvent nesnelerini dinleyen bir sistem. Bu nesneler bildiğiniz üzere olayları temsil ediyor.
 */
-public class DespawnedEntityWatcherSystem : ISystem<Position>
+public class DespawnedEntityWatcherSystem : ISystem<Position>, IUsesEventBus
 {
-    public void Apply(IEnumerable<(Entity entity, Position component1)> components, EventBus eventBus)
+    public EventBus EventBus { get; set; } = null!;
+    public void Apply(IEnumerable<(Entity entity, Position component1)> components)
     {
-        foreach (var @event in eventBus.Get<EntityDespawnedEvent>())
+        foreach (var @event in EventBus.Get<EntityDespawnedEvent>())
         {
             Console.WriteLine($"[Event] Entity {@event.EntityId} has been despawned.");
         }

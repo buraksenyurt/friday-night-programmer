@@ -32,7 +32,7 @@ public class EcsGenerator : IIncrementalGenerator
         return $$"""
         public interface ISystem<{{typeParams}}> {{constraints}}
         {
-            void Apply(IEnumerable<(Entity entity, {{tupleArgs}})> components, EventBus eventBus);
+            void Apply(IEnumerable<(Entity entity, {{tupleArgs}})> components);
         }
 
 

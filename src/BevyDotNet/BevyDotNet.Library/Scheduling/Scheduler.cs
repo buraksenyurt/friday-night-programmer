@@ -1,6 +1,4 @@
-﻿using BevyDotNet.Library.Core;
-
-namespace BevyDotNet.Library;
+﻿namespace BevyDotNet.Library;
 
 public partial class Scheduler(World world)
 {
@@ -33,13 +31,19 @@ public partial class Scheduler(World world)
             {
                 usesCommands.Commands = commands;
             }
+            // Commands için kullandığımız aynı taktiği EventBus için de uyguladık.
+            if (system is IUsesEventBus usesEventBus)
+            {
+                usesEventBus.EventBus = _eventBus;
+            }
 
             var queryInstance = Activator.CreateInstance(invoker.QueryType, world)!;
             var entities = invoker.GetEntitiesMethod.Invoke(queryInstance, null)!;
 
-            invoker.ApplyMethod.Invoke(system, [entities, _eventBus]);
+            invoker.ApplyMethod.Invoke(system, [entities]); // Artık Commands ve EventBus enjekte edilerek kullanıldığı için burası daha temiz oldu.
         }
 
         commands.Flush(world);
+        _eventBus.Flush(); //EndTick çağrısına ihtiyacımız kalmadı artık.
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BevyDotNet.Library.Core;
+﻿namespace BevyDotNet.Library;
 
 /*
 Şu ana kadar kullandığımız Apply metodu mutlaka bir Commands parametresi alıyor. Aslında bunu zorunlu kılmak istemiyorum.

@@ -33,9 +33,6 @@ public static class GameApp
         for (int i = 0; i < 5; i++)
         {
             scheduler.Run(SystemState.Update);
-            //Buraya biraz kafa yormak lazım. Oyun programcısı bu tick event metodunu yerleştirmeyi unutabilir.
-            //Unutursa event'leri dinleme ve kullanma şansı ortadan kalkar.
-            scheduler.EndTick(); 
             Console.WriteLine($"After update there are {world.GetEntities().Count()} entities in the world");
         }
     }
