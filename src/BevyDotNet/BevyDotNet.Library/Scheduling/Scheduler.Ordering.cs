@@ -77,10 +77,14 @@ public partial class Scheduler
     private List<SystemEntry> GetOrderedSystems(SystemState state)
     {
         if (_sortedCache[state] is { } cached)
+        {
+            Logger.Warn($"Using cached ordered systems for state {state}, count is {cached.Count}");
             return cached;
+        }
 
         var sorted = TopologicalSort(_systems[state]);
         _sortedCache[state] = sorted;
+        Logger.Warn($"Ordering recalculated for state {state}, count is {sorted.Count}");
         return sorted;
     }
 

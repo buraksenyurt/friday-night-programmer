@@ -22,6 +22,7 @@ public static class GameApp
         tower.AddComponent(new Immobile());
 
         var scheduler = new Scheduler(world);
+        scheduler.SetLogLevel(LogLevel.Trace);
 
         scheduler.AddSystem(SystemState.Startup, new LogWorldStateSystem()).After<SetupPositionSystem>();
         scheduler.AddSystem(SystemState.Startup, new SetupPositionSystem());
