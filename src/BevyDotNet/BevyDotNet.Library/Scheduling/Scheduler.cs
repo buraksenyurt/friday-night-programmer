@@ -27,7 +27,7 @@ public partial class Scheduler(World world)
             var queryInstance = Activator.CreateInstance(invoker.QueryType, world)!;
             var entities = invoker.GetEntitiesMethod.Invoke(queryInstance, null)!;
 
-            invoker.ApplyMethod.Invoke(system, [entities, commands]);
+            invoker.ApplyMethod.Invoke(system, [entities, commands, _eventBus]);
         }
 
         commands.Flush(world);
