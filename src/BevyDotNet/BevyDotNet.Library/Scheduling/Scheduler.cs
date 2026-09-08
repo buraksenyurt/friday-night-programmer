@@ -1,4 +1,6 @@
-﻿namespace BevyDotNet.Library;
+﻿using BevyDotNet.Library.Core;
+
+namespace BevyDotNet.Library;
 
 public partial class Scheduler(World world)
 {
@@ -24,10 +26,18 @@ public partial class Scheduler(World world)
             var system = entry.System;
             var invoker = GetInvoker(system.GetType());
 
+            // Eğer sistem IUsesCommands arayüzünü de implement etmişse
+            // mecburen Commands property de uyarlamıştır ve yüklenmiş bir Commands nesnesi varsa 
+            // onu enjekte edip kullanıma sunabiliriz.
+            if (system is IUsesCommands usesCommands)
+            {
+                usesCommands.Commands = commands;
+            }
+
             var queryInstance = Activator.CreateInstance(invoker.QueryType, world)!;
             var entities = invoker.GetEntitiesMethod.Invoke(queryInstance, null)!;
 
-            invoker.ApplyMethod.Invoke(system, [entities, commands, _eventBus]);
+            invoker.ApplyMethod.Invoke(system, [entities, _eventBus]);
         }
 
         commands.Flush(world);
